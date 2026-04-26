@@ -94,6 +94,8 @@ bool showDialogue = false;
 std::string dialogueSpeaker;
 std::string dialogueText;
 int openingLine = 0;
+bool hasSeenTutorial = false;
+bool hasCheckedInventoryScene = false;
 
 float cameraYaw = 0.0f;
 
@@ -165,6 +167,19 @@ void changeState(GameState nextState) {
     showQuestLog = false;
 
     resetPlayerForState(nextState);
+}
+
+GameState getVerificationFallbackState() {
+    if (!hasFilledForm) {
+        return FORM_COUNTER;
+    }
+    if (!hasPhysicalCheckProof) {
+        return VEHICLE_CHECK_AREA;
+    }
+    if (!hasValidPhotocopy || !hasCorrectMap) {
+        return SAMSAT_EXTERIOR;
+    }
+    return VERIFICATION_COUNTER;
 }
 
 void addTime(int minutes) {
@@ -532,6 +547,9 @@ void movePlayer(float dx, float dz) {
 
 std::string getInteractionPrompt() {
     if (currentState == SAMSAT_EXTERIOR || currentState == TUTORIAL_CONTROL) {
+        if (currentState == TUTORIAL_CONTROL) {
+            return "Tekan SPACE untuk melihat kontrol, lalu mulai eksplorasi";
+        }
         if (isNear(player.x, player.z, -7.0f, 1.0f, 2.2f)) {
             return "Tekan E untuk bicara dengan Satpam";
         }
@@ -561,6 +579,10 @@ std::string getInteractionPrompt() {
             return "Tekan E untuk kembali ke halaman Samsat";
         }
         return "";
+    }
+
+    if (currentState == INVENTORY_CHECK) {
+        return "Tekan SPACE untuk kembali dan mulai mengumpulkan berkas";
     }
 
     return "";
@@ -636,7 +658,7 @@ void progressWithSpace() {
         }
 
         if (currentState == DIALOG_INFORMATION_OFFICER) {
-            changeState(SAMSAT_EXTERIOR);
+            changeState(INVENTORY_CHECK);
             return;
         }
 
@@ -648,42 +670,68 @@ void progressWithSpace() {
         }
 
         if (currentState == FORM_COUNTER) {
-            changeState(VEHICLE_CHECK_AREA);
+            if (hasFilledForm) {
+                changeState(VEHICLE_CHECK_AREA);
+            } else {
+                changeState(INFORMATION_ROOM);
+            }
             return;
         }
 
         if (currentState == VEHICLE_CHECK_AREA) {
-            changeState(VERIFICATION_COUNTER);
+            if (hasPhysicalCheckProof) {
+                changeState(VERIFICATION_COUNTER);
+            } else {
+                changeState(FORM_COUNTER);
+            }
             return;
         }
 
         if (currentState == VERIFICATION_COUNTER) {
-            changeState(PAYMENT_QUEUE);
+            if (hasVerificationStamp) {
+                changeState(PAYMENT_QUEUE);
+            } else {
+                changeState(getVerificationFallbackState());
+            }
             return;
         }
 
         if (currentState == PAYMENT_QUEUE) {
-            changeState(PAYMENT_COUNTER);
+            if (hasVerificationStamp) {
+                changeState(PAYMENT_COUNTER);
+            } else {
+                changeState(VERIFICATION_COUNTER);
+            }
             return;
         }
 
         if (currentState == PAYMENT_COUNTER) {
-            changeState(VALIDATION_COUNTER);
+            if (hasPaymentProof) {
+                changeState(VALIDATION_COUNTER);
+            }
             return;
         }
 
         if (currentState == VALIDATION_COUNTER) {
-            changeState(STAMP_QUEST);
+            if (hasPaymentProof && hasVerificationStamp) {
+                changeState(STAMP_QUEST);
+            } else {
+                changeState(hasPaymentProof ? VERIFICATION_COUNTER : PAYMENT_COUNTER);
+            }
             return;
         }
 
         if (currentState == STAMP_QUEST) {
-            changeState(VALIDATION_SUCCESS);
+            if (hasStampedDocument) {
+                changeState(VALIDATION_SUCCESS);
+            }
             return;
         }
 
         if (currentState == FINAL_COUNTER_BOSS) {
-            changeState(determineEnding());
+            if (hasFinalSTNK) {
+                changeState(determineEnding());
+            }
             return;
         }
     }
@@ -692,8 +740,18 @@ void progressWithSpace() {
         case OPENING_NARRATION:
             openingLine += 1;
             if (openingLine > 2) {
-                changeState(SAMSAT_EXTERIOR);
+                changeState(TUTORIAL_CONTROL);
             }
+            break;
+
+        case TUTORIAL_CONTROL:
+            hasSeenTutorial = true;
+            changeState(SAMSAT_EXTERIOR);
+            break;
+
+        case INVENTORY_CHECK:
+            hasCheckedInventoryScene = true;
+            changeState(SAMSAT_EXTERIOR);
             break;
 
         case FORM_COUNTER:
@@ -1066,6 +1124,7 @@ void renderCurrent3DState() {
 
         case INFORMATION_ROOM:
         case DIALOG_INFORMATION_OFFICER:
+        case INVENTORY_CHECK:
             drawInformationRoom3D();
             break;
 
@@ -1261,6 +1320,7 @@ void drawDebugOverlay() {
     lines.push_back("CekFisik: " + boolText(hasPhysicalCheckProof));
     lines.push_back("Verify: " + boolText(hasVerificationStamp) + " | Pay: " + boolText(hasPaymentProof));
     lines.push_back("Stamp: " + boolText(hasStampedDocument) + " | STNK: " + boolText(hasFinalSTNK));
+    lines.push_back("Tutorial: " + boolText(hasSeenTutorial) + " | InventoryCheck: " + boolText(hasCheckedInventoryScene));
     lines.push_back("Insider: " + boolText(usedInsider) + " | HelpedNPC: " + boolText(helpedNPCs));
     lines.push_back("SystemFixed: " + boolText(systemFixed));
 
@@ -1275,14 +1335,17 @@ void drawDebugOverlay() {
 std::string getSceneTitle() {
     switch (currentState) {
         case SAMSAT_EXTERIOR:
-        case TUTORIAL_CONTROL:
         case DIALOG_SECURITY_GUARD:
         case QUEUE_MACHINE:
         case MAP_VENDOR:
             return "Halaman Samsat";
+        case TUTORIAL_CONTROL:
+            return "Tutorial Kontrol";
         case INFORMATION_ROOM:
         case DIALOG_INFORMATION_OFFICER:
             return "Ruang Informasi";
+        case INVENTORY_CHECK:
+            return "Pemeriksaan Dokumen";
         case PHOTOCOPY_SHOP:
             return "Fotokopi";
         case FORM_COUNTER:
@@ -1307,6 +1370,33 @@ std::string getSceneTitle() {
             return "Loket Final";
         default:
             return "";
+    }
+}
+
+void drawStateInstructionPanel() {
+    if (currentState == TUTORIAL_CONTROL) {
+        drawPanel(180.0f, 240.0f, 640.0f, 170.0f);
+        setColor(1.0f, 0.9f, 0.2f);
+        drawCenteredText(375.0f, "KONTROL DASAR", GLUT_BITMAP_HELVETICA_18);
+        setColor(1.0f, 1.0f, 1.0f);
+        drawCenteredText(340.0f, "WASD / Arrow Keys: bergerak pada bidang X-Z", GLUT_BITMAP_HELVETICA_18);
+        drawCenteredText(310.0f, "E: interaksi | I: inventory | Q: quest log", GLUT_BITMAP_HELVETICA_18);
+        drawCenteredText(280.0f, "F1-F6: debug shortcut sesuai AGENTS.md", GLUT_BITMAP_HELVETICA_18);
+        setColor(0.8f, 0.8f, 0.8f);
+        drawCenteredText(255.0f, "Tekan SPACE untuk mulai menjelajah area Samsat", GLUT_BITMAP_8_BY_13);
+        return;
+    }
+
+    if (currentState == INVENTORY_CHECK) {
+        drawPanel(170.0f, 210.0f, 660.0f, 220.0f);
+        setColor(1.0f, 0.9f, 0.2f);
+        drawCenteredText(395.0f, "CHECKLIST AWAL BERKAS", GLUT_BITMAP_HELVETICA_18);
+        setColor(1.0f, 1.0f, 1.0f);
+        drawCenteredText(360.0f, "Dokumen dasar sudah aman, tapi proses belum dimulai.", GLUT_BITMAP_HELVETICA_18);
+        drawCenteredText(330.0f, "Cari nomor antrean, map yang benar, dan fotokopi yang valid.", GLUT_BITMAP_HELVETICA_18);
+        drawCenteredText(300.0f, "Setelah itu kembali ke loket formulir untuk lanjut ke cek fisik.", GLUT_BITMAP_HELVETICA_18);
+        setColor(0.8f, 0.8f, 0.8f);
+        drawCenteredText(265.0f, "Tekan SPACE untuk kembali ke halaman depan", GLUT_BITMAP_8_BY_13);
     }
 }
 
@@ -1437,6 +1527,7 @@ void drawOverlayOnlyState() {
 void drawCommonOverlay() {
     drawResourceUI();
     drawSceneHeader();
+    drawStateInstructionPanel();
     drawInteractionPrompt();
     drawDialogueBox();
     drawInventoryOverlay();
@@ -1486,6 +1577,8 @@ void initGame() {
     dialogueSpeaker.clear();
     dialogueText.clear();
     openingLine = 0;
+    hasSeenTutorial = false;
+    hasCheckedInventoryScene = false;
 
     player.speed = 0.65f;
     resetPlayerForState(SAMSAT_EXTERIOR);
