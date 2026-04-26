@@ -96,6 +96,7 @@ std::string dialogueText;
 int openingLine = 0;
 bool hasSeenTutorial = false;
 bool hasCheckedInventoryScene = false;
+bool receivedCorridorAdvice = false;
 
 float cameraYaw = 0.0f;
 
@@ -302,8 +303,7 @@ GameState determineEnding() {
         return ENDING_GIVE_UP;
     }
 
-    if (usedInsider) {
-        hasFinalSTNK = true;
+    if (usedInsider && hasFinalSTNK) {
         return ENDING_FAST_SUCCESS;
     }
 
@@ -320,6 +320,33 @@ GameState determineEnding() {
     }
 
     return ENDING_GIVE_UP;
+}
+
+std::string buildMissingRequirementText() {
+    std::vector<std::string> missing;
+
+    if (!hasQueueNumber) missing.push_back("nomor antrean");
+    if (!hasCorrectMap) missing.push_back("map yang benar");
+    if (!hasFilledForm) missing.push_back("formulir");
+    if (!hasValidPhotocopy) missing.push_back("fotokopi valid");
+    if (!hasPhysicalCheckProof) missing.push_back("bukti cek fisik");
+    if (!hasVerificationStamp) missing.push_back("stempel verifikasi");
+    if (!hasPaymentProof) missing.push_back("bukti pembayaran");
+    if (!hasStampedDocument) missing.push_back("dokumen bermeterai");
+
+    if (missing.empty()) {
+        return "tidak ada";
+    }
+
+    std::ostringstream ss;
+    for (std::size_t i = 0; i < missing.size(); ++i) {
+        if (i > 0) {
+            ss << (i + 1 == missing.size() ? " dan " : ", ");
+        }
+        ss << missing[i];
+    }
+
+    return ss.str();
 }
 
 void processQueueMachine() {
@@ -475,6 +502,29 @@ void processStampQuest() {
     setDialogue("Penjual Warung", "Uang tidak cukup. Takdir tertahan di warung meterai.");
 }
 
+void processCorridorAdvice() {
+    if (!receivedCorridorAdvice) {
+        receivedCorridorAdvice = true;
+        reputation = clampInt(reputation + 5, 0, 100);
+        setDialogue("Antrean Senior", "Pastikan berkasmu rapi. Loket final menyukai urutan lebih dari manusia.");
+        return;
+    }
+
+    setDialogue("Antrean Senior", "Kalau panik, cek lagi map, stempel, dan bukti bayar. Boss final hidup dari detail.");
+}
+
+void processInsiderOffer() {
+    if (usedInsider) {
+        setDialogue("Orang Dalam", "Jalur cepat sudah dibuka. Tinggal lihat apakah hati nuranimu ikut antre.");
+        return;
+    }
+
+    usedInsider = true;
+    moralScore = clampInt(moralScore - 40, 0, 100);
+    reputation = clampInt(reputation - 5, 0, 100);
+    setDialogue("Orang Dalam", "Saya bisa bantu percepat. Berkas nanti dianggap 'sudah dipahami sistem'.");
+}
+
 void processFinalBoss() {
     if (hasAllFinalRequirements()) {
         hasFinalSTNK = true;
@@ -485,8 +535,14 @@ void processFinalBoss() {
         return;
     }
 
+    if (usedInsider) {
+        hasFinalSTNK = true;
+        setDialogue("Petugas Loket Final", "Berkas Anda... diproses khusus. Cepat sekali. Mencurigakan, tapi cepat.");
+        return;
+    }
+
     patience = clampInt(patience - 20, 0, 100);
-    setDialogue("Petugas Loket Final", "Berkas belum lengkap. Boss loket belum bisa ditaklukkan.");
+    setDialogue("Petugas Loket Final", "Masih kurang: " + buildMissingRequirementText() + ".");
 }
 
 float distanceSquared(float ax, float az, float bx, float bz) {
@@ -658,6 +714,12 @@ std::string getInteractionPrompt() {
     }
 
     if (currentState == FINAL_CORRIDOR) {
+        if (isNear(player.x, player.z, -2.5f, -2.0f, 2.3f)) {
+            return "Tekan E untuk bicara dengan Antrean Senior";
+        }
+        if (isNear(player.x, player.z, 2.8f, -3.8f, 2.3f)) {
+            return usedInsider ? "Tekan E untuk cek jalur cepat" : "Tekan E untuk bicara dengan Orang Dalam";
+        }
         if (player.z < -6.0f) {
             return "Tekan E untuk menghadapi loket final";
         }
@@ -801,6 +863,16 @@ void interactCurrentScene() {
     }
 
     if (currentState == FINAL_CORRIDOR) {
+        if (isNear(player.x, player.z, -2.5f, -2.0f, 2.3f)) {
+            processCorridorAdvice();
+            return;
+        }
+
+        if (isNear(player.x, player.z, 2.8f, -3.8f, 2.3f)) {
+            processInsiderOffer();
+            return;
+        }
+
         if (player.z < -6.0f) {
             changeState(FINAL_COUNTER_BOSS);
             return;
@@ -1327,18 +1399,32 @@ void drawFinalCorridor3D() {
     drawCube(4.5f, 2.0f, -1.0f, 0.5f, 4.0f, 16.0f, 0.32f, 0.32f, 0.36f);
     drawCube(0.0f, 3.8f, -1.0f, 9.5f, 0.4f, 16.0f, 0.26f, 0.26f, 0.30f);
     drawCube(0.0f, 1.2f, -8.0f, 4.0f, 2.4f, 0.3f, 0.75f, 0.70f, 0.45f);
+    drawCube(-3.7f, 1.8f, -4.6f, 1.0f, 3.6f, 0.9f, 0.40f, 0.34f, 0.28f);
+    drawCube(3.7f, 1.8f, -4.6f, 1.0f, 3.6f, 0.9f, 0.40f, 0.34f, 0.28f);
+    drawCube(-3.5f, 3.3f, -1.5f, 0.5f, 0.3f, 0.5f, 0.85f, 0.82f, 0.60f);
+    drawCube(3.5f, 3.3f, -1.5f, 0.5f, 0.3f, 0.5f, 0.85f, 0.82f, 0.60f);
+    drawCube(-3.5f, 3.3f, -6.0f, 0.5f, 0.3f, 0.5f, 0.85f, 0.82f, 0.60f);
+    drawCube(3.5f, 3.3f, -6.0f, 0.5f, 0.3f, 0.5f, 0.85f, 0.82f, 0.60f);
+    drawCube(0.0f, 0.03f, -6.5f, 3.6f, 0.02f, 1.2f, 0.90f, 0.82f, 0.20f);
     drawNPC3D(-2.5f, -2.0f, 0.55f, 0.42f, 0.70f);
+    drawNPC3D(2.8f, -3.8f, 0.35f, 0.05f, 0.05f);
     drawPlayer3D(player.x, player.z);
 }
 
 void drawFinalBoss3D() {
     drawGround(18.0f, 0.18f, 0.18f, 0.22f);
     drawRoomFrame(9.0f, 8.0f, 5.0f, 0.28f, 0.28f, 0.32f);
-    drawCube(0.0f, 1.0f, -4.5f, 7.0f, 1.2f, 1.5f, 0.35f, 0.20f, 0.20f);
-    drawCube(-6.0f, 2.0f, -4.0f, 1.5f, 4.0f, 2.0f, 0.38f, 0.32f, 0.26f);
-    drawCube(6.0f, 2.0f, -4.0f, 1.5f, 4.0f, 2.0f, 0.38f, 0.32f, 0.26f);
-    drawCube(1.8f, 1.5f, -3.9f, 1.0f, 0.6f, 0.7f, 0.12f, 0.12f, 0.15f);
-    drawCube(3.2f, 0.7f, -3.7f, 0.9f, 0.2f, 0.9f, 0.55f, 0.00f, 0.00f);
+    drawCube(0.0f, 1.0f, -4.5f, 8.0f, 1.3f, 1.6f, 0.35f, 0.20f, 0.20f);
+    drawCube(-6.2f, 2.0f, -4.2f, 1.5f, 4.0f, 2.0f, 0.38f, 0.32f, 0.26f);
+    drawCube(6.2f, 2.0f, -4.2f, 1.5f, 4.0f, 2.0f, 0.38f, 0.32f, 0.26f);
+    drawCube(0.0f, 4.2f, -7.4f, 6.5f, 0.25f, 0.4f, 0.55f, 0.18f, 0.18f);
+    drawCube(1.6f, 1.6f, -3.9f, 1.2f, 0.7f, 0.8f, 0.12f, 0.12f, 0.15f);
+    drawCube(3.3f, 0.75f, -3.7f, 1.0f, 0.25f, 1.0f, 0.55f, 0.00f, 0.00f);
+    drawCube(-2.5f, 1.15f, -3.8f, 1.0f, 0.4f, 0.8f, 0.72f, 0.72f, 0.76f);
+    drawDocumentPile(-0.8f, 1.12f, -3.6f, 0.90f, 0.88f, 0.82f);
+    drawDocumentPile(-5.9f, 0.8f, -2.8f, 0.84f, 0.84f, 0.82f);
+    drawDocumentPile(5.8f, 0.8f, -2.8f, 0.84f, 0.84f, 0.82f);
+    drawCounterStamp(3.1f, -3.7f, 0.60f, 0.00f, 0.00f);
     drawNPC3D(0.0f, -5.5f, 0.10f, 0.20f, 0.60f);
     drawPlayer3D(player.x, player.z);
 }
@@ -1552,6 +1638,7 @@ void drawDebugOverlay() {
     lines.push_back("Verify: " + boolText(hasVerificationStamp) + " | Pay: " + boolText(hasPaymentProof));
     lines.push_back("Stamp: " + boolText(hasStampedDocument) + " | STNK: " + boolText(hasFinalSTNK));
     lines.push_back("Tutorial: " + boolText(hasSeenTutorial) + " | InventoryCheck: " + boolText(hasCheckedInventoryScene));
+    lines.push_back("CorridorAdvice: " + boolText(receivedCorridorAdvice));
     lines.push_back("Insider: " + boolText(usedInsider) + " | HelpedNPC: " + boolText(helpedNPCs));
     lines.push_back("SystemFixed: " + boolText(systemFixed));
 
@@ -1625,10 +1712,12 @@ std::string getSceneObjective() {
             return hasStampedDocument ? "Dokumen sudah bermeterai. Tekan SPACE untuk lanjut." :
                                         "Dekati penjual meterai lalu tekan E.";
         case FINAL_CORRIDOR:
-            return "Berjalan ke ujung lorong untuk mencapai loket final.";
+            return usedInsider ? "Jalur cepat terbuka. Anda masih bisa bicara dengan senior atau maju ke loket final." :
+                                 "Cari info terakhir atau jalur cepat sebelum ke loket final.";
         case FINAL_COUNTER_BOSS:
             return hasFinalSTNK ? "STNK sudah terbit. Tekan SPACE untuk menentukan ending." :
-                                  "Dekati loket final lalu tekan E untuk pemeriksaan akhir.";
+                                  (usedInsider ? "Dekati loket final untuk memproses jalur cepat." :
+                                                 "Dekati loket final lalu tekan E untuk pemeriksaan akhir.");
         default:
             return "";
     }
@@ -1852,6 +1941,7 @@ void initGame() {
     openingLine = 0;
     hasSeenTutorial = false;
     hasCheckedInventoryScene = false;
+    receivedCorridorAdvice = false;
 
     player.speed = 0.65f;
     resetPlayerForState(SAMSAT_EXTERIOR);
