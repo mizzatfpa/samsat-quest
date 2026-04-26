@@ -244,6 +244,27 @@ bool isOverlayOnlyState(GameState state) {
            state == CREDIT_SCENE;
 }
 
+bool isWalkable3DState(GameState state) {
+    switch (state) {
+        case SAMSAT_EXTERIOR:
+        case TUTORIAL_CONTROL:
+        case INFORMATION_ROOM:
+        case FORM_COUNTER:
+        case VEHICLE_CHECK_AREA:
+        case VERIFICATION_COUNTER:
+        case PAYMENT_QUEUE:
+        case PAYMENT_COUNTER:
+        case VALIDATION_COUNTER:
+        case STAMP_QUEST:
+        case VALIDATION_SUCCESS:
+        case FINAL_CORRIDOR:
+        case FINAL_COUNTER_BOSS:
+            return true;
+        default:
+            return false;
+    }
+}
+
 void setDialogue(const std::string& speaker, const std::string& text) {
     dialogueSpeaker = speaker;
     dialogueText = text;
@@ -528,9 +549,7 @@ void movePlayer(float dx, float dz) {
         return;
     }
 
-    if (currentState != SAMSAT_EXTERIOR &&
-        currentState != TUTORIAL_CONTROL &&
-        currentState != INFORMATION_ROOM) {
+    if (!isWalkable3DState(currentState)) {
         return;
     }
 
@@ -583,6 +602,73 @@ std::string getInteractionPrompt() {
 
     if (currentState == INVENTORY_CHECK) {
         return "Tekan SPACE untuk kembali dan mulai mengumpulkan berkas";
+    }
+
+    if (currentState == FORM_COUNTER) {
+        if (isNear(player.x, player.z, 0.0f, -4.0f, 2.2f)) {
+            return "Tekan E di loket formulir";
+        }
+        return "Dekati loket formulir untuk memproses berkas";
+    }
+
+    if (currentState == VEHICLE_CHECK_AREA) {
+        if (isNear(player.x, player.z, 4.5f, -1.5f, 2.5f) || isNear(player.x, player.z, 0.0f, 1.5f, 2.5f)) {
+            return "Tekan E untuk proses cek fisik kendaraan";
+        }
+        return "Dekati kendaraan atau petugas cek fisik";
+    }
+
+    if (currentState == VERIFICATION_COUNTER) {
+        if (isNear(player.x, player.z, 0.0f, -4.0f, 2.2f)) {
+            return "Tekan E di loket verifikasi";
+        }
+        return "Dekati loket verifikasi";
+    }
+
+    if (currentState == PAYMENT_QUEUE) {
+        if (isNear(player.x, player.z, 0.0f, 2.5f, 3.6f)) {
+            return "Tekan E untuk ikut antre pembayaran";
+        }
+        return "Dekati garis antrean pembayaran";
+    }
+
+    if (currentState == PAYMENT_COUNTER) {
+        if (isNear(player.x, player.z, 0.0f, -4.0f, 2.2f)) {
+            return "Tekan E di loket pembayaran";
+        }
+        return "Dekati loket pembayaran";
+    }
+
+    if (currentState == VALIDATION_COUNTER) {
+        if (isNear(player.x, player.z, 0.0f, -4.0f, 2.2f)) {
+            return "Tekan E di loket validasi";
+        }
+        return "Dekati loket validasi";
+    }
+
+    if (currentState == STAMP_QUEST) {
+        if (isNear(player.x, player.z, 3.5f, -2.0f, 2.3f)) {
+            return "Tekan E untuk membeli dan menempel meterai";
+        }
+        return "Dekati penjual meterai";
+    }
+
+    if (currentState == VALIDATION_SUCCESS) {
+        return "Tekan SPACE untuk lanjut ke lorong final";
+    }
+
+    if (currentState == FINAL_CORRIDOR) {
+        if (player.z < -6.0f) {
+            return "Tekan E untuk menghadapi loket final";
+        }
+        return "Berjalan ke ujung lorong lalu tekan E";
+    }
+
+    if (currentState == FINAL_COUNTER_BOSS) {
+        if (isNear(player.x, player.z, 0.0f, -5.5f, 2.3f)) {
+            return "Tekan E di loket final";
+        }
+        return "Dekati boss loket final";
     }
 
     return "";
@@ -641,6 +727,97 @@ void interactCurrentScene() {
         }
 
         setDialogue("Sistem", "Dekati petugas atau loket formulir.");
+        return;
+    }
+
+    if (currentState == FORM_COUNTER) {
+        if (isNear(player.x, player.z, 0.0f, -4.0f, 2.2f)) {
+            processFormCounter();
+            return;
+        }
+
+        setDialogue("Sistem", "Dekati loket formulir dulu.");
+        return;
+    }
+
+    if (currentState == VEHICLE_CHECK_AREA) {
+        if (isNear(player.x, player.z, 4.5f, -1.5f, 2.5f) || isNear(player.x, player.z, 0.0f, 1.5f, 2.5f)) {
+            processVehicleCheck();
+            return;
+        }
+
+        setDialogue("Sistem", "Dekati kendaraan atau petugas cek fisik.");
+        return;
+    }
+
+    if (currentState == VERIFICATION_COUNTER) {
+        if (isNear(player.x, player.z, 0.0f, -4.0f, 2.2f)) {
+            processVerification();
+            return;
+        }
+
+        setDialogue("Sistem", "Dekati loket verifikasi terlebih dahulu.");
+        return;
+    }
+
+    if (currentState == PAYMENT_QUEUE) {
+        if (isNear(player.x, player.z, 0.0f, 2.5f, 3.6f)) {
+            processPaymentQueue();
+            return;
+        }
+
+        setDialogue("Sistem", "Masuk dulu ke area antrean pembayaran.");
+        return;
+    }
+
+    if (currentState == PAYMENT_COUNTER) {
+        if (isNear(player.x, player.z, 0.0f, -4.0f, 2.2f)) {
+            processPaymentCounter();
+            return;
+        }
+
+        setDialogue("Sistem", "Dekati loket pembayaran terlebih dahulu.");
+        return;
+    }
+
+    if (currentState == VALIDATION_COUNTER) {
+        if (isNear(player.x, player.z, 0.0f, -4.0f, 2.2f)) {
+            processValidationCounter();
+            return;
+        }
+
+        setDialogue("Sistem", "Dekati loket validasi terlebih dahulu.");
+        return;
+    }
+
+    if (currentState == STAMP_QUEST) {
+        if (isNear(player.x, player.z, 3.5f, -2.0f, 2.3f)) {
+            processStampQuest();
+            return;
+        }
+
+        setDialogue("Sistem", "Dekati penjual meterai.");
+        return;
+    }
+
+    if (currentState == FINAL_CORRIDOR) {
+        if (player.z < -6.0f) {
+            changeState(FINAL_COUNTER_BOSS);
+            return;
+        }
+
+        setDialogue("Sistem", "Ujung lorong final masih di depan.");
+        return;
+    }
+
+    if (currentState == FINAL_COUNTER_BOSS) {
+        if (isNear(player.x, player.z, 0.0f, -5.5f, 2.3f)) {
+            processFinalBoss();
+            return;
+        }
+
+        setDialogue("Sistem", "Dekati loket final untuk menyerahkan semua berkas.");
+        return;
     }
 }
 
@@ -755,31 +932,24 @@ void progressWithSpace() {
             break;
 
         case FORM_COUNTER:
-            processFormCounter();
             break;
 
         case VEHICLE_CHECK_AREA:
-            processVehicleCheck();
             break;
 
         case VERIFICATION_COUNTER:
-            processVerification();
             break;
 
         case PAYMENT_QUEUE:
-            processPaymentQueue();
             break;
 
         case PAYMENT_COUNTER:
-            processPaymentCounter();
             break;
 
         case VALIDATION_COUNTER:
-            processValidationCounter();
             break;
 
         case STAMP_QUEST:
-            processStampQuest();
             break;
 
         case VALIDATION_SUCCESS:
@@ -787,11 +957,9 @@ void progressWithSpace() {
             break;
 
         case FINAL_CORRIDOR:
-            changeState(FINAL_COUNTER_BOSS);
             break;
 
         case FINAL_COUNTER_BOSS:
-            processFinalBoss();
             break;
 
         case ENDING_CLEAN_SUCCESS:
