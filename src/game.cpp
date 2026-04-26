@@ -195,9 +195,20 @@ void addTime(int minutes) {
     }
 
     if (timeHour >= 15) {
+        timeHour = 15;
+        timeMinute = 0;
         patience = 0;
-        currentState = ENDING_GIVE_UP;
+        if (currentState != ENDING_GIVE_UP &&
+            currentState != CREDIT_SCENE &&
+            currentState != TITLE_SCREEN) {
+            changeState(ENDING_GIVE_UP);
+        }
     }
+}
+
+int minutesUntilClosing() {
+    const int minutesLeft = ((15 - timeHour) * 60) - timeMinute;
+    return std::max(0, minutesLeft);
 }
 
 std::string boolText(bool value) {
@@ -528,7 +539,6 @@ void processStampQuest() {
     if (money >= 10000) {
         money -= 10000;
         hasStampedDocument = true;
-        helpedNPCs = true;
         reputation = clampInt(reputation + 10, 0, 100);
         addTime(15);
         setDialogue("Penjual Warung", "Meterai terpasang rapi. Cukup lurus untuk menenangkan prosedur.");
@@ -542,6 +552,7 @@ void processStampQuest() {
 void processCorridorAdvice() {
     if (!receivedCorridorAdvice) {
         receivedCorridorAdvice = true;
+        helpedNPCs = true;
         reputation = clampInt(reputation + 5, 0, 100);
         setDialogue("Antrean Senior", "Pastikan berkasmu rapi. Loket final menyukai urutan lebih dari manusia.");
         return;
@@ -571,7 +582,11 @@ void processFinalBoss() {
     if (hasAllFinalRequirements()) {
         hasFinalSTNK = true;
         reputation = clampInt(reputation + 5, 0, 100);
-        if (reputation >= 80 && moralScore >= 90) {
+        if (reputation >= 80 &&
+            moralScore >= 90 &&
+            metSecurityGuard &&
+            metInformationOfficer &&
+            receivedCorridorAdvice) {
             systemFixed = true;
         }
         setDialogue("Petugas Loket Final", "Selamat. STNK selesai. Untuk hari ini, Anda lebih kuat dari sistem.");
@@ -770,6 +785,9 @@ std::string getInteractionPrompt() {
     }
 
     if (currentState == FINAL_COUNTER_BOSS) {
+        if (player.z > 6.0f) {
+            return "Tekan E untuk kembali ke lorong final";
+        }
         if (isNear(player.x, player.z, 0.0f, -5.5f, 2.3f)) {
             return "Tekan E di loket final";
         }
@@ -926,6 +944,11 @@ void interactCurrentScene() {
     }
 
     if (currentState == FINAL_COUNTER_BOSS) {
+        if (player.z > 6.0f) {
+            changeState(FINAL_CORRIDOR);
+            return;
+        }
+
         if (isNear(player.x, player.z, 0.0f, -5.5f, 2.3f)) {
             processFinalBoss();
             return;
@@ -1675,6 +1698,12 @@ void drawDebugOverlay() {
         lines.push_back(ss.str());
     }
 
+    {
+        std::stringstream ss;
+        ss << "TimeLeft: " << minutesUntilClosing() << " mins";
+        lines.push_back(ss.str());
+    }
+
     lines.push_back("Queue: " + boolText(hasQueueNumber) + " | Map: " + boolText(hasCorrectMap));
     lines.push_back("Photo: " + boolText(hasValidPhotocopy) + " | Form: " + boolText(hasFilledForm));
     lines.push_back("CekFisik: " + boolText(hasPhysicalCheckProof));
@@ -1685,6 +1714,7 @@ void drawDebugOverlay() {
     lines.push_back("StampReq: " + boolText(receivedStampRequirement));
     lines.push_back("Insider: " + boolText(usedInsider) + " | HelpedNPC: " + boolText(helpedNPCs));
     lines.push_back("SystemFixed: " + boolText(systemFixed));
+    lines.push_back("AllFinalReq: " + boolText(hasAllFinalRequirements()));
 
     setColor(1.0f, 1.0f, 1.0f);
     float y = 325.0f;
@@ -1761,7 +1791,9 @@ std::string getSceneObjective() {
         case FINAL_COUNTER_BOSS:
             return hasFinalSTNK ? "STNK sudah terbit. Tekan SPACE untuk menentukan ending." :
                                   (usedInsider ? "Dekati loket final untuk memproses jalur cepat." :
-                                                 "Dekati loket final lalu tekan E untuk pemeriksaan akhir.");
+                                                 (hasAllFinalRequirements() ?
+                                                  "Berkas final lengkap. Dekati loket final lalu tekan E." :
+                                                  "Lengkapi berkas final dulu, lalu kembali ke loket final."));
         default:
             return "";
     }
@@ -2121,7 +2153,7 @@ void keyboard(unsigned char key, int, int) {
             break;
     }
 
-    if (patience <= 0 &&
+    if ((patience <= 0 || timeHour >= 15) &&
         currentState != ENDING_GIVE_UP &&
         currentState != CREDIT_SCENE &&
         currentState != TITLE_SCREEN) {
@@ -2163,6 +2195,13 @@ void specialInput(int key, int, int) {
             break;
 
         case GLUT_KEY_F4:
+            patience = 100;
+            stamina = 100;
+            money = std::max(money, 50000);
+            reputation = 55;
+            moralScore = 100;
+            timeHour = 9;
+            timeMinute = 0;
             hasQueueNumber = true;
             hasCorrectMap = true;
             hasValidPhotocopy = true;
@@ -2172,6 +2211,11 @@ void specialInput(int key, int, int) {
             hasVerificationStamp = true;
             hasPaymentProof = true;
             hasStampedDocument = true;
+            hasFinalSTNK = false;
+            usedInsider = false;
+            helpedNPCs = false;
+            systemFixed = false;
+            receivedCorridorAdvice = false;
             changeState(FINAL_COUNTER_BOSS);
             break;
 
