@@ -1088,6 +1088,16 @@ void drawQueueMarker(float x, float z) {
     drawCube(x, 0.05f, z, 0.9f, 0.02f, 2.2f, 0.95f, 0.90f, 0.25f);
 }
 
+void drawDocumentPile(float x, float y, float z, float r, float g, float b) {
+    drawCube(x, y, z, 0.9f, 0.10f, 0.7f, r, g, b);
+    drawCube(x + 0.10f, y + 0.10f, z - 0.05f, 0.9f, 0.08f, 0.7f, r + 0.05f, g + 0.05f, b + 0.05f);
+}
+
+void drawCounterStamp(float x, float z, float r, float g, float b) {
+    drawCube(x, 1.10f, z, 0.45f, 0.75f, 0.45f, r, g, b);
+    drawCube(x, 0.72f, z, 0.85f, 0.18f, 0.85f, r * 0.8f, g * 0.8f, b * 0.8f);
+}
+
 void setupCamera() {
     float camX = 0.0f;
     float camY = 8.0f;
@@ -1213,6 +1223,59 @@ void drawGenericCounterScene3D(float accentR, float accentG, float accentB, bool
     }
 }
 
+void drawFormCounter3D() {
+    drawGround(16.0f, 0.52f, 0.52f, 0.56f);
+    drawRoomFrame(8.0f, 7.0f, 4.5f, 0.70f, 0.70f, 0.74f);
+    drawCube(0.0f, 0.85f, -3.0f, 6.4f, 1.1f, 1.4f, 0.44f, 0.32f, 0.22f);
+    drawCube(0.0f, 1.70f, -4.7f, 5.4f, 1.4f, 0.3f, 0.20f, 0.36f, 0.78f);
+    drawDocumentPile(-2.2f, 1.15f, -2.7f, 0.90f, 0.90f, 0.92f);
+    drawDocumentPile(2.0f, 1.15f, -2.8f, 0.86f, 0.86f, 0.88f);
+    drawCube(4.8f, 1.6f, -4.5f, 1.1f, 3.2f, 0.8f, 0.55f, 0.55f, 0.60f);
+    drawCube(-4.8f, 1.6f, -4.5f, 1.1f, 3.2f, 0.8f, 0.55f, 0.55f, 0.60f);
+    drawNPC3D(0.0f, -4.0f, 0.18f, 0.36f, 0.82f);
+    drawPlayer3D(player.x, player.z);
+}
+
+void drawVerificationCounter3D() {
+    drawGround(16.0f, 0.42f, 0.44f, 0.48f);
+    drawRoomFrame(8.0f, 7.0f, 4.5f, 0.64f, 0.66f, 0.70f);
+    drawCube(0.0f, 0.90f, -3.0f, 6.2f, 1.2f, 1.4f, 0.42f, 0.34f, 0.24f);
+    drawCube(0.0f, 1.70f, -4.7f, 5.4f, 1.5f, 0.3f, 0.32f, 0.42f, 0.52f);
+    drawDocumentPile(-2.4f, 1.12f, -2.7f, 0.88f, 0.84f, 0.65f);
+    drawDocumentPile(2.3f, 1.12f, -2.8f, 0.84f, 0.90f, 0.84f);
+    drawCounterStamp(0.0f, -2.5f, 0.55f, 0.05f, 0.05f);
+    drawCube(-5.2f, 2.0f, -4.4f, 1.3f, 4.0f, 1.0f, 0.44f, 0.40f, 0.34f);
+    drawCube(5.2f, 2.0f, -4.4f, 1.3f, 4.0f, 1.0f, 0.44f, 0.40f, 0.34f);
+    drawNPC3D(0.0f, -4.0f, 0.16f, 0.34f, 0.74f);
+    drawPlayer3D(player.x, player.z);
+}
+
+void drawPaymentCounter3D() {
+    drawGround(16.0f, 0.50f, 0.48f, 0.44f);
+    drawRoomFrame(8.0f, 7.0f, 4.5f, 0.68f, 0.66f, 0.62f);
+    drawCube(0.0f, 0.90f, -3.0f, 6.4f, 1.2f, 1.4f, 0.48f, 0.36f, 0.22f);
+    drawCube(0.0f, 2.05f, -3.5f, 5.2f, 0.15f, 0.1f, 0.76f, 0.84f, 0.90f);
+    drawCube(0.0f, 1.72f, -4.7f, 5.4f, 1.5f, 0.3f, 0.58f, 0.38f, 0.16f);
+    drawCube(-1.8f, 1.18f, -2.7f, 0.8f, 0.45f, 0.8f, 0.14f, 0.14f, 0.16f);
+    drawDocumentPile(2.0f, 1.12f, -2.7f, 0.92f, 0.92f, 0.88f);
+    drawCube(4.7f, 1.10f, -2.8f, 1.2f, 1.8f, 1.0f, 0.54f, 0.52f, 0.48f);
+    drawNPC3D(0.0f, -4.0f, 0.16f, 0.28f, 0.68f);
+    drawPlayer3D(player.x, player.z);
+}
+
+void drawValidationCounter3D() {
+    drawGround(16.0f, 0.44f, 0.40f, 0.40f);
+    drawRoomFrame(8.0f, 7.0f, 4.5f, 0.66f, 0.62f, 0.62f);
+    drawCube(0.0f, 0.90f, -3.0f, 6.4f, 1.2f, 1.4f, 0.42f, 0.32f, 0.22f);
+    drawCube(0.0f, 1.72f, -4.7f, 5.4f, 1.5f, 0.3f, 0.62f, 0.10f, 0.10f);
+    drawCounterStamp(-1.2f, -2.5f, 0.65f, 0.00f, 0.00f);
+    drawCounterStamp(1.6f, -2.6f, 0.12f, 0.12f, 0.12f);
+    drawDocumentPile(2.8f, 1.10f, -2.7f, 0.90f, 0.88f, 0.82f);
+    drawCube(-4.8f, 1.7f, -4.4f, 1.2f, 3.4f, 0.9f, 0.48f, 0.42f, 0.34f);
+    drawNPC3D(0.0f, -4.0f, 0.14f, 0.26f, 0.62f);
+    drawPlayer3D(player.x, player.z);
+}
+
 void drawPhotocopyShop3D() {
     drawGround(16.0f, 0.78f, 0.72f, 0.58f);
     drawRoomFrame(8.0f, 7.0f, 4.0f, 0.72f, 0.72f, 0.74f);
@@ -1301,7 +1364,7 @@ void renderCurrent3DState() {
             break;
 
         case FORM_COUNTER:
-            drawGenericCounterScene3D(0.20f, 0.36f, 0.78f);
+            drawFormCounter3D();
             break;
 
         case VEHICLE_CHECK_AREA:
@@ -1309,7 +1372,7 @@ void renderCurrent3DState() {
             break;
 
         case VERIFICATION_COUNTER:
-            drawGenericCounterScene3D(0.32f, 0.42f, 0.52f);
+            drawVerificationCounter3D();
             break;
 
         case PAYMENT_QUEUE:
@@ -1317,11 +1380,11 @@ void renderCurrent3DState() {
             break;
 
         case PAYMENT_COUNTER:
-            drawGenericCounterScene3D(0.58f, 0.38f, 0.16f);
+            drawPaymentCounter3D();
             break;
 
         case VALIDATION_COUNTER:
-            drawGenericCounterScene3D(0.62f, 0.10f, 0.10f);
+            drawValidationCounter3D();
             break;
 
         case STAMP_QUEST:
@@ -1541,6 +1604,36 @@ std::string getSceneTitle() {
     }
 }
 
+std::string getSceneObjective() {
+    switch (currentState) {
+        case FORM_COUNTER:
+            return hasFilledForm ? "Formulir selesai. Tekan SPACE untuk lanjut ke cek fisik." :
+                                   "Dekati loket lalu tekan E untuk mengambil dan mengisi formulir.";
+        case VERIFICATION_COUNTER:
+            return hasVerificationStamp ? "Verifikasi selesai. Tekan SPACE untuk lanjut ke antrean pembayaran." :
+                                          "Susun berkas lalu tekan E di loket verifikasi.";
+        case PAYMENT_QUEUE:
+            return "Masuk ke antrean dan tekan E untuk menunggu giliran.";
+        case PAYMENT_COUNTER:
+            return hasPaymentProof ? "Pembayaran selesai. Tekan SPACE untuk menuju validasi." :
+                                     "Dekati loket pembayaran lalu tekan E.";
+        case VALIDATION_COUNTER:
+            return (hasPaymentProof && hasVerificationStamp) ?
+                   "Validasi meminta meterai. Tekan SPACE untuk lanjut." :
+                   "Lengkapi bukti bayar dan verifikasi, lalu tekan E di loket.";
+        case STAMP_QUEST:
+            return hasStampedDocument ? "Dokumen sudah bermeterai. Tekan SPACE untuk lanjut." :
+                                        "Dekati penjual meterai lalu tekan E.";
+        case FINAL_CORRIDOR:
+            return "Berjalan ke ujung lorong untuk mencapai loket final.";
+        case FINAL_COUNTER_BOSS:
+            return hasFinalSTNK ? "STNK sudah terbit. Tekan SPACE untuk menentukan ending." :
+                                  "Dekati loket final lalu tekan E untuk pemeriksaan akhir.";
+        default:
+            return "";
+    }
+}
+
 void drawStateInstructionPanel() {
     if (currentState == TUTORIAL_CONTROL) {
         drawPanel(180.0f, 240.0f, 640.0f, 170.0f);
@@ -1588,6 +1681,17 @@ void drawSceneHeader() {
     drawPanel(16.0f, 16.0f, 235.0f, 52.0f);
     setColor(1.0f, 0.9f, 0.2f);
     drawText(28.0f, 45.0f, title, GLUT_BITMAP_HELVETICA_18);
+}
+
+void drawSceneObjective() {
+    const std::string objective = getSceneObjective();
+    if (objective.empty()) {
+        return;
+    }
+
+    drawPanel(270.0f, 16.0f, 470.0f, 52.0f);
+    setColor(1.0f, 1.0f, 1.0f);
+    drawText(286.0f, 45.0f, objective, GLUT_BITMAP_8_BY_13);
 }
 
 void drawTitleScreen() {
@@ -1695,6 +1799,7 @@ void drawOverlayOnlyState() {
 void drawCommonOverlay() {
     drawResourceUI();
     drawSceneHeader();
+    drawSceneObjective();
     drawStateInstructionPanel();
     drawInteractionPrompt();
     drawDialogueBox();
