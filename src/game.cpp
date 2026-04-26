@@ -85,6 +85,7 @@ bool hasFinalSTNK = false;
 bool usedInsider = false;
 bool helpedNPCs = false;
 bool systemFixed = false;
+bool hasQueuedPaymentLine = false;
 
 bool showInventory = false;
 bool showQuestLog = false;
@@ -340,6 +341,14 @@ bool isOverlayOnlyState(GameState state) {
            state == CREDIT_SCENE;
 }
 
+bool isEndingState(GameState state) {
+    return state == ENDING_CLEAN_SUCCESS ||
+           state == ENDING_FAST_SUCCESS ||
+           state == ENDING_SAMSAT_LEGEND ||
+           state == ENDING_GIVE_UP ||
+           state == ENDING_MAP_REVOLUTION;
+}
+
 bool isWalkable3DState(GameState state) {
     switch (state) {
         case SAMSAT_EXTERIOR:
@@ -424,6 +433,13 @@ GameState determineEnding() {
     }
 
     return ENDING_GIVE_UP;
+}
+
+std::string getProjectedEndingText() {
+    if (!hasFinalSTNK) {
+        return "N/A";
+    }
+    return stateToString(determineEnding());
 }
 
 std::string buildMissingRequirementText() {
@@ -560,16 +576,22 @@ void processVerification() {
 }
 
 void processPaymentQueue() {
-    if (hasVerificationStamp) {
-        patience = clampInt(patience - 5, 0, 100);
-        stamina = clampInt(stamina - 10, 0, 100);
-        addTime(30);
-        setDialogue("Antrean", "Antrean maju sedikit. Secara emosional, itu sudah pencapaian.");
+    if (!hasVerificationStamp) {
+        patience = clampInt(patience - 10, 0, 100);
+        setDialogue("Antrean", "Anda belum diverifikasi. Bahkan antrean punya standar.");
         return;
     }
 
-    patience = clampInt(patience - 10, 0, 100);
-    setDialogue("Antrean", "Anda belum diverifikasi. Bahkan antrean punya standar.");
+    if (hasQueuedPaymentLine) {
+        setDialogue("Antrean", "Anda sudah antre dengan benar. Tekan SPACE untuk lanjut ke loket pembayaran.");
+        return;
+    }
+
+    hasQueuedPaymentLine = true;
+    patience = clampInt(patience - 5, 0, 100);
+    stamina = clampInt(stamina - 10, 0, 100);
+    addTime(30);
+    setDialogue("Antrean", "Antrean maju sedikit. Secara emosional, itu sudah pencapaian.");
 }
 
 void processPaymentCounter() {
@@ -821,6 +843,9 @@ std::string getInteractionPrompt() {
     }
 
     if (currentState == PAYMENT_QUEUE) {
+        if (hasQueuedPaymentLine) {
+            return "Tekan SPACE untuk maju ke loket pembayaran";
+        }
         if (isNear(player.x, player.z, 0.0f, 2.5f, 3.6f)) {
             return "Tekan E untuk ikut antre pembayaran";
         }
@@ -1093,10 +1118,12 @@ void progressWithSpace() {
         }
 
         if (currentState == PAYMENT_QUEUE) {
-            if (hasVerificationStamp) {
+            if (!hasVerificationStamp) {
+                changeState(VERIFICATION_COUNTER);
+            } else if (hasQueuedPaymentLine) {
                 changeState(PAYMENT_COUNTER);
             } else {
-                changeState(VERIFICATION_COUNTER);
+                setDialogue("Sistem", "Masuk ke area antrean lalu tekan E agar antrean benar-benar diproses.");
             }
             return;
         }
@@ -1799,6 +1826,7 @@ void drawDebugOverlay() {
     lines.push_back("CanFast: " + boolText(canQualifyForFastEnding()) +
                     " | CanLegend: " + boolText(canQualifyForLegendEnding()));
     lines.push_back("CanRevolution: " + boolText(canQualifyForRevolutionEnding()));
+    lines.push_back("ProjectedEnding: " + getProjectedEndingText());
 
     setColor(1.0f, 1.0f, 1.0f);
     float y = 325.0f;
@@ -1905,7 +1933,8 @@ std::string getSceneObjective() {
             return hasVerificationStamp ? "Verifikasi selesai. Tekan SPACE untuk lanjut ke antrean pembayaran." :
                                           "Susun berkas lalu tekan E di loket verifikasi.";
         case PAYMENT_QUEUE:
-            return "Masuk ke antrean dan tekan E untuk menunggu giliran.";
+            return hasQueuedPaymentLine ? "Antrean sudah diproses. Tekan SPACE untuk lanjut ke loket pembayaran." :
+                                          "Masuk ke antrean dan tekan E untuk menunggu giliran.";
         case PAYMENT_COUNTER:
             return hasPaymentProof ? "Pembayaran selesai. Tekan SPACE untuk menuju validasi." :
                                      "Dekati loket pembayaran lalu tekan E.";
@@ -2164,6 +2193,7 @@ void initGame() {
     hasPaymentProof = false;
     hasStampedDocument = false;
     hasFinalSTNK = false;
+    hasQueuedPaymentLine = false;
 
     usedInsider = false;
     helpedNPCs = false;
@@ -2232,6 +2262,8 @@ void keyboard(unsigned char key, int, int) {
                 showQuestLog = false;
             } else if (handleBackNavigation()) {
                 showDialogue = false;
+            } else if (currentState == CREDIT_SCENE || isEndingState(currentState)) {
+                initGame();
             } else {
                 std::exit(0);
             }
@@ -2346,6 +2378,7 @@ void specialInput(int key, int, int) {
             hasFilledForm = true;
             hasPhysicalCheckProof = true;
             hasVerificationStamp = true;
+            hasQueuedPaymentLine = true;
             hasPaymentProof = true;
             hasStampedDocument = true;
             hasFinalSTNK = false;
