@@ -211,6 +211,87 @@ int minutesUntilClosing() {
     return std::max(0, minutesLeft);
 }
 
+bool canQualifyForFastEnding() {
+    return usedInsider;
+}
+
+bool canQualifyForLegendEnding() {
+    return helpedNPCs && reputation >= 60;
+}
+
+bool canQualifyForRevolutionEnding() {
+    return !usedInsider &&
+           reputation >= 80 &&
+           moralScore >= 90 &&
+           metSecurityGuard &&
+           metInformationOfficer &&
+           receivedCorridorAdvice;
+}
+
+bool handleBackNavigation() {
+    switch (currentState) {
+        case DIALOG_SECURITY_GUARD:
+        case QUEUE_MACHINE:
+        case MAP_VENDOR:
+        case PHOTOCOPY_SHOP:
+        case TUTORIAL_CONTROL:
+            changeState(SAMSAT_EXTERIOR);
+            return true;
+
+        case INFORMATION_ROOM:
+            changeState(SAMSAT_EXTERIOR);
+            return true;
+
+        case DIALOG_INFORMATION_OFFICER:
+        case INVENTORY_CHECK:
+            changeState(INFORMATION_ROOM);
+            return true;
+
+        case FORM_COUNTER:
+            changeState(INFORMATION_ROOM);
+            return true;
+
+        case VEHICLE_CHECK_AREA:
+            changeState(FORM_COUNTER);
+            return true;
+
+        case VERIFICATION_COUNTER:
+            changeState(VEHICLE_CHECK_AREA);
+            return true;
+
+        case PAYMENT_QUEUE:
+            changeState(VERIFICATION_COUNTER);
+            return true;
+
+        case PAYMENT_COUNTER:
+            changeState(PAYMENT_QUEUE);
+            return true;
+
+        case VALIDATION_COUNTER:
+            changeState(PAYMENT_COUNTER);
+            return true;
+
+        case STAMP_QUEST:
+            changeState(VALIDATION_COUNTER);
+            return true;
+
+        case VALIDATION_SUCCESS:
+            changeState(STAMP_QUEST);
+            return true;
+
+        case FINAL_CORRIDOR:
+            changeState(VALIDATION_SUCCESS);
+            return true;
+
+        case FINAL_COUNTER_BOSS:
+            changeState(FINAL_CORRIDOR);
+            return true;
+
+        default:
+            return false;
+    }
+}
+
 std::string boolText(bool value) {
     return value ? "YES" : "NO";
 }
@@ -1715,6 +1796,9 @@ void drawDebugOverlay() {
     lines.push_back("Insider: " + boolText(usedInsider) + " | HelpedNPC: " + boolText(helpedNPCs));
     lines.push_back("SystemFixed: " + boolText(systemFixed));
     lines.push_back("AllFinalReq: " + boolText(hasAllFinalRequirements()));
+    lines.push_back("CanFast: " + boolText(canQualifyForFastEnding()) +
+                    " | CanLegend: " + boolText(canQualifyForLegendEnding()));
+    lines.push_back("CanRevolution: " + boolText(canQualifyForRevolutionEnding()));
 
     setColor(1.0f, 1.0f, 1.0f);
     float y = 325.0f;
@@ -1767,9 +1851,56 @@ std::string getSceneTitle() {
 
 std::string getSceneObjective() {
     switch (currentState) {
+        case SAMSAT_EXTERIOR:
+            if (!hasQueueNumber) {
+                return "Ambil nomor antrean di mesin tengah halaman.";
+            }
+            if (!hasCorrectMap) {
+                return "Beli map yang benar dari penjual map.";
+            }
+            if (!hasValidPhotocopy) {
+                return "Datangi kios fotokopi dan gandakan berkas.";
+            }
+            if (!hasFilledForm) {
+                return "Masuk ruang informasi lalu lanjut ke loket formulir.";
+            }
+            if (!hasPhysicalCheckProof) {
+                return "Lanjut ke area cek fisik kendaraan.";
+            }
+            if (!hasVerificationStamp) {
+                return "Datangi loket verifikasi untuk stempel berkas.";
+            }
+            if (!hasPaymentProof) {
+                return "Masuk antrean pembayaran lalu ke loket.";
+            }
+            if (!hasStampedDocument) {
+                return "Cari meterai, lalu tempelkan dokumen sebelum final.";
+            }
+            return "Semua syarat siap. Lanjut ke lorong final.";
+
+        case INFORMATION_ROOM:
+            return "Bicara dengan petugas informasi atau lanjut ke loket formulir.";
+
+        case QUEUE_MACHINE:
+            return hasQueueNumber ? "Nomor antrean sudah aman. Tekan SPACE untuk kembali." :
+                                    "Tekan E untuk mengambil nomor antrean.";
+
+        case MAP_VENDOR:
+            return hasCorrectMap ? "Map benar sudah dimiliki. Tekan SPACE untuk kembali." :
+                                   "Tekan E untuk membeli map yang benar.";
+
+        case PHOTOCOPY_SHOP:
+            return hasValidPhotocopy ? "Fotokopi valid selesai. Tekan SPACE untuk kembali." :
+                                       "Tekan E untuk memproses fotokopi dokumen.";
+
         case FORM_COUNTER:
             return hasFilledForm ? "Formulir selesai. Tekan SPACE untuk lanjut ke cek fisik." :
                                    "Dekati loket lalu tekan E untuk mengambil dan mengisi formulir.";
+
+        case VEHICLE_CHECK_AREA:
+            return hasPhysicalCheckProof ? "Cek fisik selesai. Tekan SPACE untuk lanjut verifikasi." :
+                                           "Dekati kendaraan atau petugas, lalu tekan E.";
+
         case VERIFICATION_COUNTER:
             return hasVerificationStamp ? "Verifikasi selesai. Tekan SPACE untuk lanjut ke antrean pembayaran." :
                                           "Susun berkas lalu tekan E di loket verifikasi.";
@@ -1794,6 +1925,10 @@ std::string getSceneObjective() {
                                                  (hasAllFinalRequirements() ?
                                                   "Berkas final lengkap. Dekati loket final lalu tekan E." :
                                                   "Lengkapi berkas final dulu, lalu kembali ke loket final."));
+
+        case VALIDATION_SUCCESS:
+            return "Tekan SPACE untuk masuk ke lorong final dan cek rute ending.";
+
         default:
             return "";
     }
@@ -2095,6 +2230,8 @@ void keyboard(unsigned char key, int, int) {
                 showInventory = false;
             } else if (showQuestLog) {
                 showQuestLog = false;
+            } else if (handleBackNavigation()) {
+                showDialogue = false;
             } else {
                 std::exit(0);
             }
