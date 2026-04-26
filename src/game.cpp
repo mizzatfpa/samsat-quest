@@ -97,6 +97,9 @@ int openingLine = 0;
 bool hasSeenTutorial = false;
 bool hasCheckedInventoryScene = false;
 bool receivedCorridorAdvice = false;
+bool metSecurityGuard = false;
+bool metInformationOfficer = false;
+bool receivedStampRequirement = false;
 
 float cameraYaw = 0.0f;
 
@@ -273,6 +276,11 @@ void setDialogue(const std::string& speaker, const std::string& text) {
 }
 
 void startSecurityDialogue() {
+    if (!metSecurityGuard) {
+        metSecurityGuard = true;
+        reputation = clampInt(reputation + 5, 0, 100);
+    }
+
     setDialogue(
         "Satpam Filosofis",
         "Mau urus STNK? Tanyakan dulu ke ruang informasi. Di sini arah selalu datang setelah bingung."
@@ -280,7 +288,11 @@ void startSecurityDialogue() {
 }
 
 void startInformationDialogue() {
-    reputation = clampInt(reputation + 5, 0, 100);
+    if (!metInformationOfficer) {
+        metInformationOfficer = true;
+        reputation = clampInt(reputation + 5, 0, 100);
+    }
+
     setDialogue(
         "Petugas Informasi",
         "Urutannya nomor antrean, map, fotokopi, formulir, cek fisik, pembayaran, validasi, lalu meterai."
@@ -371,6 +383,7 @@ void processMapVendor() {
         money -= 3000;
         hasCorrectMap = true;
         hasWrongMap = false;
+        reputation = clampInt(reputation + 5, 0, 100);
         setDialogue("Penjual Map", "Ini map biru yang benar. Untuk hari ini, warna masih menentukan takdir.");
         return;
     }
@@ -388,6 +401,7 @@ void processPhotocopyShop() {
     if (money >= 5000) {
         money -= 5000;
         hasValidPhotocopy = true;
+        reputation = clampInt(reputation + 5, 0, 100);
         addTime(15);
         setDialogue("Tukang Fotokopi", "Fotokopi selesai. Tidak buram, jadi jelas terasa langka.");
         return;
@@ -398,9 +412,15 @@ void processPhotocopyShop() {
 }
 
 void processFormCounter() {
+    if (hasFilledForm) {
+        setDialogue("Petugas Formulir", "Formulir Anda sudah rapi. Tidak perlu menguji kesabaran loket lagi.");
+        return;
+    }
+
     if (hasQueueNumber && hasCorrectMap && hasValidPhotocopy) {
         hasForm = true;
         hasFilledForm = true;
+        reputation = clampInt(reputation + 10, 0, 100);
         addTime(20);
         setDialogue("Petugas Formulir", "Formulir selesai. Tulisan Anda cukup rapi untuk dipercaya.");
         return;
@@ -411,9 +431,15 @@ void processFormCounter() {
 }
 
 void processVehicleCheck() {
+    if (hasPhysicalCheckProof) {
+        setDialogue("Petugas Cek Fisik", "Bukti cek fisik sudah ada. Kendaraan Anda sudah resmi melewati tatapan curiga.");
+        return;
+    }
+
     if (hasFilledForm) {
         hasPhysicalCheckProof = true;
         stamina = clampInt(stamina - 10, 0, 100);
+        reputation = clampInt(reputation + 5, 0, 100);
         addTime(20);
         setDialogue("Petugas Cek Fisik", "Nomor mesin ditemukan. Ia bersembunyi, tapi prosedur lebih sabar.");
         return;
@@ -424,8 +450,14 @@ void processVehicleCheck() {
 }
 
 void processVerification() {
+    if (hasVerificationStamp) {
+        setDialogue("Petugas Verifikasi", "Stempel sudah turun. Berkas Anda kini punya aura resmi.");
+        return;
+    }
+
     if (hasFilledForm && hasValidPhotocopy && hasPhysicalCheckProof && hasCorrectMap) {
         hasVerificationStamp = true;
+        reputation = clampInt(reputation + 10, 0, 100);
         addTime(20);
         setDialogue("Petugas Verifikasi", "Berkas lengkap. Susunannya bahkan tampak sudah menyerah.");
         return;
@@ -463,6 +495,7 @@ void processPaymentCounter() {
     if (money >= 25000) {
         money -= 25000;
         hasPaymentProof = true;
+        reputation = clampInt(reputation + 5, 0, 100);
         addTime(10);
         setDialogue("Petugas Pembayaran", "Pembayaran diterima. Dompet dan sistem sama-sama kehilangan energi.");
         return;
@@ -474,6 +507,10 @@ void processPaymentCounter() {
 
 void processValidationCounter() {
     if (hasPaymentProof && hasVerificationStamp) {
+        if (!receivedStampRequirement && !hasStampedDocument) {
+            receivedStampRequirement = true;
+            reputation = clampInt(reputation + 10, 0, 100);
+        }
         setDialogue("Petugas Validasi", "Semua bagus. Tinggal satu hal kecil yang besar: meterai.");
         return;
     }
@@ -526,8 +563,14 @@ void processInsiderOffer() {
 }
 
 void processFinalBoss() {
+    if (hasFinalSTNK) {
+        setDialogue("Petugas Loket Final", "STNK Anda sudah jadi. Yang tersisa sekarang hanya makna dari perjalanan ini.");
+        return;
+    }
+
     if (hasAllFinalRequirements()) {
         hasFinalSTNK = true;
+        reputation = clampInt(reputation + 5, 0, 100);
         if (reputation >= 80 && moralScore >= 90) {
             systemFixed = true;
         }
@@ -1639,6 +1682,7 @@ void drawDebugOverlay() {
     lines.push_back("Stamp: " + boolText(hasStampedDocument) + " | STNK: " + boolText(hasFinalSTNK));
     lines.push_back("Tutorial: " + boolText(hasSeenTutorial) + " | InventoryCheck: " + boolText(hasCheckedInventoryScene));
     lines.push_back("CorridorAdvice: " + boolText(receivedCorridorAdvice));
+    lines.push_back("StampReq: " + boolText(receivedStampRequirement));
     lines.push_back("Insider: " + boolText(usedInsider) + " | HelpedNPC: " + boolText(helpedNPCs));
     lines.push_back("SystemFixed: " + boolText(systemFixed));
 
@@ -1721,6 +1765,29 @@ std::string getSceneObjective() {
         default:
             return "";
     }
+}
+
+std::string getEndingStatsLine() {
+    std::ostringstream ss;
+    ss << "Kesabaran " << patience
+       << " | Stamina " << stamina
+       << " | Uang " << money
+       << " | Reputasi " << reputation
+       << " | Moral " << moralScore;
+    return ss.str();
+}
+
+std::string getEndingRouteLine() {
+    if (usedInsider) {
+        return "Rute: Jalur cepat orang dalam";
+    }
+    if (systemFixed) {
+        return "Rute: Reformasi prosedur dari dalam";
+    }
+    if (helpedNPCs) {
+        return "Rute: Warga teladan yang membantu sekitar";
+    }
+    return "Rute: Jalur bersih standar birokrasi";
 }
 
 void drawStateInstructionPanel() {
@@ -1833,6 +1900,10 @@ void drawEndingScreen(const std::string& title, const std::string& line1, const 
     setColor(1.0f, 1.0f, 1.0f);
     drawCenteredText(380.0f, line1, GLUT_BITMAP_HELVETICA_18);
     drawCenteredText(345.0f, line2, GLUT_BITMAP_HELVETICA_18);
+    drawCenteredText(300.0f, getEndingRouteLine(), GLUT_BITMAP_HELVETICA_18);
+
+    setColor(0.82f, 0.82f, 0.86f);
+    drawCenteredText(265.0f, getEndingStatsLine(), GLUT_BITMAP_8_BY_13);
 
     setColor(0.8f, 0.8f, 0.8f);
     drawCenteredText(230.0f, "Tekan SPACE untuk menuju credit.", GLUT_BITMAP_8_BY_13);
@@ -1942,6 +2013,9 @@ void initGame() {
     hasSeenTutorial = false;
     hasCheckedInventoryScene = false;
     receivedCorridorAdvice = false;
+    metSecurityGuard = false;
+    metInformationOfficer = false;
+    receivedStampRequirement = false;
 
     player.speed = 0.65f;
     resetPlayerForState(SAMSAT_EXTERIOR);
