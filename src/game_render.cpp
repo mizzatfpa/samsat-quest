@@ -49,6 +49,14 @@ void drawLine(float x1, float y1, float x2, float y2) {
     glEnd();
 }
 
+float getTextWidth(const std::string& text, void* font) {
+    float width = 0.0f;
+    for (char c : text) {
+        width += static_cast<float>(glutBitmapWidth(font, c));
+    }
+    return width;
+}
+
 void drawText(float x, float y, const std::string& text, void* font = GLUT_BITMAP_HELVETICA_18) {
     glRasterPos2f(x, y);
     for (char c : text) {
@@ -57,8 +65,41 @@ void drawText(float x, float y, const std::string& text, void* font = GLUT_BITMA
 }
 
 void drawCenteredText(float y, const std::string& text, void* font = GLUT_BITMAP_HELVETICA_18) {
-    const float approxWidth = static_cast<float>(text.size()) * 9.0f;
-    drawText((windowWidth - approxWidth) * 0.5f, y, text, font);
+    drawText((static_cast<float>(windowWidth) - getTextWidth(text, font)) * 0.5f, y, text, font);
+}
+
+int drawWrappedText(float x,
+                    float y,
+                    const std::string& text,
+                    float maxWidth,
+                    float lineHeight,
+                    void* font = GLUT_BITMAP_HELVETICA_18,
+                    float r = 1.0f,
+                    float g = 1.0f,
+                    float b = 1.0f) {
+    std::istringstream words(text);
+    std::string word;
+    std::string line;
+    int lineCount = 0;
+
+    setColor(r, g, b);
+    while (words >> word) {
+        const std::string candidate = line.empty() ? word : line + " " + word;
+        if (!line.empty() && getTextWidth(candidate, font) > maxWidth) {
+            drawText(x, y - (static_cast<float>(lineCount) * lineHeight), line, font);
+            ++lineCount;
+            line = word;
+        } else {
+            line = candidate;
+        }
+    }
+
+    if (!line.empty()) {
+        drawText(x, y - (static_cast<float>(lineCount) * lineHeight), line, font);
+        ++lineCount;
+    }
+
+    return lineCount;
 }
 
 void drawPanel(float x, float y, float w, float h) {
@@ -848,28 +889,39 @@ void renderCurrent3DState() {
 }
 
 void drawResourceUI() {
+    const float margin = std::max(12.0f, static_cast<float>(windowWidth) * 0.012f);
+    const float topBarH = (windowWidth < 1150) ? 76.0f : 52.0f;
     setColor(0.02f, 0.02f, 0.02f);
-    drawRect(0, windowHeight - 48, static_cast<float>(windowWidth), 48.0f);
+    drawRect(0, static_cast<float>(windowHeight) - topBarH, static_cast<float>(windowWidth), topBarH);
 
-    std::stringstream ss;
-    ss << "Kesabaran: " << patience
-       << " | Stamina: " << stamina
-       << " | Uang: " << money
-       << " | Reputasi: " << reputation
-       << " | Moral: " << moralScore
-       << " | Jam: ";
+    std::ostringstream time;
+    if (timeHour < 10) time << "0";
+    time << timeHour << ":";
+    if (timeMinute < 10) time << "0";
+    time << timeMinute;
 
-    if (timeHour < 10) {
-        ss << "0";
+    std::vector<std::string> blocks;
+    blocks.push_back("Sabar " + std::to_string(patience));
+    blocks.push_back("Stamina " + std::to_string(stamina));
+    blocks.push_back("Uang " + std::to_string(money));
+    blocks.push_back("Rep " + std::to_string(reputation));
+    blocks.push_back("Moral " + std::to_string(moralScore));
+    blocks.push_back("Jam " + time.str());
+
+    const int columns = (windowWidth < 1150) ? 3 : 6;
+    const float gap = 8.0f;
+    const float blockW = (static_cast<float>(windowWidth) - (margin * 2.0f) - (gap * static_cast<float>(columns - 1))) /
+                         static_cast<float>(columns);
+    for (std::size_t i = 0; i < blocks.size(); ++i) {
+        const int col = static_cast<int>(i) % columns;
+        const int row = static_cast<int>(i) / columns;
+        const float x = margin + static_cast<float>(col) * (blockW + gap);
+        const float y = static_cast<float>(windowHeight) - 32.0f - static_cast<float>(row) * 30.0f;
+        setColor(0.10f, 0.12f, 0.18f);
+        drawRect(x, y - 14.0f, blockW, 24.0f);
+        setColor(1.0f, 1.0f, 1.0f);
+        drawText(x + 8.0f, y - 5.0f, blocks[i], GLUT_BITMAP_8_BY_13);
     }
-    ss << timeHour << ":";
-    if (timeMinute < 10) {
-        ss << "0";
-    }
-    ss << timeMinute;
-
-    setColor(1.0f, 1.0f, 1.0f);
-    drawText(16.0f, windowHeight - 28.0f, ss.str(), GLUT_BITMAP_HELVETICA_18);
 }
 
 void drawDialogueBox() {
@@ -877,16 +929,20 @@ void drawDialogueBox() {
         return;
     }
 
-    drawPanel(60.0f, 40.0f, static_cast<float>(windowWidth - 120), 135.0f);
+    const float margin = std::max(44.0f, static_cast<float>(windowWidth) * 0.06f);
+    const float panelW = static_cast<float>(windowWidth) - (margin * 2.0f);
+    const float panelH = std::max(135.0f, static_cast<float>(windowHeight) * 0.20f);
+    const float x = margin;
+    const float y = std::max(28.0f, static_cast<float>(windowHeight) * 0.055f);
+    drawPanel(x, y, panelW, panelH);
 
     setColor(1.0f, 0.9f, 0.2f);
-    drawText(85.0f, 145.0f, dialogueSpeaker, GLUT_BITMAP_HELVETICA_18);
-
-    setColor(1.0f, 1.0f, 1.0f);
-    drawText(85.0f, 110.0f, dialogueText, GLUT_BITMAP_HELVETICA_18);
+    drawText(x + 24.0f, y + panelH - 32.0f, dialogueSpeaker, GLUT_BITMAP_HELVETICA_18);
+    drawWrappedText(x + 24.0f, y + panelH - 66.0f, dialogueText, panelW - 48.0f, 24.0f,
+                    GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
 
     setColor(0.8f, 0.8f, 0.8f);
-    drawText(85.0f, 72.0f, "Tekan SPACE untuk lanjut.", GLUT_BITMAP_8_BY_13);
+    drawText(x + 24.0f, y + 20.0f, "Tekan SPACE untuk lanjut.", GLUT_BITMAP_8_BY_13);
 }
 
 void drawInventoryOverlay() {
@@ -894,9 +950,13 @@ void drawInventoryOverlay() {
         return;
     }
 
-    drawPanel(180.0f, 100.0f, 640.0f, 460.0f);
+    const float panelW = std::min(static_cast<float>(windowWidth) * 0.72f, 760.0f);
+    const float panelH = std::min(static_cast<float>(windowHeight) * 0.68f, 520.0f);
+    const float x = (static_cast<float>(windowWidth) - panelW) * 0.5f;
+    const float y = (static_cast<float>(windowHeight) - panelH) * 0.5f;
+    drawPanel(x, y, panelW, panelH);
     setColor(1.0f, 0.9f, 0.2f);
-    drawText(210.0f, 525.0f, "INVENTORY DOKUMEN", GLUT_BITMAP_HELVETICA_18);
+    drawText(x + 30.0f, y + panelH - 35.0f, "INVENTORY DOKUMEN", GLUT_BITMAP_HELVETICA_18);
 
     std::vector<std::string> items;
     items.push_back("KTP Asli: YES");
@@ -914,14 +974,16 @@ void drawInventoryOverlay() {
     items.push_back("STNK Baru: " + boolText(hasFinalSTNK));
 
     setColor(1.0f, 1.0f, 1.0f);
-    float y = 485.0f;
+    float itemY = y + panelH - 75.0f;
+    const float lineH = std::max(23.0f, panelH * 0.052f);
     for (const std::string& item : items) {
-        drawText(220.0f, y, item, GLUT_BITMAP_HELVETICA_18);
-        y -= 28.0f;
+        drawWrappedText(x + 40.0f, itemY, item, panelW - 80.0f, lineH, GLUT_BITMAP_HELVETICA_18,
+                        1.0f, 1.0f, 1.0f);
+        itemY -= lineH;
     }
 
     setColor(0.8f, 0.8f, 0.8f);
-    drawText(220.0f, 125.0f, "Tekan I untuk menutup inventory.", GLUT_BITMAP_8_BY_13);
+    drawText(x + 40.0f, y + 24.0f, "Tekan I untuk menutup inventory.", GLUT_BITMAP_8_BY_13);
 }
 
 void drawQuestLogOverlay() {
@@ -929,9 +991,13 @@ void drawQuestLogOverlay() {
         return;
     }
 
-    drawPanel(150.0f, 100.0f, 700.0f, 460.0f);
+    const float panelW = std::min(static_cast<float>(windowWidth) * 0.74f, 820.0f);
+    const float panelH = std::min(static_cast<float>(windowHeight) * 0.68f, 520.0f);
+    const float x = (static_cast<float>(windowWidth) - panelW) * 0.5f;
+    const float y = (static_cast<float>(windowHeight) - panelH) * 0.5f;
+    drawPanel(x, y, panelW, panelH);
     setColor(1.0f, 0.9f, 0.2f);
-    drawText(180.0f, 525.0f, "QUEST LOG", GLUT_BITMAP_HELVETICA_18);
+    drawText(x + 30.0f, y + panelH - 35.0f, "QUEST LOG", GLUT_BITMAP_HELVETICA_18);
 
     std::vector<std::string> quests;
     quests.push_back(std::string(hasQueueNumber ? "[X] " : "[ ] ") + "Ambil nomor antrean yang benar.");
@@ -945,14 +1011,16 @@ void drawQuestLogOverlay() {
     quests.push_back(std::string(hasFinalSTNK ? "[X] " : "[ ] ") + "Hadapi loket final.");
 
     setColor(1.0f, 1.0f, 1.0f);
-    float y = 485.0f;
+    float questY = y + panelH - 75.0f;
+    const float lineH = std::max(26.0f, panelH * 0.06f);
     for (const std::string& quest : quests) {
-        drawText(180.0f, y, quest, GLUT_BITMAP_HELVETICA_18);
-        y -= 32.0f;
+        drawWrappedText(x + 30.0f, questY, quest, panelW - 60.0f, lineH * 0.75f,
+                        GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
+        questY -= lineH;
     }
 
     setColor(0.8f, 0.8f, 0.8f);
-    drawText(180.0f, 125.0f, "Tekan Q untuk menutup quest log.", GLUT_BITMAP_8_BY_13);
+    drawText(x + 30.0f, y + 24.0f, "Tekan Q untuk menutup quest log.", GLUT_BITMAP_8_BY_13);
 }
 
 void drawDebugOverlay() {
@@ -1167,28 +1235,34 @@ std::string getEndingRouteLine() {
 
 void drawStateInstructionPanel() {
     if (currentState == TUTORIAL_CONTROL) {
-        drawPanel(180.0f, 240.0f, 640.0f, 170.0f);
+        const float w = std::min(static_cast<float>(windowWidth) * 0.70f, 720.0f);
+        const float h = std::min(static_cast<float>(windowHeight) * 0.28f, 200.0f);
+        const float x = (static_cast<float>(windowWidth) - w) * 0.5f;
+        const float y = (static_cast<float>(windowHeight) - h) * 0.5f;
+        drawPanel(x, y, w, h);
         setColor(1.0f, 0.9f, 0.2f);
-        drawCenteredText(375.0f, "KONTROL DASAR", GLUT_BITMAP_HELVETICA_18);
-        setColor(1.0f, 1.0f, 1.0f);
-        drawCenteredText(340.0f, "WASD / Arrow Keys: jalan mulus mengikuti kamera", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(310.0f, "Mouse kanan drag / M: lihat sekitar | E: interaksi", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(280.0f, "I: inventory | Q: quest log | R: reset kamera", GLUT_BITMAP_HELVETICA_18);
+        drawText(x + 28.0f, y + h - 36.0f, "KONTROL DASAR", GLUT_BITMAP_HELVETICA_18);
+        drawWrappedText(x + 28.0f, y + h - 70.0f,
+                        "WASD / Arrow Keys: jalan mengikuti kamera. Mouse kanan drag / M: lihat sekitar. E: interaksi. I: inventory. Q: quest log. R: reset kamera.",
+                        w - 56.0f, 24.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
         setColor(0.8f, 0.8f, 0.8f);
-        drawCenteredText(255.0f, "Tekan SPACE untuk mulai menjelajah area Samsat", GLUT_BITMAP_8_BY_13);
+        drawText(x + 28.0f, y + 24.0f, "Tekan SPACE untuk mulai menjelajah area Samsat", GLUT_BITMAP_8_BY_13);
         return;
     }
 
     if (currentState == INVENTORY_CHECK) {
-        drawPanel(170.0f, 210.0f, 660.0f, 220.0f);
+        const float w = std::min(static_cast<float>(windowWidth) * 0.72f, 760.0f);
+        const float h = std::min(static_cast<float>(windowHeight) * 0.34f, 250.0f);
+        const float x = (static_cast<float>(windowWidth) - w) * 0.5f;
+        const float y = (static_cast<float>(windowHeight) - h) * 0.5f;
+        drawPanel(x, y, w, h);
         setColor(1.0f, 0.9f, 0.2f);
-        drawCenteredText(395.0f, "CHECKLIST AWAL BERKAS", GLUT_BITMAP_HELVETICA_18);
-        setColor(1.0f, 1.0f, 1.0f);
-        drawCenteredText(360.0f, "Dokumen dasar sudah aman, tapi proses belum dimulai.", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(330.0f, "Cari nomor antrean, map yang benar, dan fotokopi yang valid.", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(300.0f, "Setelah itu kembali ke loket formulir untuk lanjut ke cek fisik.", GLUT_BITMAP_HELVETICA_18);
+        drawText(x + 28.0f, y + h - 36.0f, "CHECKLIST AWAL BERKAS", GLUT_BITMAP_HELVETICA_18);
+        drawWrappedText(x + 28.0f, y + h - 72.0f,
+                        "Dokumen dasar sudah aman, tapi proses belum dimulai. Cari nomor antrean, map yang benar, dan fotokopi yang valid. Setelah itu kembali ke loket formulir untuk lanjut ke cek fisik.",
+                        w - 56.0f, 24.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
         setColor(0.8f, 0.8f, 0.8f);
-        drawCenteredText(265.0f, "Tekan SPACE untuk kembali ke halaman depan", GLUT_BITMAP_8_BY_13);
+        drawText(x + 28.0f, y + 24.0f, "Tekan SPACE untuk kembali ke halaman depan", GLUT_BITMAP_8_BY_13);
     }
 }
 
@@ -1198,9 +1272,13 @@ void drawInteractionPrompt() {
         return;
     }
 
-    drawPanel(240.0f, 185.0f, 520.0f, 44.0f);
-    setColor(1.0f, 1.0f, 1.0f);
-    drawCenteredText(202.0f, prompt, GLUT_BITMAP_HELVETICA_18);
+    const float w = std::min(static_cast<float>(windowWidth) * 0.68f, 680.0f);
+    const float h = 48.0f;
+    const float x = (static_cast<float>(windowWidth) - w) * 0.5f;
+    const float y = std::max(92.0f, static_cast<float>(windowHeight) * 0.16f);
+    drawPanel(x, y, w, h);
+    drawWrappedText(x + 18.0f, y + 28.0f, prompt, w - 36.0f, 18.0f,
+                    GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
 }
 
 void drawSceneHeader() {
@@ -1209,9 +1287,11 @@ void drawSceneHeader() {
         return;
     }
 
-    drawPanel(16.0f, 16.0f, 235.0f, 52.0f);
+    const float margin = std::max(14.0f, static_cast<float>(windowWidth) * 0.014f);
+    const float w = std::min(280.0f, static_cast<float>(windowWidth) * 0.28f);
+    drawPanel(margin, margin, w, 52.0f);
     setColor(1.0f, 0.9f, 0.2f);
-    drawText(28.0f, 45.0f, title, GLUT_BITMAP_HELVETICA_18);
+    drawText(margin + 12.0f, margin + 29.0f, title, GLUT_BITMAP_HELVETICA_18);
 }
 
 void drawSceneObjective() {
@@ -1220,9 +1300,13 @@ void drawSceneObjective() {
         return;
     }
 
-    drawPanel(270.0f, 16.0f, 470.0f, 52.0f);
-    setColor(1.0f, 1.0f, 1.0f);
-    drawText(286.0f, 45.0f, objective, GLUT_BITMAP_8_BY_13);
+    const float margin = std::max(14.0f, static_cast<float>(windowWidth) * 0.014f);
+    const float titleW = std::min(280.0f, static_cast<float>(windowWidth) * 0.28f);
+    const float x = margin + titleW + 16.0f;
+    const float w = static_cast<float>(windowWidth) - x - margin;
+    drawPanel(x, margin, w, 58.0f);
+    drawWrappedText(x + 14.0f, margin + 37.0f, objective, w - 28.0f, 17.0f,
+                    GLUT_BITMAP_8_BY_13, 1.0f, 1.0f, 1.0f);
 }
 
 void drawNotificationToast() {
@@ -1230,13 +1314,13 @@ void drawNotificationToast() {
         return;
     }
 
-    const float w = 360.0f;
-    const float h = 42.0f;
+    const float w = std::min(static_cast<float>(windowWidth) * 0.62f, 520.0f);
+    const float h = 48.0f;
     const float x = (windowWidth - w) * 0.5f;
-    const float y = static_cast<float>(windowHeight) - 92.0f;
+    const float y = static_cast<float>(windowHeight) - h - 62.0f;
     drawPanel(x, y, w, h);
-    setColor(1.0f, 0.86f, 0.35f);
-    drawCenteredText(y + 16.0f, notificationText, GLUT_BITMAP_HELVETICA_18);
+    drawWrappedText(x + 18.0f, y + 28.0f, notificationText, w - 36.0f, 18.0f,
+                    GLUT_BITMAP_HELVETICA_18, 1.0f, 0.86f, 0.35f);
 }
 
 void drawCameraReticle() {
@@ -1258,13 +1342,13 @@ void drawTitleScreen() {
     drawRect(0.0f, 0.0f, static_cast<float>(windowWidth), static_cast<float>(windowHeight));
 
     setColor(1.0f, 0.9f, 0.2f);
-    drawCenteredText(430.0f, "SAMSAT QUEST", GLUT_BITMAP_TIMES_ROMAN_24);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.68f, "SAMSAT QUEST", GLUT_BITMAP_TIMES_ROMAN_24);
 
     setColor(1.0f, 1.0f, 1.0f);
-    drawCenteredText(395.0f, "STNK of Destiny", GLUT_BITMAP_HELVETICA_18);
-    drawCenteredText(350.0f, "Prototype 3D OpenGL GLUT", GLUT_BITMAP_HELVETICA_18);
-    drawCenteredText(230.0f, "Tekan ENTER untuk mulai", GLUT_BITMAP_HELVETICA_18);
-    drawCenteredText(200.0f, "Tekan ESC untuk keluar", GLUT_BITMAP_8_BY_13);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.62f, "STNK of Destiny", GLUT_BITMAP_HELVETICA_18);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.55f, "Prototype 3D OpenGL GLUT", GLUT_BITMAP_HELVETICA_18);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.34f, "Tekan ENTER untuk mulai", GLUT_BITMAP_HELVETICA_18);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.29f, "Tekan ESC untuk keluar", GLUT_BITMAP_8_BY_13);
 }
 
 void drawOpeningNarration() {
@@ -1272,25 +1356,25 @@ void drawOpeningNarration() {
     drawRect(0.0f, 0.0f, static_cast<float>(windowWidth), static_cast<float>(windowHeight));
 
     setColor(1.0f, 0.9f, 0.2f);
-    drawCenteredText(500.0f, "Opening", GLUT_BITMAP_TIMES_ROMAN_24);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.74f, "Opening", GLUT_BITMAP_TIMES_ROMAN_24);
 
     setColor(1.0f, 1.0f, 1.0f);
+    const float textX = static_cast<float>(windowWidth) * 0.18f;
+    const float textW = static_cast<float>(windowWidth) * 0.64f;
+    const float startY = static_cast<float>(windowHeight) * 0.61f;
     if (openingLine == 0) {
-        drawCenteredText(410.0f, "Di sebuah pagi yang tampak biasa,", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(380.0f, "seorang warga menyadari satu kenyataan besar:", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(350.0f, "STNK harus segera diurus.", GLUT_BITMAP_HELVETICA_18);
+        drawWrappedText(textX, startY, "Di sebuah pagi yang tampak biasa, seorang warga menyadari satu kenyataan besar: STNK harus segera diurus.",
+                        textW, 28.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
     } else if (openingLine == 1) {
-        drawCenteredText(410.0f, "Tujuannya tampak sederhana:", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(380.0f, "datang, menyerahkan berkas, lalu pulang.", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(350.0f, "Namun birokrasi punya questline sendiri.", GLUT_BITMAP_HELVETICA_18);
+        drawWrappedText(textX, startY, "Tujuannya tampak sederhana: datang, menyerahkan berkas, lalu pulang. Namun birokrasi punya questline sendiri.",
+                        textW, 28.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
     } else {
-        drawCenteredText(410.0f, "Hari itu, Samsat bukan sekadar kantor.", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(380.0f, "Ia adalah dungeon administratif.", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(350.0f, "Dan STNK adalah artefak takdir.", GLUT_BITMAP_HELVETICA_18);
+        drawWrappedText(textX, startY, "Hari itu, Samsat bukan sekadar kantor. Ia adalah dungeon administratif. Dan STNK adalah artefak takdir.",
+                        textW, 28.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
     }
 
     setColor(0.8f, 0.8f, 0.8f);
-    drawCenteredText(220.0f, "Tekan SPACE untuk lanjut", GLUT_BITMAP_8_BY_13);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.32f, "Tekan SPACE untuk lanjut", GLUT_BITMAP_8_BY_13);
 }
 
 void drawEndingScreen(const std::string& title, const std::string& line1, const std::string& line2) {
@@ -1298,18 +1382,20 @@ void drawEndingScreen(const std::string& title, const std::string& line1, const 
     drawRect(0.0f, 0.0f, static_cast<float>(windowWidth), static_cast<float>(windowHeight));
 
     setColor(1.0f, 0.9f, 0.2f);
-    drawCenteredText(470.0f, title, GLUT_BITMAP_TIMES_ROMAN_24);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.70f, title, GLUT_BITMAP_TIMES_ROMAN_24);
 
-    setColor(1.0f, 1.0f, 1.0f);
-    drawCenteredText(380.0f, line1, GLUT_BITMAP_HELVETICA_18);
-    drawCenteredText(345.0f, line2, GLUT_BITMAP_HELVETICA_18);
-    drawCenteredText(300.0f, getEndingRouteLine(), GLUT_BITMAP_HELVETICA_18);
+    const float textX = static_cast<float>(windowWidth) * 0.18f;
+    const float textW = static_cast<float>(windowWidth) * 0.64f;
+    drawWrappedText(textX, static_cast<float>(windowHeight) * 0.57f, line1 + " " + line2,
+                    textW, 28.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
+    drawWrappedText(textX, static_cast<float>(windowHeight) * 0.46f, getEndingRouteLine(),
+                    textW, 24.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
 
     setColor(0.82f, 0.82f, 0.86f);
-    drawCenteredText(265.0f, getEndingStatsLine(), GLUT_BITMAP_8_BY_13);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.38f, getEndingStatsLine(), GLUT_BITMAP_8_BY_13);
 
     setColor(0.8f, 0.8f, 0.8f);
-    drawCenteredText(230.0f, "Tekan SPACE untuk menuju credit.", GLUT_BITMAP_8_BY_13);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.32f, "Tekan SPACE untuk menuju credit.", GLUT_BITMAP_8_BY_13);
 }
 
 void drawCreditScene() {
@@ -1317,15 +1403,15 @@ void drawCreditScene() {
     drawRect(0.0f, 0.0f, static_cast<float>(windowWidth), static_cast<float>(windowHeight));
 
     setColor(1.0f, 0.9f, 0.2f);
-    drawCenteredText(470.0f, "SAMSAT QUEST", GLUT_BITMAP_TIMES_ROMAN_24);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.70f, "SAMSAT QUEST", GLUT_BITMAP_TIMES_ROMAN_24);
 
     setColor(1.0f, 1.0f, 1.0f);
-    drawCenteredText(410.0f, "Prototype OpenGL GLUT", GLUT_BITMAP_HELVETICA_18);
-    drawCenteredText(370.0f, "Terima kasih sudah mengurus STNK.", GLUT_BITMAP_HELVETICA_18);
-    drawCenteredText(330.0f, "Post-credit: Mohon fotokopi rangkap tiga.", GLUT_BITMAP_HELVETICA_18);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.60f, "Prototype OpenGL GLUT", GLUT_BITMAP_HELVETICA_18);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.53f, "Terima kasih sudah mengurus STNK.", GLUT_BITMAP_HELVETICA_18);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.46f, "Post-credit: Mohon fotokopi rangkap tiga.", GLUT_BITMAP_HELVETICA_18);
 
     setColor(0.8f, 0.8f, 0.8f);
-    drawCenteredText(230.0f, "Tekan ENTER untuk kembali ke title screen.", GLUT_BITMAP_8_BY_13);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.32f, "Tekan ENTER untuk kembali ke title screen.", GLUT_BITMAP_8_BY_13);
 }
 
 void drawOverlayOnlyState() {
