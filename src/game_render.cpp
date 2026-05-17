@@ -49,6 +49,14 @@ void drawLine(float x1, float y1, float x2, float y2) {
     glEnd();
 }
 
+float getTextWidth(const std::string& text, void* font) {
+    float width = 0.0f;
+    for (char c : text) {
+        width += static_cast<float>(glutBitmapWidth(font, c));
+    }
+    return width;
+}
+
 void drawText(float x, float y, const std::string& text, void* font = GLUT_BITMAP_HELVETICA_18) {
     glRasterPos2f(x, y);
     for (char c : text) {
@@ -57,8 +65,41 @@ void drawText(float x, float y, const std::string& text, void* font = GLUT_BITMA
 }
 
 void drawCenteredText(float y, const std::string& text, void* font = GLUT_BITMAP_HELVETICA_18) {
-    const float approxWidth = static_cast<float>(text.size()) * 9.0f;
-    drawText((windowWidth - approxWidth) * 0.5f, y, text, font);
+    drawText((static_cast<float>(windowWidth) - getTextWidth(text, font)) * 0.5f, y, text, font);
+}
+
+int drawWrappedText(float x,
+                    float y,
+                    const std::string& text,
+                    float maxWidth,
+                    float lineHeight,
+                    void* font = GLUT_BITMAP_HELVETICA_18,
+                    float r = 1.0f,
+                    float g = 1.0f,
+                    float b = 1.0f) {
+    std::istringstream words(text);
+    std::string word;
+    std::string line;
+    int lineCount = 0;
+
+    setColor(r, g, b);
+    while (words >> word) {
+        const std::string candidate = line.empty() ? word : line + " " + word;
+        if (!line.empty() && getTextWidth(candidate, font) > maxWidth) {
+            drawText(x, y - (static_cast<float>(lineCount) * lineHeight), line, font);
+            ++lineCount;
+            line = word;
+        } else {
+            line = candidate;
+        }
+    }
+
+    if (!line.empty()) {
+        drawText(x, y - (static_cast<float>(lineCount) * lineHeight), line, font);
+        ++lineCount;
+    }
+
+    return lineCount;
 }
 
 void drawPanel(float x, float y, float w, float h) {
@@ -79,6 +120,24 @@ void drawPanel(float x, float y, float w, float h) {
     drawLine(x, y, x, y + h);
 }
 
+void drawUiBox(float x, float y, float w, float h) {
+    setColor(0.00f, 0.00f, 0.00f);
+    drawRect(x + 3.0f, y - 3.0f, w, h);
+
+    setColor(0.05f, 0.06f, 0.10f);
+    drawRect(x, y, w, h);
+
+    setColor(0.12f, 0.15f, 0.23f);
+    drawRect(x, y + h - 4.0f, w, 4.0f);
+
+    setColor(0.36f, 0.42f, 0.56f);
+    drawLine(x, y, x + w, y);
+    drawLine(x + w, y, x + w, y + h);
+    drawLine(x, y, x, y + h);
+    setColor(1.0f, 0.78f, 0.25f);
+    drawLine(x, y + h, x + w, y + h);
+}
+
 void drawCube(float x, float y, float z, float sx, float sy, float sz, float r, float g, float b) {
     glPushMatrix();
     setColor(r, g, b);
@@ -87,6 +146,167 @@ void drawCube(float x, float y, float z, float sx, float sy, float sz, float r, 
     glutSolidCube(1.0f);
     glPopMatrix();
 }
+
+namespace {
+
+void drawCharacterModel(float bodyR,
+                        float bodyG,
+                        float bodyB,
+                        float pantsR,
+                        float pantsG,
+                        float pantsB,
+                        float accentR,
+                        float accentG,
+                        float accentB,
+                        bool hasCap,
+                        bool hasSuspiciousCoat) {
+    const float skinR = 1.0f;
+    const float skinG = 0.80f;
+    const float skinB = 0.60f;
+
+    drawCube(0.0f, 1.14f, 0.0f, 0.70f, 1.12f, 0.42f, bodyR, bodyG, bodyB);
+    drawCube(0.0f, 1.86f, 0.0f, 0.48f, 0.48f, 0.48f, skinR, skinG, skinB);
+
+    drawCube(-0.52f, 1.12f, 0.0f, 0.22f, 0.86f, 0.24f, bodyR * 0.9f, bodyG * 0.9f, bodyB * 0.9f);
+    drawCube(0.52f, 1.12f, 0.0f, 0.22f, 0.86f, 0.24f, bodyR * 0.9f, bodyG * 0.9f, bodyB * 0.9f);
+    drawCube(-0.52f, 0.62f, 0.0f, 0.22f, 0.20f, 0.22f, skinR, skinG, skinB);
+    drawCube(0.52f, 0.62f, 0.0f, 0.22f, 0.20f, 0.22f, skinR, skinG, skinB);
+
+    drawCube(-0.20f, 0.45f, 0.0f, 0.24f, 0.78f, 0.26f, pantsR, pantsG, pantsB);
+    drawCube(0.20f, 0.45f, 0.0f, 0.24f, 0.78f, 0.26f, pantsR, pantsG, pantsB);
+    drawCube(-0.20f, 0.08f, -0.05f, 0.32f, 0.16f, 0.42f, 0.05f, 0.05f, 0.06f);
+    drawCube(0.20f, 0.08f, -0.05f, 0.32f, 0.16f, 0.42f, 0.05f, 0.05f, 0.06f);
+
+    drawCube(0.0f, 1.35f, -0.25f, 0.46f, 0.10f, 0.08f, accentR, accentG, accentB);
+    drawCube(0.0f, 0.82f, -0.24f, 0.76f, 0.10f, 0.08f, accentR * 0.75f, accentG * 0.75f, accentB * 0.75f);
+
+    if (hasCap) {
+        drawCube(0.0f, 2.16f, -0.03f, 0.56f, 0.16f, 0.50f, accentR, accentG, accentB);
+        drawCube(0.0f, 2.08f, -0.31f, 0.48f, 0.08f, 0.20f, accentR * 0.75f, accentG * 0.75f, accentB * 0.75f);
+    }
+
+    if (hasSuspiciousCoat) {
+        drawCube(0.0f, 1.04f, -0.28f, 0.82f, 1.28f, 0.08f, 0.10f, 0.03f, 0.04f);
+        drawCube(0.0f, 2.18f, 0.0f, 0.70f, 0.12f, 0.55f, 0.04f, 0.04f, 0.04f);
+    }
+}
+
+void drawWorldText(float x, float y, float z, const std::string& text, void* font = GLUT_BITMAP_HELVETICA_18) {
+    glDisable(GL_LIGHTING);
+    glRasterPos3f(x, y, z);
+    for (char c : text) {
+        glutBitmapCharacter(font, c);
+    }
+    glEnable(GL_LIGHTING);
+}
+
+bool shouldShowWorldLabel(float x, float z, const std::string& text) {
+    if (text == "KANTOR SAMSAT") {
+        return true;
+    }
+
+    return isNear(player.x, player.z, x, z, 7.5f);
+}
+
+void draw3DLabel(float x,
+                 float y,
+                 float z,
+                 const std::string& text,
+                 float boardR = 0.06f,
+                 float boardG = 0.07f,
+                 float boardB = 0.10f,
+                 float textR = 1.0f,
+                 float textG = 1.0f,
+                 float textB = 1.0f,
+                 float width = 0.0f) {
+    if (!shouldShowWorldLabel(x, z, text)) {
+        return;
+    }
+
+    const float boardWidth = (width > 0.0f) ? width : std::max(2.0f, static_cast<float>(text.size()) * 0.16f);
+    glDisable(GL_DEPTH_TEST);
+    drawCube(x, y, z - 0.01f, boardWidth + 0.10f, 0.62f, 0.10f, 0.0f, 0.0f, 0.0f);
+    drawCube(x, y, z, boardWidth, 0.52f, 0.08f, boardR, boardG, boardB);
+    setColor(textR, textG, textB);
+    drawWorldText(x - boardWidth * 0.42f, y - 0.08f, z + 0.08f, text, GLUT_BITMAP_HELVETICA_18);
+    glEnable(GL_DEPTH_TEST);
+}
+
+void drawChair(float x, float z) {
+    drawCube(x, 0.35f, z, 0.70f, 0.18f, 0.65f, 0.18f, 0.24f, 0.34f);
+    drawCube(x, 0.82f, z + 0.28f, 0.70f, 0.75f, 0.14f, 0.14f, 0.18f, 0.26f);
+    drawCube(x - 0.24f, 0.18f, z - 0.20f, 0.08f, 0.36f, 0.08f, 0.08f, 0.08f, 0.09f);
+    drawCube(x + 0.24f, 0.18f, z - 0.20f, 0.08f, 0.36f, 0.08f, 0.08f, 0.08f, 0.09f);
+}
+
+void drawTrafficCone(float x, float z) {
+    drawCube(x, 0.12f, z, 0.48f, 0.12f, 0.48f, 0.08f, 0.08f, 0.08f);
+    drawCube(x, 0.36f, z, 0.34f, 0.36f, 0.34f, 0.95f, 0.36f, 0.08f);
+    drawCube(x, 0.58f, z, 0.20f, 0.22f, 0.20f, 1.0f, 0.78f, 0.20f);
+}
+
+void drawFlagPole(float x, float z) {
+    drawCube(x, 1.8f, z, 0.08f, 3.6f, 0.08f, 0.72f, 0.72f, 0.76f);
+    drawCube(x + 0.45f, 3.0f, z, 0.90f, 0.28f, 0.04f, 0.85f, 0.05f, 0.05f);
+    drawCube(x + 0.45f, 2.72f, z, 0.90f, 0.28f, 0.04f, 0.95f, 0.95f, 0.90f);
+}
+
+void drawGroundDisk(float x, float z, float radius, float r, float g, float b) {
+    glDisable(GL_LIGHTING);
+    setColor(r, g, b);
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex3f(x, 0.07f, z);
+    for (int i = 0; i <= 32; ++i) {
+        const float angle = static_cast<float>(i) * 2.0f * kPi / 32.0f;
+        glVertex3f(x + std::cos(angle) * radius, 0.07f, z + std::sin(angle) * radius);
+    }
+    glEnd();
+    glEnable(GL_LIGHTING);
+}
+
+void drawFloatingArrow(float x, float z, float r, float g, float b) {
+    const float bob = std::sin(interactionPulse) * 0.15f;
+    drawCube(x, 2.65f + bob, z, 0.22f, 0.72f, 0.22f, r, g, b);
+    drawCube(x, 2.18f + bob, z, 0.70f, 0.24f, 0.70f, r, g, b);
+}
+
+void drawPortalMarker(float x, float z, const std::string& label, float r, float g, float b, bool finalPortal = false) {
+    (void)label;
+    (void)finalPortal;
+    const float pulse = 0.18f + (std::sin(interactionPulse) + 1.0f) * 0.10f;
+    drawGroundDisk(x, z, 1.15f + pulse, r * 0.55f, g * 0.55f, b * 0.55f);
+    drawGroundDisk(x, z, 0.65f + pulse * 0.35f, r, g, b);
+    drawFloatingArrow(x, z, r, g, b);
+}
+
+void drawInteractionMarker(float x, float z, const std::string& label, bool completed = false) {
+    (void)label;
+    const bool nearby = isNear(player.x, player.z, x, z, 2.4f);
+    const float pulse = nearby ? 0.35f : 0.12f;
+    const float r = completed ? 0.20f : (nearby ? 1.0f : 0.75f);
+    const float g = completed ? 0.78f : (nearby ? 0.86f : 0.70f);
+    const float b = completed ? 0.25f : (nearby ? 0.18f : 0.22f);
+
+    drawGroundDisk(x, z, nearby ? 1.05f : 0.72f, r, g, b);
+    drawCube(x, 2.38f + std::sin(interactionPulse) * pulse, z, 0.46f, 0.46f, 0.08f, r, g, b);
+}
+
+void drawObjectiveMarker(float x, float z, const std::string& label, bool finalMarker = false) {
+    (void)label;
+    const float r = finalMarker ? 0.95f : 0.20f;
+    const float g = finalMarker ? 0.12f : 0.55f;
+    const float b = finalMarker ? 0.12f : 1.00f;
+    drawGroundDisk(x, z, 1.35f, r * 0.55f, g * 0.55f, b * 0.55f);
+    drawFloatingArrow(x, z, r, g, b);
+}
+
+void drawCompletionBadge(float x, float z, const std::string& label = "SELESAI") {
+    (void)label;
+    drawGroundDisk(x, z, 0.55f, 0.10f, 0.72f, 0.22f);
+    drawCube(x, 2.55f, z, 0.50f, 0.50f, 0.10f, 0.10f, 0.72f, 0.22f);
+}
+
+}  // namespace
 
 void drawGround(float size, float r = 0.25f, float g = 0.45f, float b = 0.25f) {
     setColor(r, g, b);
@@ -104,24 +324,53 @@ void drawPlayer3D(float x, float z) {
     glTranslatef(x, 0.0f, z);
     glRotatef(player.facingYaw, 0.0f, 1.0f, 0.0f);
 
-    // Body, head, legs, and a small front marker so the facing direction is readable.
-    drawCube(0.0f, 1.0f, 0.0f, 0.7f, 1.2f, 0.4f, 0.10f, 0.20f, 0.90f);
-    drawCube(0.0f, 1.9f, 0.0f, 0.45f, 0.45f, 0.45f, 1.0f, 0.8f, 0.6f);
-    drawCube(-0.2f, 0.35f, 0.0f, 0.25f, 0.7f, 0.25f, 0.1f, 0.1f, 0.1f);
-    drawCube(0.2f, 0.35f, 0.0f, 0.25f, 0.7f, 0.25f, 0.1f, 0.1f, 0.1f);
-    drawCube(0.0f, 1.15f, -0.28f, 0.36f, 0.28f, 0.14f, 1.0f, 0.86f, 0.20f);
+    drawCharacterModel(0.10f, 0.20f, 0.90f,
+                       0.08f, 0.10f, 0.22f,
+                       1.00f, 0.86f, 0.20f,
+                       false, false);
 
     glPopMatrix();
 }
 
 void drawNPC3D(float x, float z, float r, float g, float b) {
-    drawCube(x, 1.0f, z, 0.7f, 1.2f, 0.4f, r, g, b);
-    drawCube(x, 1.9f, z, 0.45f, 0.45f, 0.45f, 1.0f, 0.8f, 0.6f);
+    glPushMatrix();
+    glTranslatef(x, 0.0f, z);
+
+    const bool securityUniform = g > r && g > b;
+    const bool suspicious = r > 0.30f && g < 0.12f && b < 0.12f;
+    const bool vendor = r > 0.75f && g > 0.35f && b < 0.20f;
+    const bool formal = b > r && b > g;
+
+    float pantsR = 0.10f;
+    float pantsG = 0.11f;
+    float pantsB = 0.13f;
+    if (vendor) {
+        pantsR = 0.25f;
+        pantsG = 0.16f;
+        pantsB = 0.08f;
+    } else if (formal) {
+        pantsR = 0.08f;
+        pantsG = 0.10f;
+        pantsB = 0.20f;
+    }
+
+    drawCharacterModel(r, g, b,
+                       pantsR, pantsG, pantsB,
+                       securityUniform ? 0.08f : 0.95f,
+                       securityUniform ? 0.28f : 0.78f,
+                       securityUniform ? 0.12f : 0.24f,
+                       securityUniform, suspicious);
+
+    glPopMatrix();
 }
 
 void drawSimpleCar(float x, float z) {
     drawCube(x, 0.5f, z, 2.2f, 0.7f, 1.2f, 0.18f, 0.24f, 0.70f);
     drawCube(x, 1.0f, z - 0.1f, 1.2f, 0.6f, 0.9f, 0.10f, 0.12f, 0.32f);
+    drawCube(x - 0.75f, 0.20f, z - 0.62f, 0.42f, 0.42f, 0.18f, 0.03f, 0.03f, 0.04f);
+    drawCube(x + 0.75f, 0.20f, z - 0.62f, 0.42f, 0.42f, 0.18f, 0.03f, 0.03f, 0.04f);
+    drawCube(x - 0.75f, 0.20f, z + 0.62f, 0.42f, 0.42f, 0.18f, 0.03f, 0.03f, 0.04f);
+    drawCube(x + 0.75f, 0.20f, z + 0.62f, 0.42f, 0.42f, 0.18f, 0.03f, 0.03f, 0.04f);
 }
 
 void drawRoomFrame(float halfWidth, float halfDepth, float wallHeight, float r, float g, float b) {
@@ -239,6 +488,8 @@ void drawSamsatExterior3D() {
 
     drawCube(0.0f, 2.5f, -10.0f, 14.0f, 5.0f, 4.0f, 0.58f, 0.58f, 0.62f);
     drawCube(0.0f, 1.3f, -7.7f, 2.0f, 2.6f, 0.2f, 0.10f, 0.10f, 0.15f);
+    draw3DLabel(0.0f, 5.05f, -7.85f, "KANTOR SAMSAT", 0.02f, 0.08f, 0.16f, 1.0f, 0.92f, 0.24f, 5.0f);
+    draw3DLabel(0.0f, 2.9f, -7.55f, "RUANG INFORMASI", 0.10f, 0.22f, 0.42f, 1.0f, 1.0f, 1.0f, 3.9f);
     drawCube(0.0f, 0.08f, -4.8f, 2.8f, 0.04f, 1.0f, 0.18f, 0.48f, 0.90f);  // information room portal
     drawCube(10.0f, 0.08f, -8.2f, 2.8f, 0.04f, 1.0f, 0.90f, 0.82f, 0.28f); // photocopy portal
     drawCube(-9.8f, 0.08f, -8.3f, 2.8f, 0.04f, 1.0f, 0.22f, 0.68f, 0.35f); // vehicle check portal
@@ -248,11 +499,67 @@ void drawSamsatExterior3D() {
     drawCube(7.0f, 1.2f, -1.0f, 3.2f, 2.4f, 2.5f, 0.65f, 0.35f, 0.15f);
     drawCube(10.0f, 1.2f, -2.0f, 2.8f, 2.4f, 2.4f, 0.72f, 0.72f, 0.76f);
     drawCube(0.0f, 1.0f, 1.0f, 1.0f, 2.0f, 0.8f, 0.15f, 0.15f, 0.18f);
+    draw3DLabel(0.0f, 3.05f, 0.42f, "MESIN ANTREAN", 0.05f, 0.08f, 0.12f, 1.0f, 0.9f, 0.2f, 3.1f);
+    draw3DLabel(10.0f, 2.7f, -0.75f, "FOTOKOPI", 0.12f, 0.12f, 0.12f, 1.0f, 0.9f, 0.2f, 2.8f);
+    draw3DLabel(-9.8f, 2.2f, -7.4f, "CEK FISIK", 0.07f, 0.18f, 0.10f, 1.0f, 1.0f, 1.0f, 2.7f);
+    draw3DLabel(7.0f, 2.2f, -7.4f, "VERIFIKASI", 0.10f, 0.11f, 0.28f, 1.0f, 1.0f, 1.0f, 2.8f);
+    draw3DLabel(-9.8f, 2.2f, 8.8f, "PEMBAYARAN", 0.35f, 0.20f, 0.05f, 1.0f, 0.95f, 0.25f, 3.0f);
 
     drawCube(-10.0f, 0.05f, 5.0f, 5.0f, 0.02f, 10.0f, 0.32f, 0.32f, 0.35f);
     drawCube(10.0f, 0.05f, 5.0f, 5.0f, 0.02f, 10.0f, 0.32f, 0.32f, 0.35f);
     drawSimpleCar(-9.0f, 5.0f);
     drawSimpleCar(9.0f, 5.0f);
+    drawFlagPole(-13.5f, -7.5f);
+    for (int i = 0; i < 5; ++i) {
+        drawCube(-12.0f + static_cast<float>(i) * 1.1f, 0.45f, -2.8f, 0.10f, 0.90f, 0.10f, 0.85f, 0.85f, 0.78f);
+        drawCube(-11.45f + static_cast<float>(i) * 1.1f, 0.82f, -2.8f, 1.0f, 0.10f, 0.10f, 0.85f, 0.85f, 0.78f);
+    }
+    drawTrafficCone(-4.0f, -4.2f);
+    drawTrafficCone(4.0f, -4.2f);
+    drawTrafficCone(-8.2f, -6.8f);
+    drawTrafficCone(8.2f, -6.8f);
+
+    drawPortalMarker(0.0f, -4.8f, "TEKAN E: MASUK", 0.15f, 0.42f, 1.0f);
+    drawInteractionMarker(-7.0f, 1.0f, "E", metSecurityGuard);
+    drawInteractionMarker(0.0f, 1.0f, "E", hasQueueNumber);
+    drawInteractionMarker(7.0f, 1.0f, "E", hasCorrectMap);
+    drawInteractionMarker(10.0f, -2.0f, "E", hasValidPhotocopy);
+    if (hasQueueNumber) {
+        drawCube(0.0f, 2.08f, 0.58f, 0.72f, 0.06f, 0.34f, 0.95f, 0.95f, 0.82f);
+        drawCompletionBadge(0.0f, 1.0f, "TIKET OK");
+    }
+    if (hasCorrectMap) {
+        drawDocumentPile(7.0f, 1.75f, 0.10f, 0.16f, 0.34f, 0.86f);
+        drawCompletionBadge(7.0f, 1.0f, "MAP OK");
+    }
+    if (hasValidPhotocopy) {
+        drawCompletionBadge(10.0f, -2.0f, "FOTO OK");
+    }
+    if (hasFilledForm) {
+        drawPortalMarker(-9.8f, -8.3f, "CEK FISIK", 0.15f, 0.85f, 0.32f);
+    }
+    if (hasPhysicalCheckProof) {
+        drawPortalMarker(7.0f, -8.3f, "VERIFIKASI", 0.15f, 0.42f, 1.0f);
+    }
+    if (hasVerificationStamp) {
+        drawPortalMarker(-9.8f, 8.4f, "PEMBAYARAN", 0.15f, 0.85f, 0.32f);
+    }
+
+    if (!hasQueueNumber) {
+        drawObjectiveMarker(0.0f, 1.0f, "TUJUAN: NOMOR");
+    } else if (!hasCorrectMap) {
+        drawObjectiveMarker(7.0f, 1.0f, "TUJUAN: MAP");
+    } else if (!hasValidPhotocopy) {
+        drawObjectiveMarker(10.0f, -2.0f, "TUJUAN: FOTOKOPI");
+    } else if (!hasFilledForm) {
+        drawObjectiveMarker(0.0f, -4.8f, "TUJUAN: INFORMASI");
+    } else if (!hasPhysicalCheckProof) {
+        drawObjectiveMarker(-9.8f, -8.3f, "TUJUAN: CEK FISIK");
+    } else if (!hasVerificationStamp) {
+        drawObjectiveMarker(7.0f, -8.3f, "TUJUAN: VERIFIKASI");
+    } else if (!hasPaymentProof) {
+        drawObjectiveMarker(-9.8f, 8.4f, "TUJUAN: BAYAR");
+    }
 
     drawNPC3D(-7.0f, 1.0f, 0.10f, 0.60f, 0.20f);
     drawNPC3D(7.0f, 1.0f, 0.90f, 0.45f, 0.10f);
@@ -268,10 +575,24 @@ void drawInformationRoom3D() {
 
     drawCube(0.0f, 0.8f, -3.0f, 5.0f, 1.0f, 1.4f, 0.38f, 0.28f, 0.18f);
     drawCube(0.0f, 1.5f, -4.6f, 6.0f, 2.0f, 0.3f, 0.35f, 0.40f, 0.48f);
+    draw3DLabel(0.0f, 2.85f, -4.35f, "RUANG INFORMASI", 0.08f, 0.18f, 0.36f, 1.0f, 1.0f, 1.0f, 4.2f);
+    draw3DLabel(5.0f, 2.25f, -2.25f, "LOKET FORMULIR", 0.10f, 0.18f, 0.34f, 1.0f, 1.0f, 1.0f, 3.6f);
     drawCube(-4.0f, 0.45f, 1.2f, 1.2f, 0.9f, 1.2f, 0.45f, 0.45f, 0.50f);
     drawCube(0.0f, 0.45f, 1.2f, 1.2f, 0.9f, 1.2f, 0.45f, 0.45f, 0.50f);
     drawCube(4.0f, 0.45f, 1.2f, 1.2f, 0.9f, 1.2f, 0.45f, 0.45f, 0.50f);
+    drawChair(-4.0f, 1.2f);
+    drawChair(0.0f, 1.2f);
+    drawChair(4.0f, 1.2f);
     drawCube(5.0f, 1.0f, -3.0f, 1.4f, 2.0f, 1.4f, 0.36f, 0.32f, 0.28f);
+    drawPortalMarker(0.0f, 6.2f, "KELUAR", 0.15f, 0.85f, 0.32f);
+    drawPortalMarker(5.0f, -3.0f, "LOKET FORM", 0.15f, 0.42f, 1.0f);
+    drawInteractionMarker(0.0f, -4.0f, "E", metInformationOfficer);
+    if (metInformationOfficer) {
+        drawCompletionBadge(0.0f, -4.0f, "INFO OK");
+    }
+    if (!hasFilledForm) {
+        drawObjectiveMarker(5.0f, -3.0f, "TUJUAN: FORM");
+    }
 
     drawNPC3D(0.0f, -4.0f, 0.25f, 0.45f, 0.92f);
     drawNPC3D(-4.0f, 2.5f, 0.70f, 0.70f, 0.20f);
@@ -284,8 +605,11 @@ void drawGenericCounterScene3D(float accentR, float accentG, float accentB, bool
     drawRoomFrame(8.0f, 7.0f, 4.5f, 0.68f, 0.68f, 0.72f);
     drawCube(0.0f, 0.85f, -3.0f, 6.0f, 1.1f, 1.4f, 0.46f, 0.34f, 0.24f);
     drawCube(0.0f, 1.55f, -4.7f, 5.2f, 1.6f, 0.3f, accentR, accentG, accentB);
+    draw3DLabel(0.0f, 2.65f, -4.45f, "VALIDASI SELESAI", 0.06f, 0.18f, 0.08f, 1.0f, 1.0f, 1.0f, 4.0f);
     drawCube(-4.8f, 1.1f, -2.5f, 1.0f, 1.8f, 1.0f, 0.55f, 0.55f, 0.58f);
     drawCube(4.8f, 1.1f, -2.5f, 1.0f, 1.8f, 1.0f, 0.55f, 0.55f, 0.58f);
+    drawPortalMarker(0.0f, -6.0f, "LORONG FINAL", 0.15f, 0.85f, 0.32f);
+    drawObjectiveMarker(0.0f, -6.0f, "TUJUAN: FINAL");
     drawNPC3D(0.0f, -4.0f, 0.18f, 0.36f, 0.80f);
     if (showPlayerCharacter) {
         drawPlayer3D(player.x, player.z);
@@ -298,8 +622,20 @@ void drawFormCounter3D() {
     drawCube(0.0f, 0.08f, 6.1f, 3.0f, 0.04f, 0.8f, 0.20f, 0.36f, 0.78f);
     drawCube(0.0f, 0.85f, -3.0f, 6.4f, 1.1f, 1.4f, 0.44f, 0.32f, 0.22f);
     drawCube(0.0f, 1.70f, -4.7f, 5.4f, 1.4f, 0.3f, 0.20f, 0.36f, 0.78f);
+    draw3DLabel(0.0f, 2.75f, -4.45f, "LOKET FORMULIR", 0.08f, 0.16f, 0.34f, 1.0f, 1.0f, 1.0f, 4.0f);
     drawDocumentPile(-2.2f, 1.15f, -2.7f, 0.90f, 0.90f, 0.92f);
     drawDocumentPile(2.0f, 1.15f, -2.8f, 0.86f, 0.86f, 0.88f);
+    drawDocumentPile(-0.7f, 1.22f, -2.4f, 0.75f, 0.78f, 0.95f);
+    drawCube(2.9f, 1.22f, -2.55f, 0.48f, 0.14f, 0.70f, 0.18f, 0.36f, 0.82f);
+    drawCube(3.2f, 1.26f, -2.55f, 0.48f, 0.14f, 0.70f, 0.18f, 0.36f, 0.82f);
+    drawPortalMarker(0.0f, 6.1f, hasFilledForm ? "LANJUT" : "KELUAR", 0.15f, 0.85f, 0.32f);
+    drawInteractionMarker(0.0f, -4.0f, "E", hasFilledForm);
+    if (hasFilledForm) {
+        drawCompletionBadge(0.0f, -4.0f, "FORM OK");
+    }
+    if (!hasFilledForm) {
+        drawObjectiveMarker(0.0f, -4.0f, "TUJUAN: FORM");
+    }
     drawCube(4.8f, 1.6f, -4.5f, 1.1f, 3.2f, 0.8f, 0.55f, 0.55f, 0.60f);
     drawCube(-4.8f, 1.6f, -4.5f, 1.1f, 3.2f, 0.8f, 0.55f, 0.55f, 0.60f);
     drawNPC3D(0.0f, -4.0f, 0.18f, 0.36f, 0.82f);
@@ -312,9 +648,19 @@ void drawVerificationCounter3D() {
     drawCube(0.0f, 0.08f, 6.1f, 3.0f, 0.04f, 0.8f, 0.58f, 0.58f, 0.86f);
     drawCube(0.0f, 0.90f, -3.0f, 6.2f, 1.2f, 1.4f, 0.42f, 0.34f, 0.24f);
     drawCube(0.0f, 1.70f, -4.7f, 5.4f, 1.5f, 0.3f, 0.32f, 0.42f, 0.52f);
+    draw3DLabel(0.0f, 2.8f, -4.45f, "VERIFIKASI BERKAS", 0.10f, 0.12f, 0.22f, 1.0f, 1.0f, 1.0f, 4.5f);
     drawDocumentPile(-2.4f, 1.12f, -2.7f, 0.88f, 0.84f, 0.65f);
     drawDocumentPile(2.3f, 1.12f, -2.8f, 0.84f, 0.90f, 0.84f);
     drawCounterStamp(0.0f, -2.5f, 0.55f, 0.05f, 0.05f);
+    drawCube(1.1f, 1.32f, -2.55f, 0.80f, 0.10f, 0.80f, 0.95f, 0.15f, 0.15f);
+    drawPortalMarker(0.0f, 6.1f, hasVerificationStamp ? "LANJUT" : "KELUAR", 0.15f, 0.85f, 0.32f);
+    drawInteractionMarker(0.0f, -4.0f, "E", hasVerificationStamp);
+    if (hasVerificationStamp) {
+        drawCompletionBadge(0.0f, -4.0f, "CAP OK");
+    }
+    if (!hasVerificationStamp) {
+        drawObjectiveMarker(0.0f, -4.0f, "TUJUAN: VERIFIKASI");
+    }
     drawCube(-5.2f, 2.0f, -4.4f, 1.3f, 4.0f, 1.0f, 0.44f, 0.40f, 0.34f);
     drawCube(5.2f, 2.0f, -4.4f, 1.3f, 4.0f, 1.0f, 0.44f, 0.40f, 0.34f);
     drawNPC3D(0.0f, -4.0f, 0.16f, 0.34f, 0.74f);
@@ -328,7 +674,20 @@ void drawPaymentCounter3D() {
     drawCube(0.0f, 0.90f, -3.0f, 6.4f, 1.2f, 1.4f, 0.48f, 0.36f, 0.22f);
     drawCube(0.0f, 2.05f, -3.5f, 5.2f, 0.15f, 0.1f, 0.76f, 0.84f, 0.90f);
     drawCube(0.0f, 1.72f, -4.7f, 5.4f, 1.5f, 0.3f, 0.58f, 0.38f, 0.16f);
+    draw3DLabel(0.0f, 2.8f, -4.45f, "LOKET PEMBAYARAN", 0.28f, 0.16f, 0.04f, 1.0f, 0.95f, 0.25f, 4.4f);
     drawCube(-1.8f, 1.18f, -2.7f, 0.8f, 0.45f, 0.8f, 0.14f, 0.14f, 0.16f);
+    drawCube(-1.8f, 1.48f, -2.98f, 0.90f, 0.10f, 0.12f, 0.10f, 0.60f, 0.18f);
+    drawCube(0.9f, 1.18f, -2.65f, 0.70f, 0.10f, 0.40f, 0.12f, 0.55f, 0.18f);
+    drawWorldText(0.62f, 1.28f, -2.43f, "RP", GLUT_BITMAP_8_BY_13);
+    drawPortalMarker(0.0f, 6.1f, hasPaymentProof ? "VALIDASI" : "KEMBALI", 0.15f, 0.85f, 0.32f);
+    drawInteractionMarker(0.0f, -4.0f, "E", hasPaymentProof);
+    if (hasPaymentProof) {
+        drawDocumentPile(0.8f, 1.28f, -2.65f, 0.12f, 0.62f, 0.22f);
+        drawCompletionBadge(0.0f, -4.0f, "BAYAR OK");
+    }
+    if (!hasPaymentProof) {
+        drawObjectiveMarker(0.0f, -4.0f, "TUJUAN: BAYAR");
+    }
     drawDocumentPile(2.0f, 1.12f, -2.7f, 0.92f, 0.92f, 0.88f);
     drawCube(4.7f, 1.10f, -2.8f, 1.2f, 1.8f, 1.0f, 0.54f, 0.52f, 0.48f);
     drawNPC3D(0.0f, -4.0f, 0.16f, 0.28f, 0.68f);
@@ -341,8 +700,17 @@ void drawValidationCounter3D() {
     drawCube(0.0f, 0.08f, 6.1f, 3.0f, 0.04f, 0.8f, 0.80f, 0.18f, 0.18f);
     drawCube(0.0f, 0.90f, -3.0f, 6.4f, 1.2f, 1.4f, 0.42f, 0.32f, 0.22f);
     drawCube(0.0f, 1.72f, -4.7f, 5.4f, 1.5f, 0.3f, 0.62f, 0.10f, 0.10f);
+    draw3DLabel(0.0f, 2.8f, -4.45f, "VALIDASI", 0.32f, 0.05f, 0.05f, 1.0f, 1.0f, 1.0f, 3.2f);
     drawCounterStamp(-1.2f, -2.5f, 0.65f, 0.00f, 0.00f);
     drawCounterStamp(1.6f, -2.6f, 0.12f, 0.12f, 0.12f);
+    drawPortalMarker(0.0f, 6.1f, receivedStampRequirement ? "METERAI" : "KELUAR", 0.15f, 0.85f, 0.32f);
+    drawInteractionMarker(0.0f, -4.0f, "E", receivedStampRequirement);
+    if (receivedStampRequirement) {
+        drawCompletionBadge(0.0f, -4.0f, "VALID OK");
+    }
+    if (!receivedStampRequirement) {
+        drawObjectiveMarker(0.0f, -4.0f, "TUJUAN: VALIDASI");
+    }
     drawDocumentPile(2.8f, 1.10f, -2.7f, 0.90f, 0.88f, 0.82f);
     drawCube(-4.8f, 1.7f, -4.4f, 1.2f, 3.4f, 0.9f, 0.48f, 0.42f, 0.34f);
     drawNPC3D(0.0f, -4.0f, 0.14f, 0.26f, 0.62f);
@@ -356,6 +724,18 @@ void drawPhotocopyShop3D() {
     drawCube(-2.5f, 0.9f, -2.0f, 2.2f, 1.8f, 1.6f, 0.90f, 0.90f, 0.92f);
     drawCube(2.8f, 0.8f, -2.4f, 3.0f, 1.0f, 1.4f, 0.45f, 0.33f, 0.24f);
     drawCube(0.8f, 1.1f, -3.8f, 4.5f, 1.6f, 0.3f, 0.55f, 0.55f, 0.58f);
+    draw3DLabel(0.8f, 2.35f, -3.55f, "FOTOKOPI", 0.15f, 0.15f, 0.12f, 1.0f, 0.9f, 0.2f, 3.0f);
+    drawDocumentPile(2.1f, 1.35f, -2.2f, 0.94f, 0.94f, 0.90f);
+    drawDocumentPile(3.1f, 1.35f, -2.5f, 0.12f, 0.32f, 0.82f);
+    drawPortalMarker(0.0f, 6.1f, "KELUAR", 0.15f, 0.85f, 0.32f);
+    drawInteractionMarker(4.8f, -2.0f, "E", hasValidPhotocopy);
+    if (hasValidPhotocopy) {
+        drawDocumentPile(-1.4f, 1.85f, -1.25f, 0.10f, 0.72f, 0.22f);
+        drawCompletionBadge(4.8f, -2.0f, "FOTO OK");
+    }
+    if (!hasValidPhotocopy) {
+        drawObjectiveMarker(4.8f, -2.0f, "TUJUAN: FOTOKOPI");
+    }
     drawNPC3D(4.8f, -2.0f, 0.55f, 0.55f, 0.55f);
     drawPlayer3D(player.x, player.z);
 }
@@ -363,9 +743,27 @@ void drawPhotocopyShop3D() {
 void drawVehicleCheck3D() {
     drawGround(20.0f, 0.40f, 0.48f, 0.40f);
     drawCube(0.0f, 0.05f, 0.0f, 7.5f, 0.02f, 12.0f, 0.22f, 0.22f, 0.24f);
+    draw3DLabel(0.0f, 2.8f, -5.5f, "CEK FISIK KENDARAAN", 0.08f, 0.18f, 0.10f, 1.0f, 1.0f, 1.0f, 5.0f);
     drawSimpleCar(0.0f, 1.5f);
+    drawCube(0.0f, 0.08f, 1.5f, 1.0f, 0.03f, 9.5f, 0.95f, 0.90f, 0.25f);
     drawCube(4.5f, 0.8f, -2.5f, 2.0f, 1.0f, 1.2f, 0.45f, 0.34f, 0.24f);
     drawCube(-5.5f, 1.0f, -3.5f, 2.6f, 2.0f, 2.2f, 0.32f, 0.42f, 0.52f);
+    drawTrafficCone(-2.8f, 5.0f);
+    drawTrafficCone(2.8f, 5.0f);
+    drawTrafficCone(-2.8f, -3.0f);
+    drawTrafficCone(2.8f, -3.0f);
+    drawPortalMarker(0.0f, 6.7f, "KELUAR", 0.15f, 0.85f, 0.32f);
+    if (hasPhysicalCheckProof) {
+        drawPortalMarker(0.0f, -6.4f, "VERIFIKASI", 0.15f, 0.42f, 1.0f);
+    }
+    drawInteractionMarker(0.0f, 1.5f, "E", hasPhysicalCheckProof);
+    drawInteractionMarker(4.5f, -1.5f, "E", hasPhysicalCheckProof);
+    if (hasPhysicalCheckProof) {
+        drawCompletionBadge(0.0f, 1.5f, "CEK OK");
+    }
+    if (!hasPhysicalCheckProof) {
+        drawObjectiveMarker(0.0f, 1.5f, "TUJUAN: CEK FISIK");
+    }
     drawNPC3D(4.5f, -1.5f, 0.15f, 0.55f, 0.25f);
     drawPlayer3D(player.x, player.z);
 }
@@ -376,6 +774,18 @@ void drawPaymentQueue3D() {
     drawCube(0.0f, 0.08f, 6.6f, 3.0f, 0.04f, 0.8f, 0.86f, 0.58f, 0.28f);
     drawCube(0.0f, 0.08f, -6.6f, 3.0f, 0.04f, 0.8f, 0.86f, 0.58f, 0.28f);
     drawCube(0.0f, 0.85f, -4.0f, 5.5f, 1.0f, 1.2f, 0.44f, 0.34f, 0.24f);
+    draw3DLabel(0.0f, 2.0f, -3.55f, "ANTREAN PEMBAYARAN", 0.20f, 0.14f, 0.05f, 1.0f, 0.95f, 0.25f, 4.8f);
+    drawPortalMarker(0.0f, 6.6f, "KELUAR", 0.15f, 0.85f, 0.32f);
+    if (hasQueuedPaymentLine) {
+        drawPortalMarker(0.0f, -6.6f, "LOKET BAYAR", 0.15f, 0.42f, 1.0f);
+    }
+    drawInteractionMarker(0.0f, 2.5f, "E", hasQueuedPaymentLine);
+    if (hasQueuedPaymentLine) {
+        drawCompletionBadge(0.0f, 2.5f, "ANTRE OK");
+    }
+    if (!hasQueuedPaymentLine) {
+        drawObjectiveMarker(0.0f, 2.5f, "TUJUAN: ANTRE");
+    }
     drawQueueMarker(-3.0f, 2.5f);
     drawQueueMarker(-1.5f, 2.5f);
     drawQueueMarker(0.0f, 2.5f);
@@ -394,6 +804,15 @@ void drawStampQuest3D() {
     drawCube(0.0f, 0.8f, -2.8f, 4.0f, 1.0f, 1.2f, 0.48f, 0.34f, 0.22f);
     drawCube(0.0f, 1.05f, -1.0f, 0.4f, 0.02f, 0.3f, 0.9f, 0.1f, 0.1f);
     drawCube(4.5f, 1.2f, -3.8f, 1.5f, 2.4f, 1.0f, 0.55f, 0.42f, 0.26f);
+    draw3DLabel(0.0f, 2.0f, -2.45f, "METERAI", 0.34f, 0.18f, 0.04f, 1.0f, 0.95f, 0.25f, 2.6f);
+    drawPortalMarker(0.0f, 6.1f, hasStampedDocument ? "VALIDASI" : "KELUAR", 0.15f, 0.85f, 0.32f);
+    drawInteractionMarker(3.5f, -2.0f, "E", hasStampedDocument);
+    if (hasStampedDocument) {
+        drawCompletionBadge(3.5f, -2.0f, "METERAI OK");
+    }
+    if (!hasStampedDocument) {
+        drawObjectiveMarker(3.5f, -2.0f, "TUJUAN: METERAI");
+    }
     drawNPC3D(3.5f, -2.0f, 0.90f, 0.45f, 0.10f);
     drawPlayer3D(player.x, player.z);
 }
@@ -404,6 +823,7 @@ void drawFinalCorridor3D() {
     drawCube(4.5f, 2.0f, -1.0f, 0.5f, 4.0f, 16.0f, 0.32f, 0.32f, 0.36f);
     drawCube(0.0f, 3.8f, -1.0f, 9.5f, 0.4f, 16.0f, 0.26f, 0.26f, 0.30f);
     drawCube(0.0f, 1.2f, -8.0f, 4.0f, 2.4f, 0.3f, 0.75f, 0.70f, 0.45f);
+    draw3DLabel(0.0f, 2.8f, -7.75f, "LOKET FINAL", 0.38f, 0.05f, 0.05f, 1.0f, 1.0f, 1.0f, 3.6f);
     drawCube(-3.7f, 1.8f, -4.6f, 1.0f, 3.6f, 0.9f, 0.40f, 0.34f, 0.28f);
     drawCube(3.7f, 1.8f, -4.6f, 1.0f, 3.6f, 0.9f, 0.40f, 0.34f, 0.28f);
     drawCube(-3.5f, 3.3f, -1.5f, 0.5f, 0.3f, 0.5f, 0.85f, 0.82f, 0.60f);
@@ -411,6 +831,18 @@ void drawFinalCorridor3D() {
     drawCube(-3.5f, 3.3f, -6.0f, 0.5f, 0.3f, 0.5f, 0.85f, 0.82f, 0.60f);
     drawCube(3.5f, 3.3f, -6.0f, 0.5f, 0.3f, 0.5f, 0.85f, 0.82f, 0.60f);
     drawCube(0.0f, 0.03f, -6.5f, 3.6f, 0.02f, 1.2f, 0.90f, 0.82f, 0.20f);
+    draw3DLabel(-2.5f, 2.55f, -1.55f, "ANTREAN SENIOR", 0.16f, 0.12f, 0.24f, 1.0f, 1.0f, 1.0f, 3.8f);
+    draw3DLabel(2.8f, 2.55f, -3.35f, "ORANG DALAM", 0.08f, 0.02f, 0.03f, 1.0f, 0.82f, 0.82f, 3.2f);
+    drawPortalMarker(0.0f, -6.5f, "LOKET FINAL", 1.0f, 0.16f, 0.16f, true);
+    drawInteractionMarker(-2.5f, -2.0f, "E", receivedCorridorAdvice);
+    drawInteractionMarker(2.8f, -3.8f, "E", usedInsider);
+    if (receivedCorridorAdvice) {
+        drawCompletionBadge(-2.5f, -2.0f, "SARAN OK");
+    }
+    if (usedInsider) {
+        drawCompletionBadge(2.8f, -3.8f, "JALUR OK");
+    }
+    drawObjectiveMarker(0.0f, -6.5f, "TUJUAN: FINAL", true);
     drawNPC3D(-2.5f, -2.0f, 0.55f, 0.42f, 0.70f);
     drawNPC3D(2.8f, -3.8f, 0.35f, 0.05f, 0.05f);
     drawPlayer3D(player.x, player.z);
@@ -423,12 +855,23 @@ void drawFinalBoss3D() {
     drawCube(-6.2f, 2.0f, -4.2f, 1.5f, 4.0f, 2.0f, 0.38f, 0.32f, 0.26f);
     drawCube(6.2f, 2.0f, -4.2f, 1.5f, 4.0f, 2.0f, 0.38f, 0.32f, 0.26f);
     drawCube(0.0f, 4.2f, -7.4f, 6.5f, 0.25f, 0.4f, 0.55f, 0.18f, 0.18f);
+    draw3DLabel(0.0f, 4.75f, -7.15f, "LOKET FINAL", 0.38f, 0.05f, 0.05f, 1.0f, 1.0f, 1.0f, 4.2f);
     drawCube(1.6f, 1.6f, -3.9f, 1.2f, 0.7f, 0.8f, 0.12f, 0.12f, 0.15f);
     drawCube(3.3f, 0.75f, -3.7f, 1.0f, 0.25f, 1.0f, 0.55f, 0.00f, 0.00f);
     drawCube(-2.5f, 1.15f, -3.8f, 1.0f, 0.4f, 0.8f, 0.72f, 0.72f, 0.76f);
     drawDocumentPile(-0.8f, 1.12f, -3.6f, 0.90f, 0.88f, 0.82f);
     drawDocumentPile(-5.9f, 0.8f, -2.8f, 0.84f, 0.84f, 0.82f);
     drawDocumentPile(5.8f, 0.8f, -2.8f, 0.84f, 0.84f, 0.82f);
+    drawDocumentPile(-4.8f, 1.0f, -3.4f, 0.90f, 0.88f, 0.82f);
+    drawDocumentPile(4.7f, 1.0f, -3.4f, 0.90f, 0.88f, 0.82f);
+    drawPortalMarker(0.0f, 6.4f, "KEMBALI", 0.15f, 0.85f, 0.32f);
+    drawInteractionMarker(0.0f, -5.5f, "E", hasFinalSTNK);
+    if (hasFinalSTNK) {
+        drawCompletionBadge(0.0f, -5.5f, "STNK OK");
+    }
+    if (!hasFinalSTNK) {
+        drawObjectiveMarker(0.0f, -5.5f, "TUJUAN: SERAHKAN", true);
+    }
     drawCounterStamp(3.1f, -3.7f, 0.60f, 0.00f, 0.00f);
     drawNPC3D(0.0f, -5.5f, 0.10f, 0.20f, 0.60f);
     drawPlayer3D(player.x, player.z);
@@ -500,28 +943,41 @@ void renderCurrent3DState() {
 }
 
 void drawResourceUI() {
+    const float margin = 12.0f;
+    const float gap = 8.0f;
+    const float boxH = 26.0f;
+    const int columns = (windowWidth >= 1180) ? 6 : 3;
+    const int rows = (columns == 6) ? 1 : 2;
+    const float topBarH = margin + static_cast<float>(rows) * boxH + static_cast<float>(rows - 1) * gap + margin;
+
     setColor(0.02f, 0.02f, 0.02f);
-    drawRect(0, windowHeight - 48, static_cast<float>(windowWidth), 48.0f);
+    drawRect(0, static_cast<float>(windowHeight) - topBarH, static_cast<float>(windowWidth), topBarH);
 
-    std::stringstream ss;
-    ss << "Kesabaran: " << patience
-       << " | Stamina: " << stamina
-       << " | Uang: " << money
-       << " | Reputasi: " << reputation
-       << " | Moral: " << moralScore
-       << " | Jam: ";
+    std::ostringstream time;
+    if (timeHour < 10) time << "0";
+    time << timeHour << ":";
+    if (timeMinute < 10) time << "0";
+    time << timeMinute;
 
-    if (timeHour < 10) {
-        ss << "0";
+    std::vector<std::string> blocks;
+    blocks.push_back("Sabar " + std::to_string(patience));
+    blocks.push_back("Stamina " + std::to_string(stamina));
+    blocks.push_back("Uang " + std::to_string(money));
+    blocks.push_back("Rep " + std::to_string(reputation));
+    blocks.push_back("Moral " + std::to_string(moralScore));
+    blocks.push_back("Jam " + time.str());
+
+    const float blockW = (static_cast<float>(windowWidth) - (margin * 2.0f) - (gap * static_cast<float>(columns - 1))) /
+                         static_cast<float>(columns);
+    for (std::size_t i = 0; i < blocks.size(); ++i) {
+        const int col = static_cast<int>(i) % columns;
+        const int row = static_cast<int>(i) / columns;
+        const float x = margin + static_cast<float>(col) * (blockW + gap);
+        const float y = static_cast<float>(windowHeight) - margin - boxH - static_cast<float>(row) * (boxH + gap);
+        drawUiBox(x, y, blockW, boxH);
+        setColor(1.0f, 1.0f, 1.0f);
+        drawText(x + 12.0f, y + 8.0f, blocks[i], GLUT_BITMAP_8_BY_13);
     }
-    ss << timeHour << ":";
-    if (timeMinute < 10) {
-        ss << "0";
-    }
-    ss << timeMinute;
-
-    setColor(1.0f, 1.0f, 1.0f);
-    drawText(16.0f, windowHeight - 28.0f, ss.str(), GLUT_BITMAP_HELVETICA_18);
 }
 
 void drawDialogueBox() {
@@ -529,16 +985,20 @@ void drawDialogueBox() {
         return;
     }
 
-    drawPanel(60.0f, 40.0f, static_cast<float>(windowWidth - 120), 135.0f);
+    const float margin = std::max(44.0f, static_cast<float>(windowWidth) * 0.06f);
+    const float panelW = static_cast<float>(windowWidth) - (margin * 2.0f);
+    const float panelH = std::max(135.0f, static_cast<float>(windowHeight) * 0.20f);
+    const float x = margin;
+    const float y = std::max(28.0f, static_cast<float>(windowHeight) * 0.055f);
+    drawPanel(x, y, panelW, panelH);
 
     setColor(1.0f, 0.9f, 0.2f);
-    drawText(85.0f, 145.0f, dialogueSpeaker, GLUT_BITMAP_HELVETICA_18);
-
-    setColor(1.0f, 1.0f, 1.0f);
-    drawText(85.0f, 110.0f, dialogueText, GLUT_BITMAP_HELVETICA_18);
+    drawText(x + 24.0f, y + panelH - 32.0f, dialogueSpeaker, GLUT_BITMAP_HELVETICA_18);
+    drawWrappedText(x + 24.0f, y + panelH - 66.0f, dialogueText, panelW - 48.0f, 24.0f,
+                    GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
 
     setColor(0.8f, 0.8f, 0.8f);
-    drawText(85.0f, 72.0f, "Tekan SPACE untuk lanjut.", GLUT_BITMAP_8_BY_13);
+    drawText(x + 24.0f, y + 20.0f, "Tekan SPACE untuk lanjut.", GLUT_BITMAP_8_BY_13);
 }
 
 void drawInventoryOverlay() {
@@ -546,9 +1006,13 @@ void drawInventoryOverlay() {
         return;
     }
 
-    drawPanel(180.0f, 100.0f, 640.0f, 460.0f);
+    const float panelW = std::min(static_cast<float>(windowWidth) * 0.72f, 760.0f);
+    const float panelH = std::min(static_cast<float>(windowHeight) * 0.68f, 520.0f);
+    const float x = (static_cast<float>(windowWidth) - panelW) * 0.5f;
+    const float y = (static_cast<float>(windowHeight) - panelH) * 0.5f;
+    drawPanel(x, y, panelW, panelH);
     setColor(1.0f, 0.9f, 0.2f);
-    drawText(210.0f, 525.0f, "INVENTORY DOKUMEN", GLUT_BITMAP_HELVETICA_18);
+    drawText(x + 30.0f, y + panelH - 35.0f, "INVENTORY DOKUMEN", GLUT_BITMAP_HELVETICA_18);
 
     std::vector<std::string> items;
     items.push_back("KTP Asli: YES");
@@ -566,14 +1030,16 @@ void drawInventoryOverlay() {
     items.push_back("STNK Baru: " + boolText(hasFinalSTNK));
 
     setColor(1.0f, 1.0f, 1.0f);
-    float y = 485.0f;
+    float itemY = y + panelH - 75.0f;
+    const float lineH = std::max(23.0f, panelH * 0.052f);
     for (const std::string& item : items) {
-        drawText(220.0f, y, item, GLUT_BITMAP_HELVETICA_18);
-        y -= 28.0f;
+        drawWrappedText(x + 40.0f, itemY, item, panelW - 80.0f, lineH, GLUT_BITMAP_HELVETICA_18,
+                        1.0f, 1.0f, 1.0f);
+        itemY -= lineH;
     }
 
     setColor(0.8f, 0.8f, 0.8f);
-    drawText(220.0f, 125.0f, "Tekan I untuk menutup inventory.", GLUT_BITMAP_8_BY_13);
+    drawText(x + 40.0f, y + 24.0f, "Tekan I untuk menutup inventory.", GLUT_BITMAP_8_BY_13);
 }
 
 void drawQuestLogOverlay() {
@@ -581,9 +1047,13 @@ void drawQuestLogOverlay() {
         return;
     }
 
-    drawPanel(150.0f, 100.0f, 700.0f, 460.0f);
+    const float panelW = std::min(static_cast<float>(windowWidth) * 0.74f, 820.0f);
+    const float panelH = std::min(static_cast<float>(windowHeight) * 0.68f, 520.0f);
+    const float x = (static_cast<float>(windowWidth) - panelW) * 0.5f;
+    const float y = (static_cast<float>(windowHeight) - panelH) * 0.5f;
+    drawPanel(x, y, panelW, panelH);
     setColor(1.0f, 0.9f, 0.2f);
-    drawText(180.0f, 525.0f, "QUEST LOG", GLUT_BITMAP_HELVETICA_18);
+    drawText(x + 30.0f, y + panelH - 35.0f, "QUEST LOG", GLUT_BITMAP_HELVETICA_18);
 
     std::vector<std::string> quests;
     quests.push_back(std::string(hasQueueNumber ? "[X] " : "[ ] ") + "Ambil nomor antrean yang benar.");
@@ -597,14 +1067,16 @@ void drawQuestLogOverlay() {
     quests.push_back(std::string(hasFinalSTNK ? "[X] " : "[ ] ") + "Hadapi loket final.");
 
     setColor(1.0f, 1.0f, 1.0f);
-    float y = 485.0f;
+    float questY = y + panelH - 75.0f;
+    const float lineH = std::max(26.0f, panelH * 0.06f);
     for (const std::string& quest : quests) {
-        drawText(180.0f, y, quest, GLUT_BITMAP_HELVETICA_18);
-        y -= 32.0f;
+        drawWrappedText(x + 30.0f, questY, quest, panelW - 60.0f, lineH * 0.75f,
+                        GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
+        questY -= lineH;
     }
 
     setColor(0.8f, 0.8f, 0.8f);
-    drawText(180.0f, 125.0f, "Tekan Q untuk menutup quest log.", GLUT_BITMAP_8_BY_13);
+    drawText(x + 30.0f, y + 24.0f, "Tekan Q untuk menutup quest log.", GLUT_BITMAP_8_BY_13);
 }
 
 void drawDebugOverlay() {
@@ -819,28 +1291,34 @@ std::string getEndingRouteLine() {
 
 void drawStateInstructionPanel() {
     if (currentState == TUTORIAL_CONTROL) {
-        drawPanel(180.0f, 240.0f, 640.0f, 170.0f);
+        const float w = std::min(static_cast<float>(windowWidth) * 0.70f, 720.0f);
+        const float h = std::min(static_cast<float>(windowHeight) * 0.28f, 200.0f);
+        const float x = (static_cast<float>(windowWidth) - w) * 0.5f;
+        const float y = (static_cast<float>(windowHeight) - h) * 0.5f;
+        drawPanel(x, y, w, h);
         setColor(1.0f, 0.9f, 0.2f);
-        drawCenteredText(375.0f, "KONTROL DASAR", GLUT_BITMAP_HELVETICA_18);
-        setColor(1.0f, 1.0f, 1.0f);
-        drawCenteredText(340.0f, "WASD / Arrow Keys: jalan mulus mengikuti kamera", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(310.0f, "Mouse kanan drag / M: lihat sekitar | E: interaksi", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(280.0f, "I: inventory | Q: quest log | R: reset kamera", GLUT_BITMAP_HELVETICA_18);
+        drawText(x + 28.0f, y + h - 36.0f, "KONTROL DASAR", GLUT_BITMAP_HELVETICA_18);
+        drawWrappedText(x + 28.0f, y + h - 70.0f,
+                        "WASD / Arrow Keys: jalan mengikuti kamera. Mouse kanan drag / M: lihat sekitar. E: interaksi. I: inventory. Q: quest log. R: reset kamera.",
+                        w - 56.0f, 24.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
         setColor(0.8f, 0.8f, 0.8f);
-        drawCenteredText(255.0f, "Tekan SPACE untuk mulai menjelajah area Samsat", GLUT_BITMAP_8_BY_13);
+        drawText(x + 28.0f, y + 24.0f, "Tekan SPACE untuk mulai menjelajah area Samsat", GLUT_BITMAP_8_BY_13);
         return;
     }
 
     if (currentState == INVENTORY_CHECK) {
-        drawPanel(170.0f, 210.0f, 660.0f, 220.0f);
+        const float w = std::min(static_cast<float>(windowWidth) * 0.72f, 760.0f);
+        const float h = std::min(static_cast<float>(windowHeight) * 0.34f, 250.0f);
+        const float x = (static_cast<float>(windowWidth) - w) * 0.5f;
+        const float y = (static_cast<float>(windowHeight) - h) * 0.5f;
+        drawPanel(x, y, w, h);
         setColor(1.0f, 0.9f, 0.2f);
-        drawCenteredText(395.0f, "CHECKLIST AWAL BERKAS", GLUT_BITMAP_HELVETICA_18);
-        setColor(1.0f, 1.0f, 1.0f);
-        drawCenteredText(360.0f, "Dokumen dasar sudah aman, tapi proses belum dimulai.", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(330.0f, "Cari nomor antrean, map yang benar, dan fotokopi yang valid.", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(300.0f, "Setelah itu kembali ke loket formulir untuk lanjut ke cek fisik.", GLUT_BITMAP_HELVETICA_18);
+        drawText(x + 28.0f, y + h - 36.0f, "CHECKLIST AWAL BERKAS", GLUT_BITMAP_HELVETICA_18);
+        drawWrappedText(x + 28.0f, y + h - 72.0f,
+                        "Dokumen dasar sudah aman, tapi proses belum dimulai. Cari nomor antrean, map yang benar, dan fotokopi yang valid. Setelah itu kembali ke loket formulir untuk lanjut ke cek fisik.",
+                        w - 56.0f, 24.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
         setColor(0.8f, 0.8f, 0.8f);
-        drawCenteredText(265.0f, "Tekan SPACE untuk kembali ke halaman depan", GLUT_BITMAP_8_BY_13);
+        drawText(x + 28.0f, y + 24.0f, "Tekan SPACE untuk kembali ke halaman depan", GLUT_BITMAP_8_BY_13);
     }
 }
 
@@ -850,9 +1328,13 @@ void drawInteractionPrompt() {
         return;
     }
 
-    drawPanel(240.0f, 185.0f, 520.0f, 44.0f);
-    setColor(1.0f, 1.0f, 1.0f);
-    drawCenteredText(202.0f, prompt, GLUT_BITMAP_HELVETICA_18);
+    const float w = std::min(static_cast<float>(windowWidth) * 0.70f, 700.0f);
+    const float h = 50.0f;
+    const float x = (static_cast<float>(windowWidth) - w) * 0.5f;
+    const float y = std::max(94.0f, static_cast<float>(windowHeight) * 0.16f);
+    drawUiBox(x, y, w, h);
+    drawWrappedText(x + 12.0f, y + 30.0f, prompt, w - 24.0f, 18.0f,
+                    GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
 }
 
 void drawSceneHeader() {
@@ -861,9 +1343,12 @@ void drawSceneHeader() {
         return;
     }
 
-    drawPanel(16.0f, 16.0f, 235.0f, 52.0f);
+    const float margin = 12.0f;
+    const float panelH = 56.0f;
+    const float w = std::min(280.0f, static_cast<float>(windowWidth) * 0.30f);
+    drawUiBox(margin, margin, w, panelH);
     setColor(1.0f, 0.9f, 0.2f);
-    drawText(28.0f, 45.0f, title, GLUT_BITMAP_HELVETICA_18);
+    drawText(margin + 12.0f, margin + 23.0f, title, GLUT_BITMAP_HELVETICA_18);
 }
 
 void drawSceneObjective() {
@@ -872,9 +1357,14 @@ void drawSceneObjective() {
         return;
     }
 
-    drawPanel(270.0f, 16.0f, 470.0f, 52.0f);
-    setColor(1.0f, 1.0f, 1.0f);
-    drawText(286.0f, 45.0f, objective, GLUT_BITMAP_8_BY_13);
+    const float margin = 12.0f;
+    const float panelH = 56.0f;
+    const float titleW = std::min(280.0f, static_cast<float>(windowWidth) * 0.30f);
+    const float x = margin + titleW + 12.0f;
+    const float w = static_cast<float>(windowWidth) - x - margin;
+    drawUiBox(x, margin, w, panelH);
+    drawWrappedText(x + 12.0f, margin + 35.0f, objective, w - 24.0f, 17.0f,
+                    GLUT_BITMAP_8_BY_13, 1.0f, 1.0f, 1.0f);
 }
 
 void drawNotificationToast() {
@@ -882,13 +1372,13 @@ void drawNotificationToast() {
         return;
     }
 
-    const float w = 360.0f;
-    const float h = 42.0f;
+    const float w = std::min(static_cast<float>(windowWidth) * 0.62f, 520.0f);
+    const float h = 48.0f;
     const float x = (windowWidth - w) * 0.5f;
-    const float y = static_cast<float>(windowHeight) - 92.0f;
+    const float y = static_cast<float>(windowHeight) - h - 62.0f;
     drawPanel(x, y, w, h);
-    setColor(1.0f, 0.86f, 0.35f);
-    drawCenteredText(y + 16.0f, notificationText, GLUT_BITMAP_HELVETICA_18);
+    drawWrappedText(x + 18.0f, y + 28.0f, notificationText, w - 36.0f, 18.0f,
+                    GLUT_BITMAP_HELVETICA_18, 1.0f, 0.86f, 0.35f);
 }
 
 void drawCameraReticle() {
@@ -910,13 +1400,13 @@ void drawTitleScreen() {
     drawRect(0.0f, 0.0f, static_cast<float>(windowWidth), static_cast<float>(windowHeight));
 
     setColor(1.0f, 0.9f, 0.2f);
-    drawCenteredText(430.0f, "SAMSAT QUEST", GLUT_BITMAP_TIMES_ROMAN_24);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.68f, "SAMSAT QUEST", GLUT_BITMAP_TIMES_ROMAN_24);
 
     setColor(1.0f, 1.0f, 1.0f);
-    drawCenteredText(395.0f, "STNK of Destiny", GLUT_BITMAP_HELVETICA_18);
-    drawCenteredText(350.0f, "Prototype 3D OpenGL GLUT", GLUT_BITMAP_HELVETICA_18);
-    drawCenteredText(230.0f, "Tekan ENTER untuk mulai", GLUT_BITMAP_HELVETICA_18);
-    drawCenteredText(200.0f, "Tekan ESC untuk keluar", GLUT_BITMAP_8_BY_13);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.62f, "STNK of Destiny", GLUT_BITMAP_HELVETICA_18);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.55f, "Prototype 3D OpenGL GLUT", GLUT_BITMAP_HELVETICA_18);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.34f, "Tekan ENTER untuk mulai", GLUT_BITMAP_HELVETICA_18);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.29f, "Tekan ESC untuk keluar", GLUT_BITMAP_8_BY_13);
 }
 
 void drawOpeningNarration() {
@@ -924,25 +1414,25 @@ void drawOpeningNarration() {
     drawRect(0.0f, 0.0f, static_cast<float>(windowWidth), static_cast<float>(windowHeight));
 
     setColor(1.0f, 0.9f, 0.2f);
-    drawCenteredText(500.0f, "Opening", GLUT_BITMAP_TIMES_ROMAN_24);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.74f, "Opening", GLUT_BITMAP_TIMES_ROMAN_24);
 
     setColor(1.0f, 1.0f, 1.0f);
+    const float textX = static_cast<float>(windowWidth) * 0.18f;
+    const float textW = static_cast<float>(windowWidth) * 0.64f;
+    const float startY = static_cast<float>(windowHeight) * 0.61f;
     if (openingLine == 0) {
-        drawCenteredText(410.0f, "Di sebuah pagi yang tampak biasa,", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(380.0f, "seorang warga menyadari satu kenyataan besar:", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(350.0f, "STNK harus segera diurus.", GLUT_BITMAP_HELVETICA_18);
+        drawWrappedText(textX, startY, "Di sebuah pagi yang tampak biasa, seorang warga menyadari satu kenyataan besar: STNK harus segera diurus.",
+                        textW, 28.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
     } else if (openingLine == 1) {
-        drawCenteredText(410.0f, "Tujuannya tampak sederhana:", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(380.0f, "datang, menyerahkan berkas, lalu pulang.", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(350.0f, "Namun birokrasi punya questline sendiri.", GLUT_BITMAP_HELVETICA_18);
+        drawWrappedText(textX, startY, "Tujuannya tampak sederhana: datang, menyerahkan berkas, lalu pulang. Namun birokrasi punya questline sendiri.",
+                        textW, 28.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
     } else {
-        drawCenteredText(410.0f, "Hari itu, Samsat bukan sekadar kantor.", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(380.0f, "Ia adalah dungeon administratif.", GLUT_BITMAP_HELVETICA_18);
-        drawCenteredText(350.0f, "Dan STNK adalah artefak takdir.", GLUT_BITMAP_HELVETICA_18);
+        drawWrappedText(textX, startY, "Hari itu, Samsat bukan sekadar kantor. Ia adalah dungeon administratif. Dan STNK adalah artefak takdir.",
+                        textW, 28.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
     }
 
     setColor(0.8f, 0.8f, 0.8f);
-    drawCenteredText(220.0f, "Tekan SPACE untuk lanjut", GLUT_BITMAP_8_BY_13);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.32f, "Tekan SPACE untuk lanjut", GLUT_BITMAP_8_BY_13);
 }
 
 void drawEndingScreen(const std::string& title, const std::string& line1, const std::string& line2) {
@@ -950,18 +1440,20 @@ void drawEndingScreen(const std::string& title, const std::string& line1, const 
     drawRect(0.0f, 0.0f, static_cast<float>(windowWidth), static_cast<float>(windowHeight));
 
     setColor(1.0f, 0.9f, 0.2f);
-    drawCenteredText(470.0f, title, GLUT_BITMAP_TIMES_ROMAN_24);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.70f, title, GLUT_BITMAP_TIMES_ROMAN_24);
 
-    setColor(1.0f, 1.0f, 1.0f);
-    drawCenteredText(380.0f, line1, GLUT_BITMAP_HELVETICA_18);
-    drawCenteredText(345.0f, line2, GLUT_BITMAP_HELVETICA_18);
-    drawCenteredText(300.0f, getEndingRouteLine(), GLUT_BITMAP_HELVETICA_18);
+    const float textX = static_cast<float>(windowWidth) * 0.18f;
+    const float textW = static_cast<float>(windowWidth) * 0.64f;
+    drawWrappedText(textX, static_cast<float>(windowHeight) * 0.57f, line1 + " " + line2,
+                    textW, 28.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
+    drawWrappedText(textX, static_cast<float>(windowHeight) * 0.46f, getEndingRouteLine(),
+                    textW, 24.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
 
     setColor(0.82f, 0.82f, 0.86f);
-    drawCenteredText(265.0f, getEndingStatsLine(), GLUT_BITMAP_8_BY_13);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.38f, getEndingStatsLine(), GLUT_BITMAP_8_BY_13);
 
     setColor(0.8f, 0.8f, 0.8f);
-    drawCenteredText(230.0f, "Tekan SPACE untuk menuju credit.", GLUT_BITMAP_8_BY_13);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.32f, "Tekan SPACE untuk menuju credit.", GLUT_BITMAP_8_BY_13);
 }
 
 void drawCreditScene() {
@@ -969,15 +1461,15 @@ void drawCreditScene() {
     drawRect(0.0f, 0.0f, static_cast<float>(windowWidth), static_cast<float>(windowHeight));
 
     setColor(1.0f, 0.9f, 0.2f);
-    drawCenteredText(470.0f, "SAMSAT QUEST", GLUT_BITMAP_TIMES_ROMAN_24);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.70f, "SAMSAT QUEST", GLUT_BITMAP_TIMES_ROMAN_24);
 
     setColor(1.0f, 1.0f, 1.0f);
-    drawCenteredText(410.0f, "Prototype OpenGL GLUT", GLUT_BITMAP_HELVETICA_18);
-    drawCenteredText(370.0f, "Terima kasih sudah mengurus STNK.", GLUT_BITMAP_HELVETICA_18);
-    drawCenteredText(330.0f, "Post-credit: Mohon fotokopi rangkap tiga.", GLUT_BITMAP_HELVETICA_18);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.60f, "Prototype OpenGL GLUT", GLUT_BITMAP_HELVETICA_18);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.53f, "Terima kasih sudah mengurus STNK.", GLUT_BITMAP_HELVETICA_18);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.46f, "Post-credit: Mohon fotokopi rangkap tiga.", GLUT_BITMAP_HELVETICA_18);
 
     setColor(0.8f, 0.8f, 0.8f);
-    drawCenteredText(230.0f, "Tekan ENTER untuk kembali ke title screen.", GLUT_BITMAP_8_BY_13);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.32f, "Tekan ENTER untuk kembali ke title screen.", GLUT_BITMAP_8_BY_13);
 }
 
 void drawOverlayOnlyState() {
