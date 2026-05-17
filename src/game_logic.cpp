@@ -229,6 +229,134 @@ SceneArea getSceneArea(GameState state) {
     }
 }
 
+struct CollisionBox {
+    float x;
+    float z;
+    float halfWidth;
+    float halfDepth;
+};
+
+void addCollisionBox(std::vector<CollisionBox>& boxes, float x, float z, float width, float depth) {
+    boxes.push_back({x, z, width * 0.5f, depth * 0.5f});
+}
+
+void addNpcCollision(std::vector<CollisionBox>& boxes, float x, float z) {
+    addCollisionBox(boxes, x, z, 0.75f, 0.75f);
+}
+
+void addStandardCounterCollisions(std::vector<CollisionBox>& boxes) {
+    addCollisionBox(boxes, 0.0f, -3.0f, 6.4f, 1.4f);
+    addCollisionBox(boxes, -5.0f, -4.4f, 1.2f, 1.0f);
+    addCollisionBox(boxes, 5.0f, -4.4f, 1.2f, 1.0f);
+    addNpcCollision(boxes, 0.0f, -4.0f);
+}
+
+std::vector<CollisionBox> getSceneCollisionBoxes() {
+    std::vector<CollisionBox> boxes;
+
+    switch (getSceneArea(currentState)) {
+        case AREA_EXTERIOR:
+            addCollisionBox(boxes, 0.0f, -10.0f, 14.4f, 4.4f);
+            addCollisionBox(boxes, -7.0f, -1.0f, 2.8f, 2.6f);
+            addCollisionBox(boxes, 7.0f, -1.0f, 3.4f, 2.6f);
+            addCollisionBox(boxes, 10.0f, -2.0f, 3.0f, 2.6f);
+            addCollisionBox(boxes, 0.0f, 1.0f, 1.1f, 0.9f);
+            addCollisionBox(boxes, -9.0f, 5.0f, 2.4f, 1.4f);
+            addCollisionBox(boxes, 9.0f, 5.0f, 2.4f, 1.4f);
+            addNpcCollision(boxes, -7.0f, 1.0f);
+            addNpcCollision(boxes, 7.0f, 1.0f);
+            break;
+
+        case AREA_INFORMATION:
+            addCollisionBox(boxes, 0.0f, -3.0f, 5.2f, 1.5f);
+            addCollisionBox(boxes, 5.0f, -3.0f, 1.6f, 1.6f);
+            addCollisionBox(boxes, -4.0f, 1.2f, 1.2f, 1.2f);
+            addCollisionBox(boxes, 0.0f, 1.2f, 1.2f, 1.2f);
+            addCollisionBox(boxes, 4.0f, 1.2f, 1.2f, 1.2f);
+            addNpcCollision(boxes, 0.0f, -4.0f);
+            addNpcCollision(boxes, -4.0f, 2.5f);
+            addNpcCollision(boxes, 4.0f, 2.5f);
+            break;
+
+        case AREA_PHOTOCOPY:
+            addCollisionBox(boxes, -2.5f, -2.0f, 2.4f, 1.8f);
+            addCollisionBox(boxes, 2.8f, -2.4f, 3.2f, 1.6f);
+            addCollisionBox(boxes, 0.8f, -3.8f, 4.6f, 0.7f);
+            addNpcCollision(boxes, 4.8f, -2.0f);
+            break;
+
+        case AREA_FORM:
+            addStandardCounterCollisions(boxes);
+            addCollisionBox(boxes, 4.8f, -4.5f, 1.2f, 0.9f);
+            addCollisionBox(boxes, -4.8f, -4.5f, 1.2f, 0.9f);
+            break;
+
+        case AREA_VEHICLE_CHECK:
+            addCollisionBox(boxes, 0.0f, 1.5f, 2.5f, 1.5f);
+            addCollisionBox(boxes, 4.5f, -2.5f, 2.2f, 1.4f);
+            addCollisionBox(boxes, -5.5f, -3.5f, 2.8f, 2.4f);
+            addNpcCollision(boxes, 4.5f, -1.5f);
+            break;
+
+        case AREA_VERIFICATION:
+        case AREA_PAYMENT_COUNTER:
+        case AREA_VALIDATION:
+            addStandardCounterCollisions(boxes);
+            break;
+
+        case AREA_PAYMENT_QUEUE:
+            addCollisionBox(boxes, 0.0f, -4.0f, 5.8f, 1.4f);
+            for (int i = 0; i < 5; ++i) {
+                addNpcCollision(boxes, -3.0f + static_cast<float>(i) * 1.5f, 2.5f);
+            }
+            break;
+
+        case AREA_STAMP:
+            addCollisionBox(boxes, 0.0f, -2.8f, 4.2f, 1.4f);
+            addCollisionBox(boxes, 4.5f, -3.8f, 1.7f, 1.2f);
+            addNpcCollision(boxes, 3.5f, -2.0f);
+            break;
+
+        case AREA_VALIDATION_SUCCESS:
+            addStandardCounterCollisions(boxes);
+            break;
+
+        case AREA_FINAL_CORRIDOR:
+            addCollisionBox(boxes, -3.7f, -4.6f, 1.2f, 1.1f);
+            addCollisionBox(boxes, 3.7f, -4.6f, 1.2f, 1.1f);
+            addNpcCollision(boxes, -2.5f, -2.0f);
+            addNpcCollision(boxes, 2.8f, -3.8f);
+            break;
+
+        case AREA_FINAL_BOSS:
+            addCollisionBox(boxes, 0.0f, -4.5f, 8.2f, 1.8f);
+            addCollisionBox(boxes, -6.2f, -4.2f, 1.7f, 2.2f);
+            addCollisionBox(boxes, 6.2f, -4.2f, 1.7f, 2.2f);
+            addNpcCollision(boxes, 0.0f, -5.5f);
+            break;
+
+        default:
+            break;
+    }
+
+    return boxes;
+}
+
+bool positionCollidesWithScene(float x, float z) {
+    constexpr float playerRadius = 0.34f;
+    const std::vector<CollisionBox> boxes = getSceneCollisionBoxes();
+    for (const CollisionBox& box : boxes) {
+        if (x > box.x - box.halfWidth - playerRadius &&
+            x < box.x + box.halfWidth + playerRadius &&
+            z > box.z - box.halfDepth - playerRadius &&
+            z < box.z + box.halfDepth + playerRadius) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 } // namespace
 
 void changeState(GameState nextState) {
@@ -832,7 +960,7 @@ bool isNear(float px, float pz, float ox, float oz, float radius) {
     return distanceSquared(px, pz, ox, oz) <= radius * radius;
 }
 
-void clampPlayerToScene() {
+void clampPositionToScene(float& x, float& z) {
     switch (currentState) {
         case SAMSAT_EXTERIOR:
         case TUTORIAL_CONTROL:
@@ -840,21 +968,21 @@ void clampPlayerToScene() {
         case QUEUE_MACHINE:
         case MAP_VENDOR:
         case PHOTOCOPY_SHOP:
-            player.x = clampFloat(player.x, -12.0f, 12.0f);
-            player.z = clampFloat(player.z, -12.0f, 10.0f);
+            x = clampFloat(x, -12.0f, 12.0f);
+            z = clampFloat(z, -12.0f, 10.0f);
             break;
 
         case INFORMATION_ROOM:
         case DIALOG_INFORMATION_OFFICER:
         case INVENTORY_CHECK:
         case FORM_COUNTER:
-            player.x = clampFloat(player.x, -8.0f, 8.0f);
-            player.z = clampFloat(player.z, -6.0f, 7.0f);
+            x = clampFloat(x, -8.0f, 8.0f);
+            z = clampFloat(z, -6.0f, 7.0f);
             break;
 
         case VEHICLE_CHECK_AREA:
-            player.x = clampFloat(player.x, -10.0f, 10.0f);
-            player.z = clampFloat(player.z, -8.0f, 8.0f);
+            x = clampFloat(x, -10.0f, 10.0f);
+            z = clampFloat(z, -8.0f, 8.0f);
             break;
 
         case PAYMENT_QUEUE:
@@ -862,19 +990,23 @@ void clampPlayerToScene() {
         case VALIDATION_COUNTER:
         case STAMP_QUEST:
         case VALIDATION_SUCCESS:
-            player.x = clampFloat(player.x, -8.0f, 8.0f);
-            player.z = clampFloat(player.z, -7.0f, 7.0f);
+            x = clampFloat(x, -8.0f, 8.0f);
+            z = clampFloat(z, -7.0f, 7.0f);
             break;
 
         case FINAL_CORRIDOR:
         case FINAL_COUNTER_BOSS:
-            player.x = clampFloat(player.x, -6.0f, 6.0f);
-            player.z = clampFloat(player.z, -9.0f, 8.0f);
+            x = clampFloat(x, -6.0f, 6.0f);
+            z = clampFloat(z, -9.0f, 8.0f);
             break;
 
         default:
             break;
     }
+}
+
+void clampPlayerToScene() {
+    clampPositionToScene(player.x, player.z);
 }
 
 void movePlayer(float dx, float dz) {
@@ -886,11 +1018,40 @@ void movePlayer(float dx, float dz) {
         return;
     }
 
-    player.x += dx;
-    player.z += dz;
-    player.y = 0.0f;
+    const float oldX = player.x;
+    const float oldZ = player.z;
+    float nextX = oldX + dx;
+    float nextZ = oldZ + dz;
+    clampPositionToScene(nextX, nextZ);
 
-    clampPlayerToScene();
+    if (!positionCollidesWithScene(nextX, nextZ)) {
+        player.x = nextX;
+        player.z = nextZ;
+        player.y = 0.0f;
+        return;
+    }
+
+    float slideX = oldX + dx;
+    float slideZ = oldZ;
+    clampPositionToScene(slideX, slideZ);
+    if (!positionCollidesWithScene(slideX, slideZ)) {
+        player.x = slideX;
+        player.z = slideZ;
+        player.y = 0.0f;
+        return;
+    }
+
+    slideX = oldX;
+    slideZ = oldZ + dz;
+    clampPositionToScene(slideX, slideZ);
+    if (!positionCollidesWithScene(slideX, slideZ)) {
+        player.x = slideX;
+        player.z = slideZ;
+        player.y = 0.0f;
+        return;
+    }
+
+    player.y = 0.0f;
 }
 
 void movePlayerRelative(float forwardAmount, float strafeAmount) {
