@@ -200,6 +200,14 @@ void drawWorldText(float x, float y, float z, const std::string& text, void* fon
     glEnable(GL_LIGHTING);
 }
 
+bool shouldShowWorldLabel(float x, float z, const std::string& text) {
+    if (text == "KANTOR SAMSAT") {
+        return true;
+    }
+
+    return isNear(player.x, player.z, x, z, 7.5f);
+}
+
 void draw3DLabel(float x,
                  float y,
                  float z,
@@ -211,10 +219,17 @@ void draw3DLabel(float x,
                  float textG = 1.0f,
                  float textB = 1.0f,
                  float width = 0.0f) {
+    if (!shouldShowWorldLabel(x, z, text)) {
+        return;
+    }
+
     const float boardWidth = (width > 0.0f) ? width : std::max(2.0f, static_cast<float>(text.size()) * 0.16f);
+    glDisable(GL_DEPTH_TEST);
+    drawCube(x, y, z - 0.01f, boardWidth + 0.10f, 0.62f, 0.10f, 0.0f, 0.0f, 0.0f);
     drawCube(x, y, z, boardWidth, 0.52f, 0.08f, boardR, boardG, boardB);
     setColor(textR, textG, textB);
     drawWorldText(x - boardWidth * 0.42f, y - 0.08f, z + 0.08f, text, GLUT_BITMAP_HELVETICA_18);
+    glEnable(GL_DEPTH_TEST);
 }
 
 void drawChair(float x, float z) {
