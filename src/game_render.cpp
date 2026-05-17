@@ -88,6 +88,52 @@ void drawCube(float x, float y, float z, float sx, float sy, float sz, float r, 
     glPopMatrix();
 }
 
+namespace {
+
+void drawCharacterModel(float bodyR,
+                        float bodyG,
+                        float bodyB,
+                        float pantsR,
+                        float pantsG,
+                        float pantsB,
+                        float accentR,
+                        float accentG,
+                        float accentB,
+                        bool hasCap,
+                        bool hasSuspiciousCoat) {
+    const float skinR = 1.0f;
+    const float skinG = 0.80f;
+    const float skinB = 0.60f;
+
+    drawCube(0.0f, 1.14f, 0.0f, 0.70f, 1.12f, 0.42f, bodyR, bodyG, bodyB);
+    drawCube(0.0f, 1.86f, 0.0f, 0.48f, 0.48f, 0.48f, skinR, skinG, skinB);
+
+    drawCube(-0.52f, 1.12f, 0.0f, 0.22f, 0.86f, 0.24f, bodyR * 0.9f, bodyG * 0.9f, bodyB * 0.9f);
+    drawCube(0.52f, 1.12f, 0.0f, 0.22f, 0.86f, 0.24f, bodyR * 0.9f, bodyG * 0.9f, bodyB * 0.9f);
+    drawCube(-0.52f, 0.62f, 0.0f, 0.22f, 0.20f, 0.22f, skinR, skinG, skinB);
+    drawCube(0.52f, 0.62f, 0.0f, 0.22f, 0.20f, 0.22f, skinR, skinG, skinB);
+
+    drawCube(-0.20f, 0.45f, 0.0f, 0.24f, 0.78f, 0.26f, pantsR, pantsG, pantsB);
+    drawCube(0.20f, 0.45f, 0.0f, 0.24f, 0.78f, 0.26f, pantsR, pantsG, pantsB);
+    drawCube(-0.20f, 0.08f, -0.05f, 0.32f, 0.16f, 0.42f, 0.05f, 0.05f, 0.06f);
+    drawCube(0.20f, 0.08f, -0.05f, 0.32f, 0.16f, 0.42f, 0.05f, 0.05f, 0.06f);
+
+    drawCube(0.0f, 1.35f, -0.25f, 0.46f, 0.10f, 0.08f, accentR, accentG, accentB);
+    drawCube(0.0f, 0.82f, -0.24f, 0.76f, 0.10f, 0.08f, accentR * 0.75f, accentG * 0.75f, accentB * 0.75f);
+
+    if (hasCap) {
+        drawCube(0.0f, 2.16f, -0.03f, 0.56f, 0.16f, 0.50f, accentR, accentG, accentB);
+        drawCube(0.0f, 2.08f, -0.31f, 0.48f, 0.08f, 0.20f, accentR * 0.75f, accentG * 0.75f, accentB * 0.75f);
+    }
+
+    if (hasSuspiciousCoat) {
+        drawCube(0.0f, 1.04f, -0.28f, 0.82f, 1.28f, 0.08f, 0.10f, 0.03f, 0.04f);
+        drawCube(0.0f, 2.18f, 0.0f, 0.70f, 0.12f, 0.55f, 0.04f, 0.04f, 0.04f);
+    }
+}
+
+}  // namespace
+
 void drawGround(float size, float r = 0.25f, float g = 0.45f, float b = 0.25f) {
     setColor(r, g, b);
     glBegin(GL_QUADS);
@@ -104,19 +150,44 @@ void drawPlayer3D(float x, float z) {
     glTranslatef(x, 0.0f, z);
     glRotatef(player.facingYaw, 0.0f, 1.0f, 0.0f);
 
-    // Body, head, legs, and a small front marker so the facing direction is readable.
-    drawCube(0.0f, 1.0f, 0.0f, 0.7f, 1.2f, 0.4f, 0.10f, 0.20f, 0.90f);
-    drawCube(0.0f, 1.9f, 0.0f, 0.45f, 0.45f, 0.45f, 1.0f, 0.8f, 0.6f);
-    drawCube(-0.2f, 0.35f, 0.0f, 0.25f, 0.7f, 0.25f, 0.1f, 0.1f, 0.1f);
-    drawCube(0.2f, 0.35f, 0.0f, 0.25f, 0.7f, 0.25f, 0.1f, 0.1f, 0.1f);
-    drawCube(0.0f, 1.15f, -0.28f, 0.36f, 0.28f, 0.14f, 1.0f, 0.86f, 0.20f);
+    drawCharacterModel(0.10f, 0.20f, 0.90f,
+                       0.08f, 0.10f, 0.22f,
+                       1.00f, 0.86f, 0.20f,
+                       false, false);
 
     glPopMatrix();
 }
 
 void drawNPC3D(float x, float z, float r, float g, float b) {
-    drawCube(x, 1.0f, z, 0.7f, 1.2f, 0.4f, r, g, b);
-    drawCube(x, 1.9f, z, 0.45f, 0.45f, 0.45f, 1.0f, 0.8f, 0.6f);
+    glPushMatrix();
+    glTranslatef(x, 0.0f, z);
+
+    const bool securityUniform = g > r && g > b;
+    const bool suspicious = r > 0.30f && g < 0.12f && b < 0.12f;
+    const bool vendor = r > 0.75f && g > 0.35f && b < 0.20f;
+    const bool formal = b > r && b > g;
+
+    float pantsR = 0.10f;
+    float pantsG = 0.11f;
+    float pantsB = 0.13f;
+    if (vendor) {
+        pantsR = 0.25f;
+        pantsG = 0.16f;
+        pantsB = 0.08f;
+    } else if (formal) {
+        pantsR = 0.08f;
+        pantsG = 0.10f;
+        pantsB = 0.20f;
+    }
+
+    drawCharacterModel(r, g, b,
+                       pantsR, pantsG, pantsB,
+                       securityUniform ? 0.08f : 0.95f,
+                       securityUniform ? 0.28f : 0.78f,
+                       securityUniform ? 0.12f : 0.24f,
+                       securityUniform, suspicious);
+
+    glPopMatrix();
 }
 
 void drawSimpleCar(float x, float z) {
