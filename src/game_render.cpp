@@ -132,6 +132,57 @@ void drawCharacterModel(float bodyR,
     }
 }
 
+void drawWorldText(float x, float y, float z, const std::string& text, void* font = GLUT_BITMAP_HELVETICA_18) {
+    glDisable(GL_LIGHTING);
+    glRasterPos3f(x, y, z);
+    for (char c : text) {
+        glutBitmapCharacter(font, c);
+    }
+    glEnable(GL_LIGHTING);
+}
+
+void draw3DLabel(float x,
+                 float y,
+                 float z,
+                 const std::string& text,
+                 float boardR = 0.06f,
+                 float boardG = 0.07f,
+                 float boardB = 0.10f,
+                 float textR = 1.0f,
+                 float textG = 1.0f,
+                 float textB = 1.0f,
+                 float width = 0.0f) {
+    const float boardWidth = (width > 0.0f) ? width : std::max(2.0f, static_cast<float>(text.size()) * 0.16f);
+    drawCube(x, y, z, boardWidth, 0.52f, 0.08f, boardR, boardG, boardB);
+    setColor(textR, textG, textB);
+    drawWorldText(x - boardWidth * 0.42f, y - 0.08f, z + 0.08f, text, GLUT_BITMAP_HELVETICA_18);
+}
+
+void drawSmallPoster(float x, float y, float z, const std::string& text, float r, float g, float b) {
+    drawCube(x, y, z, 2.5f, 1.1f, 0.08f, r, g, b);
+    setColor(0.02f, 0.02f, 0.02f);
+    drawWorldText(x - 1.05f, y + 0.12f, z + 0.08f, text, GLUT_BITMAP_8_BY_13);
+}
+
+void drawChair(float x, float z) {
+    drawCube(x, 0.35f, z, 0.70f, 0.18f, 0.65f, 0.18f, 0.24f, 0.34f);
+    drawCube(x, 0.82f, z + 0.28f, 0.70f, 0.75f, 0.14f, 0.14f, 0.18f, 0.26f);
+    drawCube(x - 0.24f, 0.18f, z - 0.20f, 0.08f, 0.36f, 0.08f, 0.08f, 0.08f, 0.09f);
+    drawCube(x + 0.24f, 0.18f, z - 0.20f, 0.08f, 0.36f, 0.08f, 0.08f, 0.08f, 0.09f);
+}
+
+void drawTrafficCone(float x, float z) {
+    drawCube(x, 0.12f, z, 0.48f, 0.12f, 0.48f, 0.08f, 0.08f, 0.08f);
+    drawCube(x, 0.36f, z, 0.34f, 0.36f, 0.34f, 0.95f, 0.36f, 0.08f);
+    drawCube(x, 0.58f, z, 0.20f, 0.22f, 0.20f, 1.0f, 0.78f, 0.20f);
+}
+
+void drawFlagPole(float x, float z) {
+    drawCube(x, 1.8f, z, 0.08f, 3.6f, 0.08f, 0.72f, 0.72f, 0.76f);
+    drawCube(x + 0.45f, 3.0f, z, 0.90f, 0.28f, 0.04f, 0.85f, 0.05f, 0.05f);
+    drawCube(x + 0.45f, 2.72f, z, 0.90f, 0.28f, 0.04f, 0.95f, 0.95f, 0.90f);
+}
+
 }  // namespace
 
 void drawGround(float size, float r = 0.25f, float g = 0.45f, float b = 0.25f) {
@@ -193,6 +244,10 @@ void drawNPC3D(float x, float z, float r, float g, float b) {
 void drawSimpleCar(float x, float z) {
     drawCube(x, 0.5f, z, 2.2f, 0.7f, 1.2f, 0.18f, 0.24f, 0.70f);
     drawCube(x, 1.0f, z - 0.1f, 1.2f, 0.6f, 0.9f, 0.10f, 0.12f, 0.32f);
+    drawCube(x - 0.75f, 0.20f, z - 0.62f, 0.42f, 0.42f, 0.18f, 0.03f, 0.03f, 0.04f);
+    drawCube(x + 0.75f, 0.20f, z - 0.62f, 0.42f, 0.42f, 0.18f, 0.03f, 0.03f, 0.04f);
+    drawCube(x - 0.75f, 0.20f, z + 0.62f, 0.42f, 0.42f, 0.18f, 0.03f, 0.03f, 0.04f);
+    drawCube(x + 0.75f, 0.20f, z + 0.62f, 0.42f, 0.42f, 0.18f, 0.03f, 0.03f, 0.04f);
 }
 
 void drawRoomFrame(float halfWidth, float halfDepth, float wallHeight, float r, float g, float b) {
@@ -310,6 +365,8 @@ void drawSamsatExterior3D() {
 
     drawCube(0.0f, 2.5f, -10.0f, 14.0f, 5.0f, 4.0f, 0.58f, 0.58f, 0.62f);
     drawCube(0.0f, 1.3f, -7.7f, 2.0f, 2.6f, 0.2f, 0.10f, 0.10f, 0.15f);
+    draw3DLabel(0.0f, 5.05f, -7.85f, "KANTOR SAMSAT", 0.02f, 0.08f, 0.16f, 1.0f, 0.92f, 0.24f, 5.0f);
+    draw3DLabel(0.0f, 2.9f, -7.55f, "RUANG INFORMASI", 0.10f, 0.22f, 0.42f, 1.0f, 1.0f, 1.0f, 3.9f);
     drawCube(0.0f, 0.08f, -4.8f, 2.8f, 0.04f, 1.0f, 0.18f, 0.48f, 0.90f);  // information room portal
     drawCube(10.0f, 0.08f, -8.2f, 2.8f, 0.04f, 1.0f, 0.90f, 0.82f, 0.28f); // photocopy portal
     drawCube(-9.8f, 0.08f, -8.3f, 2.8f, 0.04f, 1.0f, 0.22f, 0.68f, 0.35f); // vehicle check portal
@@ -319,11 +376,31 @@ void drawSamsatExterior3D() {
     drawCube(7.0f, 1.2f, -1.0f, 3.2f, 2.4f, 2.5f, 0.65f, 0.35f, 0.15f);
     drawCube(10.0f, 1.2f, -2.0f, 2.8f, 2.4f, 2.4f, 0.72f, 0.72f, 0.76f);
     drawCube(0.0f, 1.0f, 1.0f, 1.0f, 2.0f, 0.8f, 0.15f, 0.15f, 0.18f);
+    draw3DLabel(0.0f, 2.25f, 0.62f, "MESIN ANTREAN", 0.05f, 0.08f, 0.12f, 1.0f, 0.9f, 0.2f, 3.1f);
+    draw3DLabel(-7.0f, 2.65f, 0.25f, "SATPAM", 0.06f, 0.18f, 0.08f, 1.0f, 1.0f, 1.0f, 2.2f);
+    draw3DLabel(7.0f, 2.75f, 0.15f, "PENJUAL MAP", 0.30f, 0.14f, 0.04f, 1.0f, 0.95f, 0.25f, 2.9f);
+    draw3DLabel(10.0f, 2.7f, -0.75f, "FOTOKOPI", 0.12f, 0.12f, 0.12f, 1.0f, 0.9f, 0.2f, 2.8f);
+    draw3DLabel(-9.8f, 2.2f, -7.4f, "CEK FISIK", 0.07f, 0.18f, 0.10f, 1.0f, 1.0f, 1.0f, 2.7f);
+    draw3DLabel(7.0f, 2.2f, -7.4f, "VERIFIKASI", 0.10f, 0.11f, 0.28f, 1.0f, 1.0f, 1.0f, 2.8f);
+    draw3DLabel(-9.8f, 2.2f, 8.8f, "PEMBAYARAN", 0.35f, 0.20f, 0.05f, 1.0f, 0.95f, 0.25f, 3.0f);
 
     drawCube(-10.0f, 0.05f, 5.0f, 5.0f, 0.02f, 10.0f, 0.32f, 0.32f, 0.35f);
     drawCube(10.0f, 0.05f, 5.0f, 5.0f, 0.02f, 10.0f, 0.32f, 0.32f, 0.35f);
+    draw3DLabel(-10.0f, 0.25f, 0.4f, "PARKIR", 0.12f, 0.12f, 0.14f, 1.0f, 1.0f, 1.0f, 2.0f);
+    draw3DLabel(10.0f, 0.25f, 0.4f, "PARKIR", 0.12f, 0.12f, 0.14f, 1.0f, 1.0f, 1.0f, 2.0f);
     drawSimpleCar(-9.0f, 5.0f);
     drawSimpleCar(9.0f, 5.0f);
+    drawFlagPole(-13.5f, -7.5f);
+    drawSmallPoster(-3.8f, 1.6f, -7.55f, "AMBIL NOMOR", 0.95f, 0.88f, 0.28f);
+    drawSmallPoster(3.8f, 1.6f, -7.55f, "SIAPKAN KTP", 0.95f, 0.88f, 0.28f);
+    for (int i = 0; i < 5; ++i) {
+        drawCube(-12.0f + static_cast<float>(i) * 1.1f, 0.45f, -2.8f, 0.10f, 0.90f, 0.10f, 0.85f, 0.85f, 0.78f);
+        drawCube(-11.45f + static_cast<float>(i) * 1.1f, 0.82f, -2.8f, 1.0f, 0.10f, 0.10f, 0.85f, 0.85f, 0.78f);
+    }
+    drawTrafficCone(-4.0f, -4.2f);
+    drawTrafficCone(4.0f, -4.2f);
+    drawTrafficCone(-8.2f, -6.8f);
+    drawTrafficCone(8.2f, -6.8f);
 
     drawNPC3D(-7.0f, 1.0f, 0.10f, 0.60f, 0.20f);
     drawNPC3D(7.0f, 1.0f, 0.90f, 0.45f, 0.10f);
@@ -339,9 +416,17 @@ void drawInformationRoom3D() {
 
     drawCube(0.0f, 0.8f, -3.0f, 5.0f, 1.0f, 1.4f, 0.38f, 0.28f, 0.18f);
     drawCube(0.0f, 1.5f, -4.6f, 6.0f, 2.0f, 0.3f, 0.35f, 0.40f, 0.48f);
+    draw3DLabel(0.0f, 2.85f, -4.35f, "RUANG INFORMASI", 0.08f, 0.18f, 0.36f, 1.0f, 1.0f, 1.0f, 4.2f);
+    draw3DLabel(5.0f, 2.25f, -2.25f, "LOKET FORMULIR", 0.10f, 0.18f, 0.34f, 1.0f, 1.0f, 1.0f, 3.6f);
+    draw3DLabel(0.0f, 1.25f, 6.55f, "KELUAR", 0.07f, 0.22f, 0.11f, 1.0f, 1.0f, 1.0f, 2.0f);
     drawCube(-4.0f, 0.45f, 1.2f, 1.2f, 0.9f, 1.2f, 0.45f, 0.45f, 0.50f);
     drawCube(0.0f, 0.45f, 1.2f, 1.2f, 0.9f, 1.2f, 0.45f, 0.45f, 0.50f);
     drawCube(4.0f, 0.45f, 1.2f, 1.2f, 0.9f, 1.2f, 0.45f, 0.45f, 0.50f);
+    drawChair(-4.0f, 1.2f);
+    drawChair(0.0f, 1.2f);
+    drawChair(4.0f, 1.2f);
+    drawSmallPoster(-5.5f, 2.1f, -7.75f, "ALUR LAYANAN", 0.85f, 0.92f, 1.0f);
+    drawSmallPoster(5.5f, 2.1f, -7.75f, "BERKAS LENGKAP", 0.95f, 0.88f, 0.28f);
     drawCube(5.0f, 1.0f, -3.0f, 1.4f, 2.0f, 1.4f, 0.36f, 0.32f, 0.28f);
 
     drawNPC3D(0.0f, -4.0f, 0.25f, 0.45f, 0.92f);
@@ -355,6 +440,8 @@ void drawGenericCounterScene3D(float accentR, float accentG, float accentB, bool
     drawRoomFrame(8.0f, 7.0f, 4.5f, 0.68f, 0.68f, 0.72f);
     drawCube(0.0f, 0.85f, -3.0f, 6.0f, 1.1f, 1.4f, 0.46f, 0.34f, 0.24f);
     drawCube(0.0f, 1.55f, -4.7f, 5.2f, 1.6f, 0.3f, accentR, accentG, accentB);
+    draw3DLabel(0.0f, 2.65f, -4.45f, "VALIDASI SELESAI", 0.06f, 0.18f, 0.08f, 1.0f, 1.0f, 1.0f, 4.0f);
+    draw3DLabel(0.0f, 1.25f, 6.35f, "LORONG FINAL", 0.06f, 0.12f, 0.08f, 1.0f, 1.0f, 1.0f, 3.4f);
     drawCube(-4.8f, 1.1f, -2.5f, 1.0f, 1.8f, 1.0f, 0.55f, 0.55f, 0.58f);
     drawCube(4.8f, 1.1f, -2.5f, 1.0f, 1.8f, 1.0f, 0.55f, 0.55f, 0.58f);
     drawNPC3D(0.0f, -4.0f, 0.18f, 0.36f, 0.80f);
@@ -369,8 +456,13 @@ void drawFormCounter3D() {
     drawCube(0.0f, 0.08f, 6.1f, 3.0f, 0.04f, 0.8f, 0.20f, 0.36f, 0.78f);
     drawCube(0.0f, 0.85f, -3.0f, 6.4f, 1.1f, 1.4f, 0.44f, 0.32f, 0.22f);
     drawCube(0.0f, 1.70f, -4.7f, 5.4f, 1.4f, 0.3f, 0.20f, 0.36f, 0.78f);
+    draw3DLabel(0.0f, 2.75f, -4.45f, "LOKET FORMULIR", 0.08f, 0.16f, 0.34f, 1.0f, 1.0f, 1.0f, 4.0f);
+    draw3DLabel(0.0f, 1.25f, 6.45f, "KELUAR / CEK FISIK", 0.06f, 0.20f, 0.10f, 1.0f, 1.0f, 1.0f, 4.2f);
     drawDocumentPile(-2.2f, 1.15f, -2.7f, 0.90f, 0.90f, 0.92f);
     drawDocumentPile(2.0f, 1.15f, -2.8f, 0.86f, 0.86f, 0.88f);
+    drawDocumentPile(-0.7f, 1.22f, -2.4f, 0.75f, 0.78f, 0.95f);
+    drawCube(2.9f, 1.22f, -2.55f, 0.48f, 0.14f, 0.70f, 0.18f, 0.36f, 0.82f);
+    drawCube(3.2f, 1.26f, -2.55f, 0.48f, 0.14f, 0.70f, 0.18f, 0.36f, 0.82f);
     drawCube(4.8f, 1.6f, -4.5f, 1.1f, 3.2f, 0.8f, 0.55f, 0.55f, 0.60f);
     drawCube(-4.8f, 1.6f, -4.5f, 1.1f, 3.2f, 0.8f, 0.55f, 0.55f, 0.60f);
     drawNPC3D(0.0f, -4.0f, 0.18f, 0.36f, 0.82f);
@@ -383,9 +475,12 @@ void drawVerificationCounter3D() {
     drawCube(0.0f, 0.08f, 6.1f, 3.0f, 0.04f, 0.8f, 0.58f, 0.58f, 0.86f);
     drawCube(0.0f, 0.90f, -3.0f, 6.2f, 1.2f, 1.4f, 0.42f, 0.34f, 0.24f);
     drawCube(0.0f, 1.70f, -4.7f, 5.4f, 1.5f, 0.3f, 0.32f, 0.42f, 0.52f);
+    draw3DLabel(0.0f, 2.8f, -4.45f, "VERIFIKASI BERKAS", 0.10f, 0.12f, 0.22f, 1.0f, 1.0f, 1.0f, 4.5f);
+    draw3DLabel(0.0f, 1.25f, 6.45f, "PEMBAYARAN", 0.20f, 0.16f, 0.05f, 1.0f, 0.95f, 0.25f, 3.3f);
     drawDocumentPile(-2.4f, 1.12f, -2.7f, 0.88f, 0.84f, 0.65f);
     drawDocumentPile(2.3f, 1.12f, -2.8f, 0.84f, 0.90f, 0.84f);
     drawCounterStamp(0.0f, -2.5f, 0.55f, 0.05f, 0.05f);
+    drawCube(1.1f, 1.32f, -2.55f, 0.80f, 0.10f, 0.80f, 0.95f, 0.15f, 0.15f);
     drawCube(-5.2f, 2.0f, -4.4f, 1.3f, 4.0f, 1.0f, 0.44f, 0.40f, 0.34f);
     drawCube(5.2f, 2.0f, -4.4f, 1.3f, 4.0f, 1.0f, 0.44f, 0.40f, 0.34f);
     drawNPC3D(0.0f, -4.0f, 0.16f, 0.34f, 0.74f);
@@ -399,7 +494,12 @@ void drawPaymentCounter3D() {
     drawCube(0.0f, 0.90f, -3.0f, 6.4f, 1.2f, 1.4f, 0.48f, 0.36f, 0.22f);
     drawCube(0.0f, 2.05f, -3.5f, 5.2f, 0.15f, 0.1f, 0.76f, 0.84f, 0.90f);
     drawCube(0.0f, 1.72f, -4.7f, 5.4f, 1.5f, 0.3f, 0.58f, 0.38f, 0.16f);
+    draw3DLabel(0.0f, 2.8f, -4.45f, "LOKET PEMBAYARAN", 0.28f, 0.16f, 0.04f, 1.0f, 0.95f, 0.25f, 4.4f);
+    draw3DLabel(0.0f, 1.25f, 6.45f, "VALIDASI", 0.30f, 0.06f, 0.06f, 1.0f, 1.0f, 1.0f, 2.8f);
     drawCube(-1.8f, 1.18f, -2.7f, 0.8f, 0.45f, 0.8f, 0.14f, 0.14f, 0.16f);
+    drawCube(-1.8f, 1.48f, -2.98f, 0.90f, 0.10f, 0.12f, 0.10f, 0.60f, 0.18f);
+    drawCube(0.9f, 1.18f, -2.65f, 0.70f, 0.10f, 0.40f, 0.12f, 0.55f, 0.18f);
+    drawWorldText(0.62f, 1.28f, -2.43f, "RP", GLUT_BITMAP_8_BY_13);
     drawDocumentPile(2.0f, 1.12f, -2.7f, 0.92f, 0.92f, 0.88f);
     drawCube(4.7f, 1.10f, -2.8f, 1.2f, 1.8f, 1.0f, 0.54f, 0.52f, 0.48f);
     drawNPC3D(0.0f, -4.0f, 0.16f, 0.28f, 0.68f);
@@ -412,8 +512,11 @@ void drawValidationCounter3D() {
     drawCube(0.0f, 0.08f, 6.1f, 3.0f, 0.04f, 0.8f, 0.80f, 0.18f, 0.18f);
     drawCube(0.0f, 0.90f, -3.0f, 6.4f, 1.2f, 1.4f, 0.42f, 0.32f, 0.22f);
     drawCube(0.0f, 1.72f, -4.7f, 5.4f, 1.5f, 0.3f, 0.62f, 0.10f, 0.10f);
+    draw3DLabel(0.0f, 2.8f, -4.45f, "VALIDASI", 0.32f, 0.05f, 0.05f, 1.0f, 1.0f, 1.0f, 3.2f);
+    draw3DLabel(0.0f, 1.25f, 6.45f, "CARI METERAI", 0.34f, 0.20f, 0.04f, 1.0f, 0.95f, 0.25f, 3.5f);
     drawCounterStamp(-1.2f, -2.5f, 0.65f, 0.00f, 0.00f);
     drawCounterStamp(1.6f, -2.6f, 0.12f, 0.12f, 0.12f);
+    draw3DLabel(-1.2f, 2.0f, -2.25f, "CAP VALID", 0.62f, 0.08f, 0.08f, 1.0f, 1.0f, 1.0f, 2.4f);
     drawDocumentPile(2.8f, 1.10f, -2.7f, 0.90f, 0.88f, 0.82f);
     drawCube(-4.8f, 1.7f, -4.4f, 1.2f, 3.4f, 0.9f, 0.48f, 0.42f, 0.34f);
     drawNPC3D(0.0f, -4.0f, 0.14f, 0.26f, 0.62f);
@@ -424,9 +527,14 @@ void drawPhotocopyShop3D() {
     drawGround(16.0f, 0.78f, 0.72f, 0.58f);
     drawRoomFrame(8.0f, 7.0f, 4.0f, 0.72f, 0.72f, 0.74f);
     drawCube(0.0f, 0.08f, 6.1f, 3.0f, 0.04f, 0.8f, 0.90f, 0.82f, 0.28f);
+    draw3DLabel(0.0f, 1.25f, 6.45f, "KELUAR", 0.08f, 0.20f, 0.10f, 1.0f, 1.0f, 1.0f, 2.0f);
     drawCube(-2.5f, 0.9f, -2.0f, 2.2f, 1.8f, 1.6f, 0.90f, 0.90f, 0.92f);
+    draw3DLabel(-2.5f, 2.15f, -1.05f, "MESIN FOTOKOPI", 0.10f, 0.10f, 0.12f, 1.0f, 0.92f, 0.25f, 3.6f);
     drawCube(2.8f, 0.8f, -2.4f, 3.0f, 1.0f, 1.4f, 0.45f, 0.33f, 0.24f);
     drawCube(0.8f, 1.1f, -3.8f, 4.5f, 1.6f, 0.3f, 0.55f, 0.55f, 0.58f);
+    draw3DLabel(0.8f, 2.35f, -3.55f, "FOTOKOPI", 0.15f, 0.15f, 0.12f, 1.0f, 0.9f, 0.2f, 3.0f);
+    drawDocumentPile(2.1f, 1.35f, -2.2f, 0.94f, 0.94f, 0.90f);
+    drawDocumentPile(3.1f, 1.35f, -2.5f, 0.12f, 0.32f, 0.82f);
     drawNPC3D(4.8f, -2.0f, 0.55f, 0.55f, 0.55f);
     drawPlayer3D(player.x, player.z);
 }
@@ -434,9 +542,17 @@ void drawPhotocopyShop3D() {
 void drawVehicleCheck3D() {
     drawGround(20.0f, 0.40f, 0.48f, 0.40f);
     drawCube(0.0f, 0.05f, 0.0f, 7.5f, 0.02f, 12.0f, 0.22f, 0.22f, 0.24f);
+    draw3DLabel(0.0f, 2.8f, -5.5f, "CEK FISIK KENDARAAN", 0.08f, 0.18f, 0.10f, 1.0f, 1.0f, 1.0f, 5.0f);
+    draw3DLabel(0.0f, 1.25f, 6.85f, "KELUAR", 0.08f, 0.20f, 0.10f, 1.0f, 1.0f, 1.0f, 2.0f);
+    draw3DLabel(0.0f, 1.25f, -6.4f, "VERIFIKASI", 0.10f, 0.11f, 0.28f, 1.0f, 1.0f, 1.0f, 2.8f);
     drawSimpleCar(0.0f, 1.5f);
+    drawCube(0.0f, 0.08f, 1.5f, 1.0f, 0.03f, 9.5f, 0.95f, 0.90f, 0.25f);
     drawCube(4.5f, 0.8f, -2.5f, 2.0f, 1.0f, 1.2f, 0.45f, 0.34f, 0.24f);
     drawCube(-5.5f, 1.0f, -3.5f, 2.6f, 2.0f, 2.2f, 0.32f, 0.42f, 0.52f);
+    drawTrafficCone(-2.8f, 5.0f);
+    drawTrafficCone(2.8f, 5.0f);
+    drawTrafficCone(-2.8f, -3.0f);
+    drawTrafficCone(2.8f, -3.0f);
     drawNPC3D(4.5f, -1.5f, 0.15f, 0.55f, 0.25f);
     drawPlayer3D(player.x, player.z);
 }
@@ -446,7 +562,10 @@ void drawPaymentQueue3D() {
     drawRoomFrame(8.0f, 8.0f, 4.5f, 0.66f, 0.66f, 0.70f);
     drawCube(0.0f, 0.08f, 6.6f, 3.0f, 0.04f, 0.8f, 0.86f, 0.58f, 0.28f);
     drawCube(0.0f, 0.08f, -6.6f, 3.0f, 0.04f, 0.8f, 0.86f, 0.58f, 0.28f);
+    draw3DLabel(0.0f, 1.25f, 6.95f, "KELUAR", 0.08f, 0.20f, 0.10f, 1.0f, 1.0f, 1.0f, 2.0f);
+    draw3DLabel(0.0f, 1.25f, -6.25f, "LOKET BAYAR", 0.28f, 0.16f, 0.04f, 1.0f, 0.95f, 0.25f, 3.4f);
     drawCube(0.0f, 0.85f, -4.0f, 5.5f, 1.0f, 1.2f, 0.44f, 0.34f, 0.24f);
+    draw3DLabel(0.0f, 2.0f, -3.55f, "ANTREAN PEMBAYARAN", 0.20f, 0.14f, 0.05f, 1.0f, 0.95f, 0.25f, 4.8f);
     drawQueueMarker(-3.0f, 2.5f);
     drawQueueMarker(-1.5f, 2.5f);
     drawQueueMarker(0.0f, 2.5f);
@@ -462,9 +581,11 @@ void drawStampQuest3D() {
     drawGround(16.0f, 0.72f, 0.66f, 0.52f);
     drawRoomFrame(8.0f, 7.0f, 4.0f, 0.70f, 0.70f, 0.72f);
     drawCube(0.0f, 0.08f, 6.1f, 3.0f, 0.04f, 0.8f, 0.90f, 0.82f, 0.28f);
+    draw3DLabel(0.0f, 1.25f, 6.45f, "VALIDASI AKHIR", 0.30f, 0.06f, 0.06f, 1.0f, 1.0f, 1.0f, 3.8f);
     drawCube(0.0f, 0.8f, -2.8f, 4.0f, 1.0f, 1.2f, 0.48f, 0.34f, 0.22f);
     drawCube(0.0f, 1.05f, -1.0f, 0.4f, 0.02f, 0.3f, 0.9f, 0.1f, 0.1f);
     drawCube(4.5f, 1.2f, -3.8f, 1.5f, 2.4f, 1.0f, 0.55f, 0.42f, 0.26f);
+    draw3DLabel(0.0f, 2.0f, -2.45f, "METERAI", 0.34f, 0.18f, 0.04f, 1.0f, 0.95f, 0.25f, 2.6f);
     drawNPC3D(3.5f, -2.0f, 0.90f, 0.45f, 0.10f);
     drawPlayer3D(player.x, player.z);
 }
@@ -475,6 +596,7 @@ void drawFinalCorridor3D() {
     drawCube(4.5f, 2.0f, -1.0f, 0.5f, 4.0f, 16.0f, 0.32f, 0.32f, 0.36f);
     drawCube(0.0f, 3.8f, -1.0f, 9.5f, 0.4f, 16.0f, 0.26f, 0.26f, 0.30f);
     drawCube(0.0f, 1.2f, -8.0f, 4.0f, 2.4f, 0.3f, 0.75f, 0.70f, 0.45f);
+    draw3DLabel(0.0f, 2.8f, -7.75f, "LOKET FINAL", 0.38f, 0.05f, 0.05f, 1.0f, 1.0f, 1.0f, 3.6f);
     drawCube(-3.7f, 1.8f, -4.6f, 1.0f, 3.6f, 0.9f, 0.40f, 0.34f, 0.28f);
     drawCube(3.7f, 1.8f, -4.6f, 1.0f, 3.6f, 0.9f, 0.40f, 0.34f, 0.28f);
     drawCube(-3.5f, 3.3f, -1.5f, 0.5f, 0.3f, 0.5f, 0.85f, 0.82f, 0.60f);
@@ -482,6 +604,8 @@ void drawFinalCorridor3D() {
     drawCube(-3.5f, 3.3f, -6.0f, 0.5f, 0.3f, 0.5f, 0.85f, 0.82f, 0.60f);
     drawCube(3.5f, 3.3f, -6.0f, 0.5f, 0.3f, 0.5f, 0.85f, 0.82f, 0.60f);
     drawCube(0.0f, 0.03f, -6.5f, 3.6f, 0.02f, 1.2f, 0.90f, 0.82f, 0.20f);
+    draw3DLabel(-2.5f, 2.55f, -1.55f, "ANTREAN SENIOR", 0.16f, 0.12f, 0.24f, 1.0f, 1.0f, 1.0f, 3.8f);
+    draw3DLabel(2.8f, 2.55f, -3.35f, "ORANG DALAM", 0.08f, 0.02f, 0.03f, 1.0f, 0.82f, 0.82f, 3.2f);
     drawNPC3D(-2.5f, -2.0f, 0.55f, 0.42f, 0.70f);
     drawNPC3D(2.8f, -3.8f, 0.35f, 0.05f, 0.05f);
     drawPlayer3D(player.x, player.z);
@@ -494,12 +618,15 @@ void drawFinalBoss3D() {
     drawCube(-6.2f, 2.0f, -4.2f, 1.5f, 4.0f, 2.0f, 0.38f, 0.32f, 0.26f);
     drawCube(6.2f, 2.0f, -4.2f, 1.5f, 4.0f, 2.0f, 0.38f, 0.32f, 0.26f);
     drawCube(0.0f, 4.2f, -7.4f, 6.5f, 0.25f, 0.4f, 0.55f, 0.18f, 0.18f);
+    draw3DLabel(0.0f, 4.75f, -7.15f, "LOKET FINAL", 0.38f, 0.05f, 0.05f, 1.0f, 1.0f, 1.0f, 4.2f);
     drawCube(1.6f, 1.6f, -3.9f, 1.2f, 0.7f, 0.8f, 0.12f, 0.12f, 0.15f);
     drawCube(3.3f, 0.75f, -3.7f, 1.0f, 0.25f, 1.0f, 0.55f, 0.00f, 0.00f);
     drawCube(-2.5f, 1.15f, -3.8f, 1.0f, 0.4f, 0.8f, 0.72f, 0.72f, 0.76f);
     drawDocumentPile(-0.8f, 1.12f, -3.6f, 0.90f, 0.88f, 0.82f);
     drawDocumentPile(-5.9f, 0.8f, -2.8f, 0.84f, 0.84f, 0.82f);
     drawDocumentPile(5.8f, 0.8f, -2.8f, 0.84f, 0.84f, 0.82f);
+    drawDocumentPile(-4.8f, 1.0f, -3.4f, 0.90f, 0.88f, 0.82f);
+    drawDocumentPile(4.7f, 1.0f, -3.4f, 0.90f, 0.88f, 0.82f);
     drawCounterStamp(3.1f, -3.7f, 0.60f, 0.00f, 0.00f);
     drawNPC3D(0.0f, -5.5f, 0.10f, 0.20f, 0.60f);
     drawPlayer3D(player.x, player.z);
