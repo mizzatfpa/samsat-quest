@@ -563,7 +563,7 @@ void processQueueMachine() {
     if (!hasQueueNumber) {
         hasQueueNumber = true;
         playSuccessBeep();
-        showNotification("Nomor antrean didapat");
+        showNotification("Objective Complete: Nomor antrean didapat");
         reputation = clampInt(reputation + 3, 0, 100);
         addTime(10);
         setDialogue("Mesin Antrean", "Nomor B-047 keluar. Kertas kecil, konsekuensi panjang.");
@@ -583,7 +583,7 @@ void processMapVendor() {
         money -= 3000;
         hasCorrectMap = true;
         playSuccessBeep();
-        showNotification("Map benar dibeli");
+        showNotification("Objective Complete: Map benar dibeli");
         hasWrongMap = false;
         reputation = clampInt(reputation + 5, 0, 100);
         setDialogue("Penjual Map", "Ini map biru yang benar. Untuk hari ini, warna masih menentukan takdir.");
@@ -604,7 +604,7 @@ void processPhotocopyShop() {
         money -= 5000;
         hasValidPhotocopy = true;
         playSuccessBeep();
-        showNotification("Fotokopi selesai");
+        showNotification("Objective Complete: Fotokopi selesai");
         reputation = clampInt(reputation + 5, 0, 100);
         addTime(15);
         setDialogue("Tukang Fotokopi", "Fotokopi selesai. Tidak buram, jadi jelas terasa langka.");
@@ -625,7 +625,7 @@ void processFormCounter() {
         hasForm = true;
         hasFilledForm = true;
         playSuccessBeep();
-        showNotification("Formulir lengkap");
+        showNotification("Objective Complete: Formulir lengkap");
         reputation = clampInt(reputation + 10, 0, 100);
         addTime(20);
         setDialogue("Petugas Formulir", "Formulir selesai. Tulisan Anda cukup rapi untuk dipercaya.");
@@ -645,7 +645,7 @@ void processVehicleCheck() {
     if (hasFilledForm) {
         hasPhysicalCheckProof = true;
         playSuccessBeep();
-        showNotification("Cek fisik selesai");
+        showNotification("Objective Complete: Cek fisik selesai");
         stamina = clampInt(stamina - 10, 0, 100);
         reputation = clampInt(reputation + 5, 0, 100);
         addTime(20);
@@ -666,7 +666,7 @@ void processVerification() {
     if (hasFilledForm && hasValidPhotocopy && hasPhysicalCheckProof && hasCorrectMap) {
         hasVerificationStamp = true;
         playSuccessBeep();
-        showNotification("Verifikasi selesai");
+        showNotification("Objective Complete: Verifikasi selesai");
         reputation = clampInt(reputation + 10, 0, 100);
         addTime(20);
         setDialogue("Petugas Verifikasi", "Berkas lengkap. Susunannya bahkan tampak sudah menyerah.");
@@ -691,7 +691,7 @@ void processPaymentQueue() {
 
     hasQueuedPaymentLine = true;
         playSuccessBeep();
-        showNotification("Antrean pembayaran aman");
+        showNotification("Objective Complete: Antrean pembayaran aman");
     patience = clampInt(patience - 5, 0, 100);
     stamina = clampInt(stamina - 10, 0, 100);
     addTime(30);
@@ -714,7 +714,7 @@ void processPaymentCounter() {
         money -= 25000;
         hasPaymentProof = true;
         playSuccessBeep();
-        showNotification("Pembayaran selesai");
+        showNotification("Objective Complete: Pembayaran selesai");
         reputation = clampInt(reputation + 5, 0, 100);
         addTime(10);
         setDialogue("Petugas Pembayaran", "Pembayaran diterima. Dompet dan sistem sama-sama kehilangan energi.");
@@ -729,6 +729,8 @@ void processValidationCounter() {
     if (hasPaymentProof && hasVerificationStamp) {
         if (!receivedStampRequirement && !hasStampedDocument) {
             receivedStampRequirement = true;
+            playSuccessBeep();
+            showNotification("Objective Complete: Validasi awal selesai");
             reputation = clampInt(reputation + 10, 0, 100);
         }
         setDialogue("Petugas Validasi", "Semua bagus. Tinggal satu hal kecil yang besar: meterai.");
@@ -749,7 +751,7 @@ void processStampQuest() {
         money -= 10000;
         hasStampedDocument = true;
         playSuccessBeep();
-        showNotification("Meterai terpasang");
+        showNotification("Objective Complete: Meterai terpasang");
         reputation = clampInt(reputation + 10, 0, 100);
         addTime(15);
         setDialogue("Penjual Warung", "Meterai terpasang rapi. Cukup lurus untuk menenangkan prosedur.");
@@ -764,6 +766,8 @@ void processCorridorAdvice() {
     if (!receivedCorridorAdvice) {
         receivedCorridorAdvice = true;
         helpedNPCs = true;
+        playSuccessBeep();
+        showNotification("Objective Complete: Info final didapat");
         reputation = clampInt(reputation + 5, 0, 100);
         setDialogue("Antrean Senior", "Pastikan berkasmu rapi. Loket final menyukai urutan lebih dari manusia.");
         return;
@@ -779,6 +783,8 @@ void processInsiderOffer() {
     }
 
     usedInsider = true;
+    playSuccessBeep();
+    showNotification("Objective Complete: Jalur cepat terbuka");
     moralScore = clampInt(moralScore - 40, 0, 100);
     reputation = clampInt(reputation - 5, 0, 100);
     setDialogue("Orang Dalam", "Saya bisa bantu percepat. Berkas nanti dianggap 'sudah dipahami sistem'.");
@@ -793,7 +799,7 @@ void processFinalBoss() {
     if (hasAllFinalRequirements()) {
         hasFinalSTNK = true;
         playSuccessBeep();
-        showNotification("STNK selesai!");
+        showNotification("Objective Complete: STNK selesai!");
         reputation = clampInt(reputation + 5, 0, 100);
         if (reputation >= 80 &&
             moralScore >= 90 &&

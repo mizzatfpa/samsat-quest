@@ -279,6 +279,13 @@ void drawObjectiveMarker(float x, float z, const std::string& label, bool finalM
                 std::max(2.4f, static_cast<float>(label.size()) * 0.17f));
 }
 
+void drawCompletionBadge(float x, float z, const std::string& label = "SELESAI") {
+    drawGroundDisk(x, z, 0.55f, 0.10f, 0.72f, 0.22f);
+    drawCube(x, 2.55f, z, 0.50f, 0.50f, 0.10f, 0.10f, 0.72f, 0.22f);
+    draw3DLabel(x, 3.08f, z + 0.12f, label, 0.04f, 0.12f, 0.05f, 1.0f, 1.0f, 1.0f,
+                std::max(2.2f, static_cast<float>(label.size()) * 0.16f));
+}
+
 }  // namespace
 
 void drawGround(float size, float r = 0.25f, float g = 0.45f, float b = 0.25f) {
@@ -503,6 +510,17 @@ void drawSamsatExterior3D() {
     drawInteractionMarker(0.0f, 1.0f, "E", hasQueueNumber);
     drawInteractionMarker(7.0f, 1.0f, "E", hasCorrectMap);
     drawInteractionMarker(10.0f, -2.0f, "E", hasValidPhotocopy);
+    if (hasQueueNumber) {
+        drawCube(0.0f, 2.08f, 0.58f, 0.72f, 0.06f, 0.34f, 0.95f, 0.95f, 0.82f);
+        drawCompletionBadge(0.0f, 1.0f, "TIKET OK");
+    }
+    if (hasCorrectMap) {
+        drawDocumentPile(7.0f, 1.75f, 0.10f, 0.16f, 0.34f, 0.86f);
+        drawCompletionBadge(7.0f, 1.0f, "MAP OK");
+    }
+    if (hasValidPhotocopy) {
+        drawCompletionBadge(10.0f, -2.0f, "FOTO OK");
+    }
     if (hasFilledForm) {
         drawPortalMarker(-9.8f, -8.3f, "CEK FISIK", 0.15f, 0.85f, 0.32f);
     }
@@ -558,6 +576,9 @@ void drawInformationRoom3D() {
     drawPortalMarker(0.0f, 6.2f, "KELUAR", 0.15f, 0.85f, 0.32f);
     drawPortalMarker(5.0f, -3.0f, "LOKET FORM", 0.15f, 0.42f, 1.0f);
     drawInteractionMarker(0.0f, -4.0f, "E", metInformationOfficer);
+    if (metInformationOfficer) {
+        drawCompletionBadge(0.0f, -4.0f, "INFO OK");
+    }
     if (!hasFilledForm) {
         drawObjectiveMarker(5.0f, -3.0f, "TUJUAN: FORM");
     }
@@ -600,6 +621,9 @@ void drawFormCounter3D() {
     drawCube(3.2f, 1.26f, -2.55f, 0.48f, 0.14f, 0.70f, 0.18f, 0.36f, 0.82f);
     drawPortalMarker(0.0f, 6.1f, hasFilledForm ? "LANJUT" : "KELUAR", 0.15f, 0.85f, 0.32f);
     drawInteractionMarker(0.0f, -4.0f, "E", hasFilledForm);
+    if (hasFilledForm) {
+        drawCompletionBadge(0.0f, -4.0f, "FORM OK");
+    }
     if (!hasFilledForm) {
         drawObjectiveMarker(0.0f, -4.0f, "TUJUAN: FORM");
     }
@@ -623,6 +647,9 @@ void drawVerificationCounter3D() {
     drawCube(1.1f, 1.32f, -2.55f, 0.80f, 0.10f, 0.80f, 0.95f, 0.15f, 0.15f);
     drawPortalMarker(0.0f, 6.1f, hasVerificationStamp ? "LANJUT" : "KELUAR", 0.15f, 0.85f, 0.32f);
     drawInteractionMarker(0.0f, -4.0f, "E", hasVerificationStamp);
+    if (hasVerificationStamp) {
+        drawCompletionBadge(0.0f, -4.0f, "CAP OK");
+    }
     if (!hasVerificationStamp) {
         drawObjectiveMarker(0.0f, -4.0f, "TUJUAN: VERIFIKASI");
     }
@@ -647,6 +674,10 @@ void drawPaymentCounter3D() {
     drawWorldText(0.62f, 1.28f, -2.43f, "RP", GLUT_BITMAP_8_BY_13);
     drawPortalMarker(0.0f, 6.1f, hasPaymentProof ? "VALIDASI" : "KEMBALI", 0.15f, 0.85f, 0.32f);
     drawInteractionMarker(0.0f, -4.0f, "E", hasPaymentProof);
+    if (hasPaymentProof) {
+        drawDocumentPile(0.8f, 1.28f, -2.65f, 0.12f, 0.62f, 0.22f);
+        drawCompletionBadge(0.0f, -4.0f, "BAYAR OK");
+    }
     if (!hasPaymentProof) {
         drawObjectiveMarker(0.0f, -4.0f, "TUJUAN: BAYAR");
     }
@@ -669,6 +700,9 @@ void drawValidationCounter3D() {
     draw3DLabel(-1.2f, 2.0f, -2.25f, "CAP VALID", 0.62f, 0.08f, 0.08f, 1.0f, 1.0f, 1.0f, 2.4f);
     drawPortalMarker(0.0f, 6.1f, receivedStampRequirement ? "METERAI" : "KELUAR", 0.15f, 0.85f, 0.32f);
     drawInteractionMarker(0.0f, -4.0f, "E", receivedStampRequirement);
+    if (receivedStampRequirement) {
+        drawCompletionBadge(0.0f, -4.0f, "VALID OK");
+    }
     if (!receivedStampRequirement) {
         drawObjectiveMarker(0.0f, -4.0f, "TUJUAN: VALIDASI");
     }
@@ -692,6 +726,10 @@ void drawPhotocopyShop3D() {
     drawDocumentPile(3.1f, 1.35f, -2.5f, 0.12f, 0.32f, 0.82f);
     drawPortalMarker(0.0f, 6.1f, "KELUAR", 0.15f, 0.85f, 0.32f);
     drawInteractionMarker(4.8f, -2.0f, "E", hasValidPhotocopy);
+    if (hasValidPhotocopy) {
+        drawDocumentPile(-1.4f, 1.85f, -1.25f, 0.10f, 0.72f, 0.22f);
+        drawCompletionBadge(4.8f, -2.0f, "FOTO OK");
+    }
     if (!hasValidPhotocopy) {
         drawObjectiveMarker(4.8f, -2.0f, "TUJUAN: FOTOKOPI");
     }
@@ -719,6 +757,9 @@ void drawVehicleCheck3D() {
     }
     drawInteractionMarker(0.0f, 1.5f, "E", hasPhysicalCheckProof);
     drawInteractionMarker(4.5f, -1.5f, "E", hasPhysicalCheckProof);
+    if (hasPhysicalCheckProof) {
+        drawCompletionBadge(0.0f, 1.5f, "CEK OK");
+    }
     if (!hasPhysicalCheckProof) {
         drawObjectiveMarker(0.0f, 1.5f, "TUJUAN: CEK FISIK");
     }
@@ -740,6 +781,9 @@ void drawPaymentQueue3D() {
         drawPortalMarker(0.0f, -6.6f, "LOKET BAYAR", 0.15f, 0.42f, 1.0f);
     }
     drawInteractionMarker(0.0f, 2.5f, "E", hasQueuedPaymentLine);
+    if (hasQueuedPaymentLine) {
+        drawCompletionBadge(0.0f, 2.5f, "ANTRE OK");
+    }
     if (!hasQueuedPaymentLine) {
         drawObjectiveMarker(0.0f, 2.5f, "TUJUAN: ANTRE");
     }
@@ -765,6 +809,9 @@ void drawStampQuest3D() {
     draw3DLabel(0.0f, 2.0f, -2.45f, "METERAI", 0.34f, 0.18f, 0.04f, 1.0f, 0.95f, 0.25f, 2.6f);
     drawPortalMarker(0.0f, 6.1f, hasStampedDocument ? "VALIDASI" : "KELUAR", 0.15f, 0.85f, 0.32f);
     drawInteractionMarker(3.5f, -2.0f, "E", hasStampedDocument);
+    if (hasStampedDocument) {
+        drawCompletionBadge(3.5f, -2.0f, "METERAI OK");
+    }
     if (!hasStampedDocument) {
         drawObjectiveMarker(3.5f, -2.0f, "TUJUAN: METERAI");
     }
@@ -791,6 +838,12 @@ void drawFinalCorridor3D() {
     drawPortalMarker(0.0f, -6.5f, "LOKET FINAL", 1.0f, 0.16f, 0.16f, true);
     drawInteractionMarker(-2.5f, -2.0f, "E", receivedCorridorAdvice);
     drawInteractionMarker(2.8f, -3.8f, "E", usedInsider);
+    if (receivedCorridorAdvice) {
+        drawCompletionBadge(-2.5f, -2.0f, "SARAN OK");
+    }
+    if (usedInsider) {
+        drawCompletionBadge(2.8f, -3.8f, "JALUR OK");
+    }
     drawObjectiveMarker(0.0f, -6.5f, "TUJUAN: FINAL", true);
     drawNPC3D(-2.5f, -2.0f, 0.55f, 0.42f, 0.70f);
     drawNPC3D(2.8f, -3.8f, 0.35f, 0.05f, 0.05f);
@@ -815,6 +868,9 @@ void drawFinalBoss3D() {
     drawDocumentPile(4.7f, 1.0f, -3.4f, 0.90f, 0.88f, 0.82f);
     drawPortalMarker(0.0f, 6.4f, "KEMBALI", 0.15f, 0.85f, 0.32f);
     drawInteractionMarker(0.0f, -5.5f, "E", hasFinalSTNK);
+    if (hasFinalSTNK) {
+        drawCompletionBadge(0.0f, -5.5f, "STNK OK");
+    }
     if (!hasFinalSTNK) {
         drawObjectiveMarker(0.0f, -5.5f, "TUJUAN: SERAHKAN", true);
     }
