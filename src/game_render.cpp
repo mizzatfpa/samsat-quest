@@ -183,6 +183,61 @@ void drawFlagPole(float x, float z) {
     drawCube(x + 0.45f, 2.72f, z, 0.90f, 0.28f, 0.04f, 0.95f, 0.95f, 0.90f);
 }
 
+void drawGroundDisk(float x, float z, float radius, float r, float g, float b) {
+    glDisable(GL_LIGHTING);
+    setColor(r, g, b);
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex3f(x, 0.07f, z);
+    for (int i = 0; i <= 32; ++i) {
+        const float angle = static_cast<float>(i) * 2.0f * kPi / 32.0f;
+        glVertex3f(x + std::cos(angle) * radius, 0.07f, z + std::sin(angle) * radius);
+    }
+    glEnd();
+    glEnable(GL_LIGHTING);
+}
+
+void drawFloatingArrow(float x, float z, float r, float g, float b) {
+    const float bob = std::sin(interactionPulse) * 0.15f;
+    drawCube(x, 2.65f + bob, z, 0.22f, 0.72f, 0.22f, r, g, b);
+    drawCube(x, 2.18f + bob, z, 0.70f, 0.24f, 0.70f, r, g, b);
+}
+
+void drawPortalMarker(float x, float z, const std::string& label, float r, float g, float b, bool finalPortal = false) {
+    const float pulse = 0.18f + (std::sin(interactionPulse) + 1.0f) * 0.10f;
+    drawGroundDisk(x, z, 1.15f + pulse, r * 0.55f, g * 0.55f, b * 0.55f);
+    drawGroundDisk(x, z, 0.65f + pulse * 0.35f, r, g, b);
+    drawFloatingArrow(x, z, r, g, b);
+    draw3DLabel(x, finalPortal ? 3.18f : 1.55f, z + 0.72f, label,
+                finalPortal ? 0.38f : 0.04f,
+                finalPortal ? 0.05f : 0.09f,
+                finalPortal ? 0.05f : 0.16f,
+                1.0f, 1.0f, 1.0f, std::max(2.4f, static_cast<float>(label.size()) * 0.18f));
+}
+
+void drawInteractionMarker(float x, float z, const std::string& label, bool completed = false) {
+    const bool nearby = isNear(player.x, player.z, x, z, 2.4f);
+    const float pulse = nearby ? 0.35f : 0.12f;
+    const float r = completed ? 0.20f : (nearby ? 1.0f : 0.75f);
+    const float g = completed ? 0.78f : (nearby ? 0.86f : 0.70f);
+    const float b = completed ? 0.25f : (nearby ? 0.18f : 0.22f);
+
+    drawGroundDisk(x, z, nearby ? 1.05f : 0.72f, r, g, b);
+    drawCube(x, 2.38f + std::sin(interactionPulse) * pulse, z, 0.46f, 0.46f, 0.08f, r, g, b);
+    draw3DLabel(x, 2.90f, z + 0.15f, completed ? "SELESAI" : label,
+                0.04f, 0.05f, 0.07f, 1.0f, 1.0f, 1.0f,
+                completed ? 2.4f : std::max(1.6f, static_cast<float>(label.size()) * 0.15f));
+}
+
+void drawObjectiveMarker(float x, float z, const std::string& label, bool finalMarker = false) {
+    const float r = finalMarker ? 0.95f : 0.20f;
+    const float g = finalMarker ? 0.12f : 0.55f;
+    const float b = finalMarker ? 0.12f : 1.00f;
+    drawGroundDisk(x, z, 1.35f, r * 0.55f, g * 0.55f, b * 0.55f);
+    drawFloatingArrow(x, z, r, g, b);
+    draw3DLabel(x, 3.35f, z + 0.10f, label, 0.02f, 0.04f, 0.08f, 1.0f, 1.0f, 1.0f,
+                std::max(2.4f, static_cast<float>(label.size()) * 0.17f));
+}
+
 }  // namespace
 
 void drawGround(float size, float r = 0.25f, float g = 0.45f, float b = 0.25f) {
@@ -402,6 +457,37 @@ void drawSamsatExterior3D() {
     drawTrafficCone(-8.2f, -6.8f);
     drawTrafficCone(8.2f, -6.8f);
 
+    drawPortalMarker(0.0f, -4.8f, "TEKAN E: MASUK", 0.15f, 0.42f, 1.0f);
+    drawInteractionMarker(-7.0f, 1.0f, "E", metSecurityGuard);
+    drawInteractionMarker(0.0f, 1.0f, "E", hasQueueNumber);
+    drawInteractionMarker(7.0f, 1.0f, "E", hasCorrectMap);
+    drawInteractionMarker(10.0f, -2.0f, "E", hasValidPhotocopy);
+    if (hasFilledForm) {
+        drawPortalMarker(-9.8f, -8.3f, "CEK FISIK", 0.15f, 0.85f, 0.32f);
+    }
+    if (hasPhysicalCheckProof) {
+        drawPortalMarker(7.0f, -8.3f, "VERIFIKASI", 0.15f, 0.42f, 1.0f);
+    }
+    if (hasVerificationStamp) {
+        drawPortalMarker(-9.8f, 8.4f, "PEMBAYARAN", 0.15f, 0.85f, 0.32f);
+    }
+
+    if (!hasQueueNumber) {
+        drawObjectiveMarker(0.0f, 1.0f, "TUJUAN: NOMOR");
+    } else if (!hasCorrectMap) {
+        drawObjectiveMarker(7.0f, 1.0f, "TUJUAN: MAP");
+    } else if (!hasValidPhotocopy) {
+        drawObjectiveMarker(10.0f, -2.0f, "TUJUAN: FOTOKOPI");
+    } else if (!hasFilledForm) {
+        drawObjectiveMarker(0.0f, -4.8f, "TUJUAN: INFORMASI");
+    } else if (!hasPhysicalCheckProof) {
+        drawObjectiveMarker(-9.8f, -8.3f, "TUJUAN: CEK FISIK");
+    } else if (!hasVerificationStamp) {
+        drawObjectiveMarker(7.0f, -8.3f, "TUJUAN: VERIFIKASI");
+    } else if (!hasPaymentProof) {
+        drawObjectiveMarker(-9.8f, 8.4f, "TUJUAN: BAYAR");
+    }
+
     drawNPC3D(-7.0f, 1.0f, 0.10f, 0.60f, 0.20f);
     drawNPC3D(7.0f, 1.0f, 0.90f, 0.45f, 0.10f);
     drawNPC3D(0.0f, 1.0f, 0.40f, 0.40f, 0.40f);
@@ -428,6 +514,12 @@ void drawInformationRoom3D() {
     drawSmallPoster(-5.5f, 2.1f, -7.75f, "ALUR LAYANAN", 0.85f, 0.92f, 1.0f);
     drawSmallPoster(5.5f, 2.1f, -7.75f, "BERKAS LENGKAP", 0.95f, 0.88f, 0.28f);
     drawCube(5.0f, 1.0f, -3.0f, 1.4f, 2.0f, 1.4f, 0.36f, 0.32f, 0.28f);
+    drawPortalMarker(0.0f, 6.2f, "KELUAR", 0.15f, 0.85f, 0.32f);
+    drawPortalMarker(5.0f, -3.0f, "LOKET FORM", 0.15f, 0.42f, 1.0f);
+    drawInteractionMarker(0.0f, -4.0f, "E", metInformationOfficer);
+    if (!hasFilledForm) {
+        drawObjectiveMarker(5.0f, -3.0f, "TUJUAN: FORM");
+    }
 
     drawNPC3D(0.0f, -4.0f, 0.25f, 0.45f, 0.92f);
     drawNPC3D(-4.0f, 2.5f, 0.70f, 0.70f, 0.20f);
@@ -444,6 +536,8 @@ void drawGenericCounterScene3D(float accentR, float accentG, float accentB, bool
     draw3DLabel(0.0f, 1.25f, 6.35f, "LORONG FINAL", 0.06f, 0.12f, 0.08f, 1.0f, 1.0f, 1.0f, 3.4f);
     drawCube(-4.8f, 1.1f, -2.5f, 1.0f, 1.8f, 1.0f, 0.55f, 0.55f, 0.58f);
     drawCube(4.8f, 1.1f, -2.5f, 1.0f, 1.8f, 1.0f, 0.55f, 0.55f, 0.58f);
+    drawPortalMarker(0.0f, -6.0f, "LORONG FINAL", 0.15f, 0.85f, 0.32f);
+    drawObjectiveMarker(0.0f, -6.0f, "TUJUAN: FINAL");
     drawNPC3D(0.0f, -4.0f, 0.18f, 0.36f, 0.80f);
     if (showPlayerCharacter) {
         drawPlayer3D(player.x, player.z);
@@ -463,6 +557,11 @@ void drawFormCounter3D() {
     drawDocumentPile(-0.7f, 1.22f, -2.4f, 0.75f, 0.78f, 0.95f);
     drawCube(2.9f, 1.22f, -2.55f, 0.48f, 0.14f, 0.70f, 0.18f, 0.36f, 0.82f);
     drawCube(3.2f, 1.26f, -2.55f, 0.48f, 0.14f, 0.70f, 0.18f, 0.36f, 0.82f);
+    drawPortalMarker(0.0f, 6.1f, hasFilledForm ? "LANJUT" : "KELUAR", 0.15f, 0.85f, 0.32f);
+    drawInteractionMarker(0.0f, -4.0f, "E", hasFilledForm);
+    if (!hasFilledForm) {
+        drawObjectiveMarker(0.0f, -4.0f, "TUJUAN: FORM");
+    }
     drawCube(4.8f, 1.6f, -4.5f, 1.1f, 3.2f, 0.8f, 0.55f, 0.55f, 0.60f);
     drawCube(-4.8f, 1.6f, -4.5f, 1.1f, 3.2f, 0.8f, 0.55f, 0.55f, 0.60f);
     drawNPC3D(0.0f, -4.0f, 0.18f, 0.36f, 0.82f);
@@ -481,6 +580,11 @@ void drawVerificationCounter3D() {
     drawDocumentPile(2.3f, 1.12f, -2.8f, 0.84f, 0.90f, 0.84f);
     drawCounterStamp(0.0f, -2.5f, 0.55f, 0.05f, 0.05f);
     drawCube(1.1f, 1.32f, -2.55f, 0.80f, 0.10f, 0.80f, 0.95f, 0.15f, 0.15f);
+    drawPortalMarker(0.0f, 6.1f, hasVerificationStamp ? "LANJUT" : "KELUAR", 0.15f, 0.85f, 0.32f);
+    drawInteractionMarker(0.0f, -4.0f, "E", hasVerificationStamp);
+    if (!hasVerificationStamp) {
+        drawObjectiveMarker(0.0f, -4.0f, "TUJUAN: VERIFIKASI");
+    }
     drawCube(-5.2f, 2.0f, -4.4f, 1.3f, 4.0f, 1.0f, 0.44f, 0.40f, 0.34f);
     drawCube(5.2f, 2.0f, -4.4f, 1.3f, 4.0f, 1.0f, 0.44f, 0.40f, 0.34f);
     drawNPC3D(0.0f, -4.0f, 0.16f, 0.34f, 0.74f);
@@ -500,6 +604,11 @@ void drawPaymentCounter3D() {
     drawCube(-1.8f, 1.48f, -2.98f, 0.90f, 0.10f, 0.12f, 0.10f, 0.60f, 0.18f);
     drawCube(0.9f, 1.18f, -2.65f, 0.70f, 0.10f, 0.40f, 0.12f, 0.55f, 0.18f);
     drawWorldText(0.62f, 1.28f, -2.43f, "RP", GLUT_BITMAP_8_BY_13);
+    drawPortalMarker(0.0f, 6.1f, hasPaymentProof ? "VALIDASI" : "KEMBALI", 0.15f, 0.85f, 0.32f);
+    drawInteractionMarker(0.0f, -4.0f, "E", hasPaymentProof);
+    if (!hasPaymentProof) {
+        drawObjectiveMarker(0.0f, -4.0f, "TUJUAN: BAYAR");
+    }
     drawDocumentPile(2.0f, 1.12f, -2.7f, 0.92f, 0.92f, 0.88f);
     drawCube(4.7f, 1.10f, -2.8f, 1.2f, 1.8f, 1.0f, 0.54f, 0.52f, 0.48f);
     drawNPC3D(0.0f, -4.0f, 0.16f, 0.28f, 0.68f);
@@ -517,6 +626,11 @@ void drawValidationCounter3D() {
     drawCounterStamp(-1.2f, -2.5f, 0.65f, 0.00f, 0.00f);
     drawCounterStamp(1.6f, -2.6f, 0.12f, 0.12f, 0.12f);
     draw3DLabel(-1.2f, 2.0f, -2.25f, "CAP VALID", 0.62f, 0.08f, 0.08f, 1.0f, 1.0f, 1.0f, 2.4f);
+    drawPortalMarker(0.0f, 6.1f, receivedStampRequirement ? "METERAI" : "KELUAR", 0.15f, 0.85f, 0.32f);
+    drawInteractionMarker(0.0f, -4.0f, "E", receivedStampRequirement);
+    if (!receivedStampRequirement) {
+        drawObjectiveMarker(0.0f, -4.0f, "TUJUAN: VALIDASI");
+    }
     drawDocumentPile(2.8f, 1.10f, -2.7f, 0.90f, 0.88f, 0.82f);
     drawCube(-4.8f, 1.7f, -4.4f, 1.2f, 3.4f, 0.9f, 0.48f, 0.42f, 0.34f);
     drawNPC3D(0.0f, -4.0f, 0.14f, 0.26f, 0.62f);
@@ -535,6 +649,11 @@ void drawPhotocopyShop3D() {
     draw3DLabel(0.8f, 2.35f, -3.55f, "FOTOKOPI", 0.15f, 0.15f, 0.12f, 1.0f, 0.9f, 0.2f, 3.0f);
     drawDocumentPile(2.1f, 1.35f, -2.2f, 0.94f, 0.94f, 0.90f);
     drawDocumentPile(3.1f, 1.35f, -2.5f, 0.12f, 0.32f, 0.82f);
+    drawPortalMarker(0.0f, 6.1f, "KELUAR", 0.15f, 0.85f, 0.32f);
+    drawInteractionMarker(4.8f, -2.0f, "E", hasValidPhotocopy);
+    if (!hasValidPhotocopy) {
+        drawObjectiveMarker(4.8f, -2.0f, "TUJUAN: FOTOKOPI");
+    }
     drawNPC3D(4.8f, -2.0f, 0.55f, 0.55f, 0.55f);
     drawPlayer3D(player.x, player.z);
 }
@@ -553,6 +672,15 @@ void drawVehicleCheck3D() {
     drawTrafficCone(2.8f, 5.0f);
     drawTrafficCone(-2.8f, -3.0f);
     drawTrafficCone(2.8f, -3.0f);
+    drawPortalMarker(0.0f, 6.7f, "KELUAR", 0.15f, 0.85f, 0.32f);
+    if (hasPhysicalCheckProof) {
+        drawPortalMarker(0.0f, -6.4f, "VERIFIKASI", 0.15f, 0.42f, 1.0f);
+    }
+    drawInteractionMarker(0.0f, 1.5f, "E", hasPhysicalCheckProof);
+    drawInteractionMarker(4.5f, -1.5f, "E", hasPhysicalCheckProof);
+    if (!hasPhysicalCheckProof) {
+        drawObjectiveMarker(0.0f, 1.5f, "TUJUAN: CEK FISIK");
+    }
     drawNPC3D(4.5f, -1.5f, 0.15f, 0.55f, 0.25f);
     drawPlayer3D(player.x, player.z);
 }
@@ -566,6 +694,14 @@ void drawPaymentQueue3D() {
     draw3DLabel(0.0f, 1.25f, -6.25f, "LOKET BAYAR", 0.28f, 0.16f, 0.04f, 1.0f, 0.95f, 0.25f, 3.4f);
     drawCube(0.0f, 0.85f, -4.0f, 5.5f, 1.0f, 1.2f, 0.44f, 0.34f, 0.24f);
     draw3DLabel(0.0f, 2.0f, -3.55f, "ANTREAN PEMBAYARAN", 0.20f, 0.14f, 0.05f, 1.0f, 0.95f, 0.25f, 4.8f);
+    drawPortalMarker(0.0f, 6.6f, "KELUAR", 0.15f, 0.85f, 0.32f);
+    if (hasQueuedPaymentLine) {
+        drawPortalMarker(0.0f, -6.6f, "LOKET BAYAR", 0.15f, 0.42f, 1.0f);
+    }
+    drawInteractionMarker(0.0f, 2.5f, "E", hasQueuedPaymentLine);
+    if (!hasQueuedPaymentLine) {
+        drawObjectiveMarker(0.0f, 2.5f, "TUJUAN: ANTRE");
+    }
     drawQueueMarker(-3.0f, 2.5f);
     drawQueueMarker(-1.5f, 2.5f);
     drawQueueMarker(0.0f, 2.5f);
@@ -586,6 +722,11 @@ void drawStampQuest3D() {
     drawCube(0.0f, 1.05f, -1.0f, 0.4f, 0.02f, 0.3f, 0.9f, 0.1f, 0.1f);
     drawCube(4.5f, 1.2f, -3.8f, 1.5f, 2.4f, 1.0f, 0.55f, 0.42f, 0.26f);
     draw3DLabel(0.0f, 2.0f, -2.45f, "METERAI", 0.34f, 0.18f, 0.04f, 1.0f, 0.95f, 0.25f, 2.6f);
+    drawPortalMarker(0.0f, 6.1f, hasStampedDocument ? "VALIDASI" : "KELUAR", 0.15f, 0.85f, 0.32f);
+    drawInteractionMarker(3.5f, -2.0f, "E", hasStampedDocument);
+    if (!hasStampedDocument) {
+        drawObjectiveMarker(3.5f, -2.0f, "TUJUAN: METERAI");
+    }
     drawNPC3D(3.5f, -2.0f, 0.90f, 0.45f, 0.10f);
     drawPlayer3D(player.x, player.z);
 }
@@ -606,6 +747,10 @@ void drawFinalCorridor3D() {
     drawCube(0.0f, 0.03f, -6.5f, 3.6f, 0.02f, 1.2f, 0.90f, 0.82f, 0.20f);
     draw3DLabel(-2.5f, 2.55f, -1.55f, "ANTREAN SENIOR", 0.16f, 0.12f, 0.24f, 1.0f, 1.0f, 1.0f, 3.8f);
     draw3DLabel(2.8f, 2.55f, -3.35f, "ORANG DALAM", 0.08f, 0.02f, 0.03f, 1.0f, 0.82f, 0.82f, 3.2f);
+    drawPortalMarker(0.0f, -6.5f, "LOKET FINAL", 1.0f, 0.16f, 0.16f, true);
+    drawInteractionMarker(-2.5f, -2.0f, "E", receivedCorridorAdvice);
+    drawInteractionMarker(2.8f, -3.8f, "E", usedInsider);
+    drawObjectiveMarker(0.0f, -6.5f, "TUJUAN: FINAL", true);
     drawNPC3D(-2.5f, -2.0f, 0.55f, 0.42f, 0.70f);
     drawNPC3D(2.8f, -3.8f, 0.35f, 0.05f, 0.05f);
     drawPlayer3D(player.x, player.z);
@@ -627,6 +772,11 @@ void drawFinalBoss3D() {
     drawDocumentPile(5.8f, 0.8f, -2.8f, 0.84f, 0.84f, 0.82f);
     drawDocumentPile(-4.8f, 1.0f, -3.4f, 0.90f, 0.88f, 0.82f);
     drawDocumentPile(4.7f, 1.0f, -3.4f, 0.90f, 0.88f, 0.82f);
+    drawPortalMarker(0.0f, 6.4f, "KEMBALI", 0.15f, 0.85f, 0.32f);
+    drawInteractionMarker(0.0f, -5.5f, "E", hasFinalSTNK);
+    if (!hasFinalSTNK) {
+        drawObjectiveMarker(0.0f, -5.5f, "TUJUAN: SERAHKAN", true);
+    }
     drawCounterStamp(3.1f, -3.7f, 0.60f, 0.00f, 0.00f);
     drawNPC3D(0.0f, -5.5f, 0.10f, 0.20f, 0.60f);
     drawPlayer3D(player.x, player.z);
