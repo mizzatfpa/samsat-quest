@@ -120,6 +120,24 @@ void drawPanel(float x, float y, float w, float h) {
     drawLine(x, y, x, y + h);
 }
 
+void drawUiBox(float x, float y, float w, float h) {
+    setColor(0.00f, 0.00f, 0.00f);
+    drawRect(x + 3.0f, y - 3.0f, w, h);
+
+    setColor(0.05f, 0.06f, 0.10f);
+    drawRect(x, y, w, h);
+
+    setColor(0.12f, 0.15f, 0.23f);
+    drawRect(x, y + h - 4.0f, w, 4.0f);
+
+    setColor(0.36f, 0.42f, 0.56f);
+    drawLine(x, y, x + w, y);
+    drawLine(x + w, y, x + w, y + h);
+    drawLine(x, y, x, y + h);
+    setColor(1.0f, 0.78f, 0.25f);
+    drawLine(x, y + h, x + w, y + h);
+}
+
 void drawCube(float x, float y, float z, float sx, float sy, float sz, float r, float g, float b) {
     glPushMatrix();
     setColor(r, g, b);
@@ -910,8 +928,13 @@ void renderCurrent3DState() {
 }
 
 void drawResourceUI() {
-    const float margin = std::max(12.0f, static_cast<float>(windowWidth) * 0.012f);
-    const float topBarH = (windowWidth < 1150) ? 76.0f : 52.0f;
+    const float margin = 12.0f;
+    const float gap = 8.0f;
+    const float boxH = 26.0f;
+    const int columns = (windowWidth >= 1180) ? 6 : 3;
+    const int rows = (columns == 6) ? 1 : 2;
+    const float topBarH = margin + static_cast<float>(rows) * boxH + static_cast<float>(rows - 1) * gap + margin;
+
     setColor(0.02f, 0.02f, 0.02f);
     drawRect(0, static_cast<float>(windowHeight) - topBarH, static_cast<float>(windowWidth), topBarH);
 
@@ -929,19 +952,16 @@ void drawResourceUI() {
     blocks.push_back("Moral " + std::to_string(moralScore));
     blocks.push_back("Jam " + time.str());
 
-    const int columns = (windowWidth < 1150) ? 3 : 6;
-    const float gap = 8.0f;
     const float blockW = (static_cast<float>(windowWidth) - (margin * 2.0f) - (gap * static_cast<float>(columns - 1))) /
                          static_cast<float>(columns);
     for (std::size_t i = 0; i < blocks.size(); ++i) {
         const int col = static_cast<int>(i) % columns;
         const int row = static_cast<int>(i) / columns;
         const float x = margin + static_cast<float>(col) * (blockW + gap);
-        const float y = static_cast<float>(windowHeight) - 32.0f - static_cast<float>(row) * 30.0f;
-        setColor(0.10f, 0.12f, 0.18f);
-        drawRect(x, y - 14.0f, blockW, 24.0f);
+        const float y = static_cast<float>(windowHeight) - margin - boxH - static_cast<float>(row) * (boxH + gap);
+        drawUiBox(x, y, blockW, boxH);
         setColor(1.0f, 1.0f, 1.0f);
-        drawText(x + 8.0f, y - 5.0f, blocks[i], GLUT_BITMAP_8_BY_13);
+        drawText(x + 12.0f, y + 8.0f, blocks[i], GLUT_BITMAP_8_BY_13);
     }
 }
 
@@ -1293,12 +1313,12 @@ void drawInteractionPrompt() {
         return;
     }
 
-    const float w = std::min(static_cast<float>(windowWidth) * 0.68f, 680.0f);
-    const float h = 48.0f;
+    const float w = std::min(static_cast<float>(windowWidth) * 0.70f, 700.0f);
+    const float h = 50.0f;
     const float x = (static_cast<float>(windowWidth) - w) * 0.5f;
-    const float y = std::max(92.0f, static_cast<float>(windowHeight) * 0.16f);
-    drawPanel(x, y, w, h);
-    drawWrappedText(x + 18.0f, y + 28.0f, prompt, w - 36.0f, 18.0f,
+    const float y = std::max(94.0f, static_cast<float>(windowHeight) * 0.16f);
+    drawUiBox(x, y, w, h);
+    drawWrappedText(x + 12.0f, y + 30.0f, prompt, w - 24.0f, 18.0f,
                     GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
 }
 
@@ -1308,11 +1328,12 @@ void drawSceneHeader() {
         return;
     }
 
-    const float margin = std::max(14.0f, static_cast<float>(windowWidth) * 0.014f);
-    const float w = std::min(280.0f, static_cast<float>(windowWidth) * 0.28f);
-    drawPanel(margin, margin, w, 52.0f);
+    const float margin = 12.0f;
+    const float panelH = 56.0f;
+    const float w = std::min(280.0f, static_cast<float>(windowWidth) * 0.30f);
+    drawUiBox(margin, margin, w, panelH);
     setColor(1.0f, 0.9f, 0.2f);
-    drawText(margin + 12.0f, margin + 29.0f, title, GLUT_BITMAP_HELVETICA_18);
+    drawText(margin + 12.0f, margin + 23.0f, title, GLUT_BITMAP_HELVETICA_18);
 }
 
 void drawSceneObjective() {
@@ -1321,12 +1342,13 @@ void drawSceneObjective() {
         return;
     }
 
-    const float margin = std::max(14.0f, static_cast<float>(windowWidth) * 0.014f);
-    const float titleW = std::min(280.0f, static_cast<float>(windowWidth) * 0.28f);
-    const float x = margin + titleW + 16.0f;
+    const float margin = 12.0f;
+    const float panelH = 56.0f;
+    const float titleW = std::min(280.0f, static_cast<float>(windowWidth) * 0.30f);
+    const float x = margin + titleW + 12.0f;
     const float w = static_cast<float>(windowWidth) - x - margin;
-    drawPanel(x, margin, w, 58.0f);
-    drawWrappedText(x + 14.0f, margin + 37.0f, objective, w - 28.0f, 17.0f,
+    drawUiBox(x, margin, w, panelH);
+    drawWrappedText(x + 12.0f, margin + 35.0f, objective, w - 24.0f, 17.0f,
                     GLUT_BITMAP_8_BY_13, 1.0f, 1.0f, 1.0f);
 }
 
