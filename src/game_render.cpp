@@ -199,12 +199,6 @@ void draw3DLabel(float x,
     drawWorldText(x - boardWidth * 0.42f, y - 0.08f, z + 0.08f, text, GLUT_BITMAP_HELVETICA_18);
 }
 
-void drawSmallPoster(float x, float y, float z, const std::string& text, float r, float g, float b) {
-    drawCube(x, y, z, 2.5f, 1.1f, 0.08f, r, g, b);
-    setColor(0.02f, 0.02f, 0.02f);
-    drawWorldText(x - 1.05f, y + 0.12f, z + 0.08f, text, GLUT_BITMAP_8_BY_13);
-}
-
 void drawChair(float x, float z) {
     drawCube(x, 0.35f, z, 0.70f, 0.18f, 0.65f, 0.18f, 0.24f, 0.34f);
     drawCube(x, 0.82f, z + 0.28f, 0.70f, 0.75f, 0.14f, 0.14f, 0.18f, 0.26f);
@@ -244,18 +238,16 @@ void drawFloatingArrow(float x, float z, float r, float g, float b) {
 }
 
 void drawPortalMarker(float x, float z, const std::string& label, float r, float g, float b, bool finalPortal = false) {
+    (void)label;
+    (void)finalPortal;
     const float pulse = 0.18f + (std::sin(interactionPulse) + 1.0f) * 0.10f;
     drawGroundDisk(x, z, 1.15f + pulse, r * 0.55f, g * 0.55f, b * 0.55f);
     drawGroundDisk(x, z, 0.65f + pulse * 0.35f, r, g, b);
     drawFloatingArrow(x, z, r, g, b);
-    draw3DLabel(x, finalPortal ? 3.18f : 1.55f, z + 0.72f, label,
-                finalPortal ? 0.38f : 0.04f,
-                finalPortal ? 0.05f : 0.09f,
-                finalPortal ? 0.05f : 0.16f,
-                1.0f, 1.0f, 1.0f, std::max(2.4f, static_cast<float>(label.size()) * 0.18f));
 }
 
 void drawInteractionMarker(float x, float z, const std::string& label, bool completed = false) {
+    (void)label;
     const bool nearby = isNear(player.x, player.z, x, z, 2.4f);
     const float pulse = nearby ? 0.35f : 0.12f;
     const float r = completed ? 0.20f : (nearby ? 1.0f : 0.75f);
@@ -264,26 +256,21 @@ void drawInteractionMarker(float x, float z, const std::string& label, bool comp
 
     drawGroundDisk(x, z, nearby ? 1.05f : 0.72f, r, g, b);
     drawCube(x, 2.38f + std::sin(interactionPulse) * pulse, z, 0.46f, 0.46f, 0.08f, r, g, b);
-    draw3DLabel(x, 2.90f, z + 0.15f, completed ? "SELESAI" : label,
-                0.04f, 0.05f, 0.07f, 1.0f, 1.0f, 1.0f,
-                completed ? 2.4f : std::max(1.6f, static_cast<float>(label.size()) * 0.15f));
 }
 
 void drawObjectiveMarker(float x, float z, const std::string& label, bool finalMarker = false) {
+    (void)label;
     const float r = finalMarker ? 0.95f : 0.20f;
     const float g = finalMarker ? 0.12f : 0.55f;
     const float b = finalMarker ? 0.12f : 1.00f;
     drawGroundDisk(x, z, 1.35f, r * 0.55f, g * 0.55f, b * 0.55f);
     drawFloatingArrow(x, z, r, g, b);
-    draw3DLabel(x, 3.35f, z + 0.10f, label, 0.02f, 0.04f, 0.08f, 1.0f, 1.0f, 1.0f,
-                std::max(2.4f, static_cast<float>(label.size()) * 0.17f));
 }
 
 void drawCompletionBadge(float x, float z, const std::string& label = "SELESAI") {
+    (void)label;
     drawGroundDisk(x, z, 0.55f, 0.10f, 0.72f, 0.22f);
     drawCube(x, 2.55f, z, 0.50f, 0.50f, 0.10f, 0.10f, 0.72f, 0.22f);
-    draw3DLabel(x, 3.08f, z + 0.12f, label, 0.04f, 0.12f, 0.05f, 1.0f, 1.0f, 1.0f,
-                std::max(2.2f, static_cast<float>(label.size()) * 0.16f));
 }
 
 }  // namespace
@@ -480,8 +467,6 @@ void drawSamsatExterior3D() {
     drawCube(10.0f, 1.2f, -2.0f, 2.8f, 2.4f, 2.4f, 0.72f, 0.72f, 0.76f);
     drawCube(0.0f, 1.0f, 1.0f, 1.0f, 2.0f, 0.8f, 0.15f, 0.15f, 0.18f);
     draw3DLabel(0.0f, 2.25f, 0.62f, "MESIN ANTREAN", 0.05f, 0.08f, 0.12f, 1.0f, 0.9f, 0.2f, 3.1f);
-    draw3DLabel(-7.0f, 2.65f, 0.25f, "SATPAM", 0.06f, 0.18f, 0.08f, 1.0f, 1.0f, 1.0f, 2.2f);
-    draw3DLabel(7.0f, 2.75f, 0.15f, "PENJUAL MAP", 0.30f, 0.14f, 0.04f, 1.0f, 0.95f, 0.25f, 2.9f);
     draw3DLabel(10.0f, 2.7f, -0.75f, "FOTOKOPI", 0.12f, 0.12f, 0.12f, 1.0f, 0.9f, 0.2f, 2.8f);
     draw3DLabel(-9.8f, 2.2f, -7.4f, "CEK FISIK", 0.07f, 0.18f, 0.10f, 1.0f, 1.0f, 1.0f, 2.7f);
     draw3DLabel(7.0f, 2.2f, -7.4f, "VERIFIKASI", 0.10f, 0.11f, 0.28f, 1.0f, 1.0f, 1.0f, 2.8f);
@@ -489,13 +474,9 @@ void drawSamsatExterior3D() {
 
     drawCube(-10.0f, 0.05f, 5.0f, 5.0f, 0.02f, 10.0f, 0.32f, 0.32f, 0.35f);
     drawCube(10.0f, 0.05f, 5.0f, 5.0f, 0.02f, 10.0f, 0.32f, 0.32f, 0.35f);
-    draw3DLabel(-10.0f, 0.25f, 0.4f, "PARKIR", 0.12f, 0.12f, 0.14f, 1.0f, 1.0f, 1.0f, 2.0f);
-    draw3DLabel(10.0f, 0.25f, 0.4f, "PARKIR", 0.12f, 0.12f, 0.14f, 1.0f, 1.0f, 1.0f, 2.0f);
     drawSimpleCar(-9.0f, 5.0f);
     drawSimpleCar(9.0f, 5.0f);
     drawFlagPole(-13.5f, -7.5f);
-    drawSmallPoster(-3.8f, 1.6f, -7.55f, "AMBIL NOMOR", 0.95f, 0.88f, 0.28f);
-    drawSmallPoster(3.8f, 1.6f, -7.55f, "SIAPKAN KTP", 0.95f, 0.88f, 0.28f);
     for (int i = 0; i < 5; ++i) {
         drawCube(-12.0f + static_cast<float>(i) * 1.1f, 0.45f, -2.8f, 0.10f, 0.90f, 0.10f, 0.85f, 0.85f, 0.78f);
         drawCube(-11.45f + static_cast<float>(i) * 1.1f, 0.82f, -2.8f, 1.0f, 0.10f, 0.10f, 0.85f, 0.85f, 0.78f);
@@ -563,15 +544,12 @@ void drawInformationRoom3D() {
     drawCube(0.0f, 1.5f, -4.6f, 6.0f, 2.0f, 0.3f, 0.35f, 0.40f, 0.48f);
     draw3DLabel(0.0f, 2.85f, -4.35f, "RUANG INFORMASI", 0.08f, 0.18f, 0.36f, 1.0f, 1.0f, 1.0f, 4.2f);
     draw3DLabel(5.0f, 2.25f, -2.25f, "LOKET FORMULIR", 0.10f, 0.18f, 0.34f, 1.0f, 1.0f, 1.0f, 3.6f);
-    draw3DLabel(0.0f, 1.25f, 6.55f, "KELUAR", 0.07f, 0.22f, 0.11f, 1.0f, 1.0f, 1.0f, 2.0f);
     drawCube(-4.0f, 0.45f, 1.2f, 1.2f, 0.9f, 1.2f, 0.45f, 0.45f, 0.50f);
     drawCube(0.0f, 0.45f, 1.2f, 1.2f, 0.9f, 1.2f, 0.45f, 0.45f, 0.50f);
     drawCube(4.0f, 0.45f, 1.2f, 1.2f, 0.9f, 1.2f, 0.45f, 0.45f, 0.50f);
     drawChair(-4.0f, 1.2f);
     drawChair(0.0f, 1.2f);
     drawChair(4.0f, 1.2f);
-    drawSmallPoster(-5.5f, 2.1f, -7.75f, "ALUR LAYANAN", 0.85f, 0.92f, 1.0f);
-    drawSmallPoster(5.5f, 2.1f, -7.75f, "BERKAS LENGKAP", 0.95f, 0.88f, 0.28f);
     drawCube(5.0f, 1.0f, -3.0f, 1.4f, 2.0f, 1.4f, 0.36f, 0.32f, 0.28f);
     drawPortalMarker(0.0f, 6.2f, "KELUAR", 0.15f, 0.85f, 0.32f);
     drawPortalMarker(5.0f, -3.0f, "LOKET FORM", 0.15f, 0.42f, 1.0f);
