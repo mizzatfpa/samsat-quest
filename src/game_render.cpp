@@ -478,14 +478,13 @@ float getIndoorFrontLimit(GameState scene) {
         case INFORMATION_ROOM:
         case DIALOG_INFORMATION_OFFICER:
         case INVENTORY_CHECK:
-            return 7.35f;
+            return 8.0f;
         case PAYMENT_QUEUE:
         case FINAL_COUNTER_BOSS:
-            return 7.35f;
         case FINAL_CORRIDOR:
-            return 6.85f;
+            return 8.0f;
         default:
-            return 6.35f;
+            return 7.0f;
     }
 }
 
@@ -522,8 +521,8 @@ void drawChair(float x, float z) {
 
 void drawTrafficCone(float x, float z) {
     drawCube(x, 0.12f, z, 0.48f, 0.12f, 0.48f, 0.08f, 0.08f, 0.08f);
-    drawCube(x, 0.36f, z, 0.34f, 0.36f, 0.34f, 0.95f, 0.36f, 0.08f);
-    drawCube(x, 0.58f, z, 0.20f, 0.22f, 0.20f, 1.0f, 0.78f, 0.20f);
+    drawCone(x, 0.16f, z, 0.26f, 0.70f, 0.95f, 0.36f, 0.08f, -90.0f);
+    drawCylinder(x, 0.42f, z, 0.18f, 0.05f, 1.0f, 0.78f, 0.20f, -90.0f);
 }
 
 void drawFlagPole(float x, float z) {
@@ -838,8 +837,13 @@ void drawSamsatExterior3D() {
     drawCube(-7.0f, 1.2f, -1.0f, 2.6f, 2.4f, 2.5f, 0.35f, 0.25f, 0.16f);
     drawCube(7.0f, 1.2f, -1.0f, 3.2f, 2.4f, 2.5f, 0.65f, 0.35f, 0.15f);
     drawCube(10.0f, 1.2f, -2.0f, 2.8f, 2.4f, 2.4f, 0.72f, 0.72f, 0.76f);
-    drawCube(0.0f, 1.0f, 1.0f, 1.0f, 2.0f, 0.8f, 0.15f, 0.15f, 0.18f);
-    draw3DLabel(0.0f, 3.05f, 0.42f, "MESIN ANTREAN", 0.05f, 0.08f, 0.12f, 1.0f, 0.9f, 0.2f, 3.1f);
+    drawHouseRoof(-7.0f, 2.45f, -1.0f, 3.2f, 0.55f, 3.0f, 0.28f, 0.13f, 0.08f);
+    drawHouseRoof(7.0f, 2.45f, -1.0f, 3.8f, 0.55f, 3.0f, 0.42f, 0.16f, 0.08f);
+    drawHouseRoof(10.0f, 2.45f, -2.0f, 3.4f, 0.50f, 2.9f, 0.42f, 0.42f, 0.46f);
+    drawCube(0.0f, 0.85f, 1.0f, 0.9f, 1.7f, 0.65f, 0.15f, 0.15f, 0.18f);
+    drawCube(0.0f, 1.25f, 0.64f, 0.66f, 0.52f, 0.06f, 0.02f, 0.08f, 0.12f);
+    drawSphere(0.0f, 0.55f, 0.62f, 0.10f, 0.95f, 0.20f, 0.12f);
+    draw3DLabel(0.0f, 2.75f, 0.42f, "MESIN ANTREAN", 0.05f, 0.08f, 0.12f, 1.0f, 0.9f, 0.2f, 3.1f);
     draw3DLabel(10.0f, 2.7f, -0.75f, "FOTOKOPI", 0.12f, 0.12f, 0.12f, 1.0f, 0.9f, 0.2f, 2.8f);
     draw3DLabel(-9.8f, 2.2f, -7.4f, "CEK FISIK", 0.07f, 0.18f, 0.10f, 1.0f, 1.0f, 1.0f, 2.7f);
     draw3DLabel(7.0f, 2.2f, -7.4f, "VERIFIKASI", 0.10f, 0.11f, 0.28f, 1.0f, 1.0f, 1.0f, 2.8f);

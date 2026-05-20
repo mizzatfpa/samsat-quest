@@ -140,7 +140,7 @@ void resetPlayerForState(GameState state) {
         case FORM_COUNTER:
             player.x = 0.0f;
             player.y = 0.0f;
-            player.z = 6.0f;
+            player.z = 5.4f;
             break;
 
         case VEHICLE_CHECK_AREA:
@@ -156,14 +156,14 @@ void resetPlayerForState(GameState state) {
         case VALIDATION_SUCCESS:
             player.x = 0.0f;
             player.y = 0.0f;
-            player.z = 6.0f;
+            player.z = 5.4f;
             break;
 
         case FINAL_CORRIDOR:
         case FINAL_COUNTER_BOSS:
             player.x = 0.0f;
             player.y = 0.0f;
-            player.z = 7.0f;
+            player.z = 6.4f;
             break;
 
         default:
