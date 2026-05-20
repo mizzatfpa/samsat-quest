@@ -558,24 +558,19 @@ void setupCamera() {
         case QUEUE_MACHINE:
         case MAP_VENDOR:
         case PHOTOCOPY_SHOP:
-            targetX = player.x;
             targetY = 1.6f;
-            targetZ = player.z;
             break;
 
         case VEHICLE_CHECK_AREA:
-            targetX = 0.0f;
             targetY = 1.3f;
-            targetZ = 0.0f;
+            // targetZ = 0.0f;
             baseDistance = camera.distance + 2.0f;
             baseHeight = camera.height + 1.0f;
             break;
 
         case FINAL_CORRIDOR:
         case FINAL_COUNTER_BOSS:
-            targetX = 0.0f;
             targetY = 1.6f;
-            targetZ = -3.0f;
             baseDistance = camera.distance + 3.0f;
             break;
 
