@@ -124,6 +124,11 @@ extern bool metSecurityGuard;
 extern bool metInformationOfficer;
 extern bool receivedStampRequirement;
 
+extern GLuint skyTextureId;
+extern GLuint rockTextureId;
+extern GLuint tileTextureId;
+extern GLuint wallTextureId;
+
 int clampInt(int value, int minValue, int maxValue);
 float clampFloat(float value, float minValue, float maxValue);
 void resetCamera();

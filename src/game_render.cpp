@@ -147,6 +147,121 @@ void drawCube(float x, float y, float z, float sx, float sy, float sz, float r, 
     glPopMatrix();
 }
 
+void drawTexturedGround(float size, GLuint textureId, float repeatFactor = 8.0f) {
+    if (textureId != 0) {
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        glColor3f(1.0f, 1.0f, 1.0f);
+    } else {
+        glDisable(GL_TEXTURE_2D);
+        setColor(0.25f, 0.45f, 0.25f);
+    }
+
+    glBegin(GL_QUADS);
+    glNormal3f(0.0f, 1.0f, 0.0f);
+    if (textureId) glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(-size, 0.0f, -size);
+    if (textureId) glTexCoord2f(repeatFactor, 0.0f);
+    glVertex3f(size, 0.0f, -size);
+    if (textureId) glTexCoord2f(repeatFactor, repeatFactor);
+    glVertex3f(size, 0.0f, size);
+    if (textureId) glTexCoord2f(0.0f, repeatFactor);
+    glVertex3f(-size, 0.0f, size);
+    glEnd();
+
+    if (textureId) {
+        glDisable(GL_TEXTURE_2D);
+    }
+}
+
+void drawTexturedBox(float x, float y, float z, float sx, float sy, float sz, GLuint textureId, float r, float g, float b, float uRepeat = 1.0f, float vRepeat = 1.0f) {
+    glPushMatrix();
+    glTranslatef(x, y, z);
+    glScalef(sx, sy, sz);
+
+    if (textureId != 0) {
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        glColor3f(1.0f, 1.0f, 1.0f);
+    } else {
+        glDisable(GL_TEXTURE_2D);
+        setColor(r, g, b);
+    }
+
+    glBegin(GL_QUADS);
+    // Front face
+    glNormal3f(0.0f, 0.0f, 1.0f);
+    if (textureId) glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(-0.5f, -0.5f, 0.5f);
+    if (textureId) glTexCoord2f(uRepeat, 0.0f);
+    glVertex3f(0.5f, -0.5f, 0.5f);
+    if (textureId) glTexCoord2f(uRepeat, vRepeat);
+    glVertex3f(0.5f, 0.5f, 0.5f);
+    if (textureId) glTexCoord2f(0.0f, vRepeat);
+    glVertex3f(-0.5f, 0.5f, 0.5f);
+
+    // Back face
+    glNormal3f(0.0f, 0.0f, -1.0f);
+    if (textureId) glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(0.5f, -0.5f, -0.5f);
+    if (textureId) glTexCoord2f(uRepeat, 0.0f);
+    glVertex3f(-0.5f, -0.5f, -0.5f);
+    if (textureId) glTexCoord2f(uRepeat, vRepeat);
+    glVertex3f(-0.5f, 0.5f, -0.5f);
+    if (textureId) glTexCoord2f(0.0f, vRepeat);
+    glVertex3f(0.5f, 0.5f, -0.5f);
+
+    // Left face
+    glNormal3f(-1.0f, 0.0f, 0.0f);
+    if (textureId) glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(-0.5f, -0.5f, -0.5f);
+    if (textureId) glTexCoord2f(uRepeat, 0.0f);
+    glVertex3f(-0.5f, -0.5f, 0.5f);
+    if (textureId) glTexCoord2f(uRepeat, vRepeat);
+    glVertex3f(-0.5f, 0.5f, 0.5f);
+    if (textureId) glTexCoord2f(0.0f, vRepeat);
+    glVertex3f(-0.5f, 0.5f, -0.5f);
+
+    // Right face
+    glNormal3f(1.0f, 0.0f, 0.0f);
+    if (textureId) glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(0.5f, -0.5f, 0.5f);
+    if (textureId) glTexCoord2f(uRepeat, 0.0f);
+    glVertex3f(0.5f, -0.5f, -0.5f);
+    if (textureId) glTexCoord2f(uRepeat, vRepeat);
+    glVertex3f(0.5f, 0.5f, -0.5f);
+    if (textureId) glTexCoord2f(0.0f, vRepeat);
+    glVertex3f(0.5f, 0.5f, 0.5f);
+
+    // Top face
+    glNormal3f(0.0f, 1.0f, 0.0f);
+    if (textureId) glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(-0.5f, 0.5f, 0.5f);
+    if (textureId) glTexCoord2f(uRepeat, 0.0f);
+    glVertex3f(0.5f, 0.5f, 0.5f);
+    if (textureId) glTexCoord2f(uRepeat, vRepeat);
+    glVertex3f(0.5f, 0.5f, -0.5f);
+    if (textureId) glTexCoord2f(0.0f, vRepeat);
+    glVertex3f(-0.5f, 0.5f, -0.5f);
+
+    // Bottom face
+    glNormal3f(0.0f, -1.0f, 0.0f);
+    if (textureId) glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(-0.5f, -0.5f, -0.5f);
+    if (textureId) glTexCoord2f(uRepeat, 0.0f);
+    glVertex3f(0.5f, -0.5f, -0.5f);
+    if (textureId) glTexCoord2f(uRepeat, vRepeat);
+    glVertex3f(0.5f, -0.5f, 0.5f);
+    if (textureId) glTexCoord2f(0.0f, vRepeat);
+    glVertex3f(-0.5f, -0.5f, 0.5f);
+    glEnd();
+
+    if (textureId != 0) {
+        glDisable(GL_TEXTURE_2D);
+    }
+    glPopMatrix();
+}
+
 namespace {
 
 void drawCharacterModel(float bodyR,
@@ -309,14 +424,10 @@ void drawCompletionBadge(float x, float z, const std::string& label = "SELESAI")
 }  // namespace
 
 void drawGround(float size, float r = 0.25f, float g = 0.45f, float b = 0.25f) {
-    setColor(r, g, b);
-    glBegin(GL_QUADS);
-    glNormal3f(0.0f, 1.0f, 0.0f);
-    glVertex3f(-size, 0.0f, -size);
-    glVertex3f(size, 0.0f, -size);
-    glVertex3f(size, 0.0f, size);
-    glVertex3f(-size, 0.0f, size);
-    glEnd();
+    (void)r;
+    (void)g;
+    (void)b;
+    drawTexturedGround(size, tileTextureId, 10.0f);
 }
 
 void drawPlayer3D(float x, float z) {
@@ -374,9 +485,9 @@ void drawSimpleCar(float x, float z) {
 }
 
 void drawRoomFrame(float halfWidth, float halfDepth, float wallHeight, float r, float g, float b) {
-    drawCube(0.0f, wallHeight * 0.5f, -halfDepth, halfWidth * 2.0f, wallHeight, 0.3f, r, g, b);
-    drawCube(-halfWidth, wallHeight * 0.5f, 0.0f, 0.3f, wallHeight, halfDepth * 2.0f, r, g, b);
-    drawCube(halfWidth, wallHeight * 0.5f, 0.0f, 0.3f, wallHeight, halfDepth * 2.0f, r, g, b);
+    drawTexturedBox(0.0f, wallHeight * 0.5f, -halfDepth, halfWidth * 2.0f, wallHeight, 0.3f, wallTextureId, r, g, b, halfWidth * 0.5f, wallHeight * 0.5f);
+    drawTexturedBox(-halfWidth, wallHeight * 0.5f, 0.0f, 0.3f, wallHeight, halfDepth * 2.0f, wallTextureId, r, g, b, halfDepth * 0.5f, wallHeight * 0.5f);
+    drawTexturedBox(halfWidth, wallHeight * 0.5f, 0.0f, 0.3f, wallHeight, halfDepth * 2.0f, wallTextureId, r, g, b, halfDepth * 0.5f, wallHeight * 0.5f);
 }
 
 void drawQueueMarker(float x, float z) {
@@ -484,7 +595,7 @@ void setupCamera() {
 
 
 void drawSamsatExterior3D() {
-    drawGround(30.0f);
+    drawTexturedGround(30.0f, rockTextureId, 6.0f);
 
     drawCube(0.0f, 2.5f, -10.0f, 14.0f, 5.0f, 4.0f, 0.58f, 0.58f, 0.62f);
     drawCube(0.0f, 1.3f, -7.7f, 2.0f, 2.6f, 0.2f, 0.10f, 0.10f, 0.15f);

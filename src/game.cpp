@@ -1,13 +1,261 @@
 #include "game.hpp"
 #include "game_internal.hpp"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+#include <cstdio>
+#include <cstring>
+#include <filesystem>
+#include <vector>
+
 using namespace samsat;
+
+namespace {
+
+std::string resolveAssetPath(const std::string& relativePath) {
+    namespace fs = std::filesystem;
+    const std::vector<fs::path> candidates = {
+        fs::path(relativePath),
+        fs::current_path() / relativePath,
+        fs::current_path() / ".." / relativePath,
+        fs::current_path() / "src" / relativePath,
+        fs::current_path() / ".." / "src" / relativePath
+    };
+
+    for (const auto& candidate : candidates) {
+        if (fs::exists(candidate)) {
+            return candidate.string();
+        }
+    }
+    return relativePath;
+}
+
+bool loadBmpTexture(const char* filePath, GLuint& textureId) {
+    FILE* file = std::fopen(filePath, "rb");
+    if (!file) {
+        return false;
+    }
+
+    unsigned char header[54];
+    if (std::fread(header, 1, 54, file) != 54) {
+        std::fclose(file);
+        return false;
+    }
+
+    if (header[0] != 'B' || header[1] != 'M') {
+        std::fclose(file);
+        return false;
+    }
+
+    int dataPos = *reinterpret_cast<int*>(&header[0x0A]);
+    const int width = *reinterpret_cast<int*>(&header[0x12]);
+    const int height = *reinterpret_cast<int*>(&header[0x16]);
+    const unsigned short bitsPerPixel = *reinterpret_cast<unsigned short*>(&header[0x1C]);
+    const int compression = *reinterpret_cast<int*>(&header[0x1E]);
+
+    if ((bitsPerPixel != 24 && bitsPerPixel != 32) || compression != 0 || width <= 0 || height == 0) {
+        std::fclose(file);
+        return false;
+    }
+
+    const int absHeight = std::abs(height);
+    if (dataPos <= 0) {
+        dataPos = 54;
+    }
+    const int bytesPerPixel = bitsPerPixel / 8;
+    const int paddedRowSize = ((width * bytesPerPixel + 3) / 4) * 4;
+    const int dataSize = paddedRowSize * absHeight;
+
+    std::vector<unsigned char> rawData(dataSize);
+    std::fseek(file, dataPos, SEEK_SET);
+    if (std::fread(rawData.data(), 1, dataSize, file) != static_cast<size_t>(dataSize)) {
+        std::fclose(file);
+        return false;
+    }
+    std::fclose(file);
+
+    std::vector<unsigned char> rgbData(width * absHeight * 3);
+    const bool bottomUp = height > 0;
+    for (int row = 0; row < absHeight; ++row) {
+        const int srcRow = bottomUp ? (absHeight - 1 - row) : row;
+        const unsigned char* src = rawData.data() + (srcRow * paddedRowSize);
+        unsigned char* dst = rgbData.data() + (row * width * 3);
+        for (int x = 0; x < width; ++x) {
+            dst[x * 3 + 0] = src[x * bytesPerPixel + 2];
+            dst[x * 3 + 1] = src[x * bytesPerPixel + 1];
+            dst[x * 3 + 2] = src[x * bytesPerPixel + 0];
+        }
+    }
+
+    glGenTextures(1, &textureId);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, absHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, rgbData.data());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    return true;
+}
+
+bool loadTextureFromImage(const char* filePath, GLuint& textureId) {
+    int width = 0;
+    int height = 0;
+    int channels = 0;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* imageData = stbi_load(filePath, &width, &height, &channels, STBI_rgb);
+    if (!imageData || width <= 0 || height <= 0) {
+        if (imageData) {
+            stbi_image_free(imageData);
+        }
+        return false;
+    }
+
+    glGenTextures(1, &textureId);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    stbi_image_free(imageData);
+    return true;
+}
+
+void drawSkyCube(GLuint textureId, float halfSize = 25.0f) {
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glColor3f(1.0f, 1.0f, 1.0f);
+
+    glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_CULL_FACE);
+
+    glPushMatrix();
+    glRotatef(-camera.yaw, 0.0f, 1.0f, 0.0f);
+    glRotatef(-camera.pitch, 1.0f, 0.0f, 0.0f);
+
+    glBegin(GL_QUADS);
+    // Back face
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-halfSize, -halfSize, -halfSize);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(halfSize, -halfSize, -halfSize);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(halfSize, halfSize, -halfSize);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-halfSize, halfSize, -halfSize);
+
+    // Front face
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(halfSize, -halfSize, halfSize);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(-halfSize, -halfSize, halfSize);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(-halfSize, halfSize, halfSize);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(halfSize, halfSize, halfSize);
+
+    // Left face
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-halfSize, -halfSize, halfSize);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(-halfSize, -halfSize, -halfSize);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(-halfSize, halfSize, -halfSize);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-halfSize, halfSize, halfSize);
+
+    // Right face
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(halfSize, -halfSize, -halfSize);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(halfSize, -halfSize, halfSize);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(halfSize, halfSize, halfSize);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(halfSize, halfSize, -halfSize);
+
+    // Bottom face
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-halfSize, -halfSize, halfSize);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(halfSize, -halfSize, halfSize);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(halfSize, -halfSize, -halfSize);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-halfSize, -halfSize, -halfSize);
+
+    // Top face
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-halfSize, halfSize, -halfSize);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(halfSize, halfSize, -halfSize);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(halfSize, halfSize, halfSize);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-halfSize, halfSize, halfSize);
+    glEnd();
+
+    glPopMatrix();
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+}
+
+void drawSkyBackground(GLuint textureId) {
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluPerspective(60.0f, static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 100.0f);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    if (textureId == 0) {
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_LIGHTING);
+
+        glBegin(GL_QUADS);
+        glColor3f(0.42f, 0.72f, 0.94f);
+        glVertex3f(-1.0f, -1.0f, -1.0f);
+        glVertex3f(1.0f, -1.0f, -1.0f);
+        glVertex3f(1.0f, 1.0f, -1.0f);
+        glVertex3f(-1.0f, 1.0f, -1.0f);
+        glEnd();
+
+        glEnable(GL_LIGHTING);
+        glEnable(GL_DEPTH_TEST);
+    } else {
+        drawSkyCube(textureId, 30.0f);
+    }
+
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+}
+
+} // namespace
+
+namespace samsat {
+GLuint skyTextureId = 0;
+GLuint rockTextureId = 0;
+GLuint tileTextureId = 0;
+GLuint wallTextureId = 0;
+} // namespace samsat
 
 void initGame() {
     glClearColor(0.05f, 0.05f, 0.08f, 1.0f);
     glEnable(GL_DEPTH_TEST);
     glShadeModel(GL_SMOOTH);
     setupLighting();
+
+    const std::string skyPath = resolveAssetPath("assets/skyblue.jpg");
+    if (!loadTextureFromImage(skyPath.c_str(), skyTextureId)) {
+        std::cerr << "Warning: failed to load sky texture from " << skyPath << std::endl;
+    }
+
+    const std::string rockPath = resolveAssetPath("assets/rock.jpg");
+    if (!loadTextureFromImage(rockPath.c_str(), rockTextureId)) {
+        std::cerr << "Warning: failed to load rock texture from " << rockPath << std::endl;
+    }
+
+    const std::string tilePath = resolveAssetPath("assets/tile.jpg");
+    if (!loadTextureFromImage(tilePath.c_str(), tileTextureId)) {
+        std::cerr << "Warning: failed to load tile texture from " << tilePath << std::endl;
+    }
+
+    const std::string wallPath = resolveAssetPath("assets/wall.jpg");
+    if (!loadTextureFromImage(wallPath.c_str(), wallTextureId)) {
+        std::cerr << "Warning: failed to load wall texture from " << wallPath << std::endl;
+    }
 
     currentState = TITLE_SCREEN;
     previousState = TITLE_SCREEN;
@@ -63,6 +311,7 @@ void initGame() {
 
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    drawSkyBackground(skyTextureId);
 
     if (!isOverlayOnlyState(currentState)) {
         glMatrixMode(GL_MODELVIEW);
