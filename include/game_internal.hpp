@@ -59,6 +59,8 @@ struct Player {
     float z;
     float speed;
     float facingYaw;
+    bool isMoving;
+    float walkPhase;
 };
 
 struct Camera {

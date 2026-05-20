@@ -8,7 +8,7 @@ int windowHeight = 700;
 GameState currentState = TITLE_SCREEN;
 GameState previousState = TITLE_SCREEN;
 
-Player player = {0.0f, 0.0f, 8.0f, 0.65f, 0.0f};
+Player player = {0.0f, 0.0f, 8.0f, 0.65f, 0.0f, false, 0.0f};
 
 int patience = 100;
 int stamina = 100;

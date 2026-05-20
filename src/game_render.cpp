@@ -147,6 +147,105 @@ void drawCube(float x, float y, float z, float sx, float sy, float sz, float r, 
     glPopMatrix();
 }
 
+void drawSphere(float x, float y, float z, float radius, float r, float g, float b) {
+    glPushMatrix();
+    setColor(r, g, b);
+    glTranslatef(x, y, z);
+    glutSolidSphere(radius, 18, 12);
+    glPopMatrix();
+}
+
+void drawCone(float x,
+              float y,
+              float z,
+              float radius,
+              float height,
+              float r,
+              float g,
+              float b,
+              float rotateX = 0.0f,
+              float rotateY = 0.0f,
+              float rotateZ = 0.0f) {
+    glPushMatrix();
+    setColor(r, g, b);
+    glTranslatef(x, y, z);
+    glRotatef(rotateX, 1.0f, 0.0f, 0.0f);
+    glRotatef(rotateY, 0.0f, 1.0f, 0.0f);
+    glRotatef(rotateZ, 0.0f, 0.0f, 1.0f);
+    glutSolidCone(radius, height, 18, 8);
+    glPopMatrix();
+}
+
+void drawCylinder(float x,
+                  float y,
+                  float z,
+                  float radius,
+                  float depth,
+                  float r,
+                  float g,
+                  float b,
+                  float rotateX = 0.0f,
+                  float rotateY = 0.0f,
+                  float rotateZ = 0.0f) {
+    glPushMatrix();
+    setColor(r, g, b);
+    glTranslatef(x, y, z);
+    glRotatef(rotateX, 1.0f, 0.0f, 0.0f);
+    glRotatef(rotateY, 0.0f, 1.0f, 0.0f);
+    glRotatef(rotateZ, 0.0f, 0.0f, 1.0f);
+    glTranslatef(0.0f, 0.0f, -depth * 0.5f);
+
+    GLUquadric* quadric = gluNewQuadric();
+    gluQuadricNormals(quadric, GLU_SMOOTH);
+    gluCylinder(quadric, radius, radius, depth, 20, 4);
+    gluDisk(quadric, 0.0f, radius, 20, 1);
+    glTranslatef(0.0f, 0.0f, depth);
+    gluDisk(quadric, 0.0f, radius, 20, 1);
+    gluDeleteQuadric(quadric);
+    glPopMatrix();
+}
+
+void drawHouseRoof(float x, float baseY, float z, float width, float height, float depth, float r, float g, float b) {
+    const float halfW = width * 0.5f;
+    const float halfD = depth * 0.5f;
+
+    glPushMatrix();
+    glTranslatef(x, baseY, z);
+    setColor(r, g, b);
+    glBegin(GL_TRIANGLES);
+    glNormal3f(0.0f, 0.0f, 1.0f);
+    glVertex3f(-halfW, 0.0f, halfD);
+    glVertex3f(halfW, 0.0f, halfD);
+    glVertex3f(0.0f, height, halfD);
+
+    glNormal3f(0.0f, 0.0f, -1.0f);
+    glVertex3f(halfW, 0.0f, -halfD);
+    glVertex3f(-halfW, 0.0f, -halfD);
+    glVertex3f(0.0f, height, -halfD);
+    glEnd();
+
+    glBegin(GL_QUADS);
+    glNormal3f(-0.55f, 0.75f, 0.0f);
+    glVertex3f(-halfW, 0.0f, -halfD);
+    glVertex3f(-halfW, 0.0f, halfD);
+    glVertex3f(0.0f, height, halfD);
+    glVertex3f(0.0f, height, -halfD);
+
+    glNormal3f(0.55f, 0.75f, 0.0f);
+    glVertex3f(0.0f, height, -halfD);
+    glVertex3f(0.0f, height, halfD);
+    glVertex3f(halfW, 0.0f, halfD);
+    glVertex3f(halfW, 0.0f, -halfD);
+
+    glNormal3f(0.0f, -1.0f, 0.0f);
+    glVertex3f(-halfW, 0.0f, -halfD);
+    glVertex3f(halfW, 0.0f, -halfD);
+    glVertex3f(halfW, 0.0f, halfD);
+    glVertex3f(-halfW, 0.0f, halfD);
+    glEnd();
+    glPopMatrix();
+}
+
 void drawTexturedGround(float size, GLuint textureId, float repeatFactor = 8.0f) {
     if (textureId != 0) {
         glEnable(GL_TEXTURE_2D);
@@ -276,35 +375,63 @@ void drawCharacterModel(float bodyR,
                         float accentG,
                         float accentB,
                         bool hasCap,
-                        bool hasSuspiciousCoat) {
+                        bool hasSuspiciousCoat,
+                        bool roundHead,
+                        bool animateLegs,
+                        float walkPhase) {
     const float skinR = 1.0f;
     const float skinG = 0.80f;
     const float skinB = 0.60f;
+    const float legSwing = animateLegs ? std::sin(walkPhase) * 25.0f : 0.0f;
+    const float armSwing = animateLegs ? -std::sin(walkPhase) * 16.0f : 0.0f;
 
-    drawCube(0.0f, 1.14f, 0.0f, 0.70f, 1.12f, 0.42f, bodyR, bodyG, bodyB);
-    drawCube(0.0f, 1.86f, 0.0f, 0.48f, 0.48f, 0.48f, skinR, skinG, skinB);
+    drawCube(0.0f, 1.15f, 0.0f, 0.54f, 0.92f, 0.34f, bodyR, bodyG, bodyB);
+    drawCube(0.0f, 1.62f, 0.0f, 0.28f, 0.18f, 0.24f, skinR * 0.92f, skinG * 0.92f, skinB * 0.92f);
+    if (roundHead) {
+        drawSphere(0.0f, 1.84f, 0.0f, 0.28f, skinR, skinG, skinB);
+    } else {
+        drawCube(0.0f, 1.84f, 0.0f, 0.52f, 0.52f, 0.48f, skinR, skinG, skinB);
+    }
 
-    drawCube(-0.52f, 1.12f, 0.0f, 0.22f, 0.86f, 0.24f, bodyR * 0.9f, bodyG * 0.9f, bodyB * 0.9f);
-    drawCube(0.52f, 1.12f, 0.0f, 0.22f, 0.86f, 0.24f, bodyR * 0.9f, bodyG * 0.9f, bodyB * 0.9f);
-    drawCube(-0.52f, 0.62f, 0.0f, 0.22f, 0.20f, 0.22f, skinR, skinG, skinB);
-    drawCube(0.52f, 0.62f, 0.0f, 0.22f, 0.20f, 0.22f, skinR, skinG, skinB);
+    glPushMatrix();
+    glTranslatef(-0.43f, 1.48f, 0.0f);
+    glRotatef(armSwing, 1.0f, 0.0f, 0.0f);
+    drawCube(0.0f, -0.34f, 0.0f, 0.18f, 0.70f, 0.20f, bodyR * 0.9f, bodyG * 0.9f, bodyB * 0.9f);
+    drawCube(0.0f, -0.75f, 0.0f, 0.18f, 0.18f, 0.18f, skinR, skinG, skinB);
+    glPopMatrix();
 
-    drawCube(-0.20f, 0.45f, 0.0f, 0.24f, 0.78f, 0.26f, pantsR, pantsG, pantsB);
-    drawCube(0.20f, 0.45f, 0.0f, 0.24f, 0.78f, 0.26f, pantsR, pantsG, pantsB);
-    drawCube(-0.20f, 0.08f, -0.05f, 0.32f, 0.16f, 0.42f, 0.05f, 0.05f, 0.06f);
-    drawCube(0.20f, 0.08f, -0.05f, 0.32f, 0.16f, 0.42f, 0.05f, 0.05f, 0.06f);
+    glPushMatrix();
+    glTranslatef(0.43f, 1.48f, 0.0f);
+    glRotatef(-armSwing, 1.0f, 0.0f, 0.0f);
+    drawCube(0.0f, -0.34f, 0.0f, 0.18f, 0.70f, 0.20f, bodyR * 0.9f, bodyG * 0.9f, bodyB * 0.9f);
+    drawCube(0.0f, -0.75f, 0.0f, 0.18f, 0.18f, 0.18f, skinR, skinG, skinB);
+    glPopMatrix();
 
-    drawCube(0.0f, 1.35f, -0.25f, 0.46f, 0.10f, 0.08f, accentR, accentG, accentB);
-    drawCube(0.0f, 0.82f, -0.24f, 0.76f, 0.10f, 0.08f, accentR * 0.75f, accentG * 0.75f, accentB * 0.75f);
+    glPushMatrix();
+    glTranslatef(-0.16f, 0.72f, 0.0f);
+    glRotatef(legSwing, 1.0f, 0.0f, 0.0f);
+    drawCube(0.0f, -0.34f, 0.0f, 0.22f, 0.72f, 0.24f, pantsR, pantsG, pantsB);
+    drawCube(0.0f, -0.72f, -0.05f, 0.30f, 0.16f, 0.42f, 0.05f, 0.05f, 0.06f);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(0.16f, 0.72f, 0.0f);
+    glRotatef(-legSwing, 1.0f, 0.0f, 0.0f);
+    drawCube(0.0f, -0.34f, 0.0f, 0.22f, 0.72f, 0.24f, pantsR, pantsG, pantsB);
+    drawCube(0.0f, -0.72f, -0.05f, 0.30f, 0.16f, 0.42f, 0.05f, 0.05f, 0.06f);
+    glPopMatrix();
+
+    drawCube(0.0f, 1.35f, -0.21f, 0.40f, 0.08f, 0.06f, accentR, accentG, accentB);
+    drawCube(0.0f, 0.76f, -0.20f, 0.62f, 0.08f, 0.06f, accentR * 0.75f, accentG * 0.75f, accentB * 0.75f);
 
     if (hasCap) {
-        drawCube(0.0f, 2.16f, -0.03f, 0.56f, 0.16f, 0.50f, accentR, accentG, accentB);
-        drawCube(0.0f, 2.08f, -0.31f, 0.48f, 0.08f, 0.20f, accentR * 0.75f, accentG * 0.75f, accentB * 0.75f);
+        drawCube(0.0f, 2.08f, -0.02f, 0.50f, 0.12f, 0.42f, accentR, accentG, accentB);
+        drawCube(0.0f, 2.02f, -0.28f, 0.42f, 0.06f, 0.18f, accentR * 0.75f, accentG * 0.75f, accentB * 0.75f);
     }
 
     if (hasSuspiciousCoat) {
-        drawCube(0.0f, 1.04f, -0.28f, 0.82f, 1.28f, 0.08f, 0.10f, 0.03f, 0.04f);
-        drawCube(0.0f, 2.18f, 0.0f, 0.70f, 0.12f, 0.55f, 0.04f, 0.04f, 0.04f);
+        drawCube(0.0f, 1.03f, -0.24f, 0.66f, 1.16f, 0.07f, 0.10f, 0.03f, 0.04f);
+        drawCube(0.0f, 2.12f, 0.0f, 0.62f, 0.10f, 0.50f, 0.04f, 0.04f, 0.04f);
     }
 }
 
@@ -323,6 +450,43 @@ bool shouldShowWorldLabel(float x, float z, const std::string& text) {
     }
 
     return isNear(player.x, player.z, x, z, 7.5f);
+}
+
+bool isIndoorScene(GameState scene) {
+    switch (scene) {
+        case INFORMATION_ROOM:
+        case DIALOG_INFORMATION_OFFICER:
+        case INVENTORY_CHECK:
+        case FORM_COUNTER:
+        case VERIFICATION_COUNTER:
+        case PAYMENT_QUEUE:
+        case PAYMENT_COUNTER:
+        case VALIDATION_COUNTER:
+        case VALIDATION_SUCCESS:
+        case PHOTOCOPY_SHOP:
+        case STAMP_QUEST:
+        case FINAL_CORRIDOR:
+        case FINAL_COUNTER_BOSS:
+            return true;
+        default:
+            return false;
+    }
+}
+
+float getIndoorFrontLimit(GameState scene) {
+    switch (scene) {
+        case INFORMATION_ROOM:
+        case DIALOG_INFORMATION_OFFICER:
+        case INVENTORY_CHECK:
+            return 7.35f;
+        case PAYMENT_QUEUE:
+        case FINAL_COUNTER_BOSS:
+            return 7.35f;
+        case FINAL_CORRIDOR:
+            return 6.85f;
+        default:
+            return 6.35f;
+    }
 }
 
 void draw3DLabel(float x,
@@ -383,8 +547,9 @@ void drawGroundDisk(float x, float z, float radius, float r, float g, float b) {
 
 void drawFloatingArrow(float x, float z, float r, float g, float b) {
     const float bob = std::sin(interactionPulse) * 0.15f;
-    drawCube(x, 2.65f + bob, z, 0.22f, 0.72f, 0.22f, r, g, b);
-    drawCube(x, 2.18f + bob, z, 0.70f, 0.24f, 0.70f, r, g, b);
+    drawSphere(x, 2.62f + bob, z, 0.23f, r, g, b);
+    drawCone(x, 2.42f + bob, z, 0.28f, 0.55f, r * 0.92f, g * 0.92f, b * 0.92f, 90.0f);
+    drawCylinder(x, 2.38f + bob, z, 0.30f, 0.05f, r * 0.75f, g * 0.75f, b * 0.75f, -90.0f);
 }
 
 void drawPortalMarker(float x, float z, const std::string& label, float r, float g, float b, bool finalPortal = false) {
@@ -405,7 +570,10 @@ void drawInteractionMarker(float x, float z, const std::string& label, bool comp
     const float b = completed ? 0.25f : (nearby ? 0.18f : 0.22f);
 
     drawGroundDisk(x, z, nearby ? 1.05f : 0.72f, r, g, b);
-    drawCube(x, 2.38f + std::sin(interactionPulse) * pulse, z, 0.46f, 0.46f, 0.08f, r, g, b);
+    drawFloatingArrow(x, z, r, g, b);
+    if (nearby) {
+        drawSphere(x, 2.10f + std::sin(interactionPulse) * pulse, z, 0.10f, 1.0f, 0.95f, 0.45f);
+    }
 }
 
 void drawObjectiveMarker(float x, float z, const std::string& label, bool finalMarker = false) {
@@ -420,7 +588,8 @@ void drawObjectiveMarker(float x, float z, const std::string& label, bool finalM
 void drawCompletionBadge(float x, float z, const std::string& label = "SELESAI") {
     (void)label;
     drawGroundDisk(x, z, 0.55f, 0.10f, 0.72f, 0.22f);
-    drawCube(x, 2.55f, z, 0.50f, 0.50f, 0.10f, 0.10f, 0.72f, 0.22f);
+    drawSphere(x, 2.52f, z, 0.22f, 0.10f, 0.72f, 0.22f);
+    drawCone(x, 2.34f, z, 0.22f, 0.42f, 0.08f, 0.55f, 0.16f, 90.0f);
 }
 
 }  // namespace
@@ -440,7 +609,7 @@ void drawPlayer3D(float x, float z) {
     drawCharacterModel(0.10f, 0.20f, 0.90f,
                        0.08f, 0.10f, 0.22f,
                        1.00f, 0.86f, 0.20f,
-                       false, false);
+                       false, false, true, player.isMoving, player.walkPhase);
 
     glPopMatrix();
 }
@@ -472,24 +641,63 @@ void drawNPC3D(float x, float z, float r, float g, float b) {
                        securityUniform ? 0.08f : 0.95f,
                        securityUniform ? 0.28f : 0.78f,
                        securityUniform ? 0.12f : 0.24f,
-                       securityUniform, suspicious);
+                       securityUniform, suspicious, true, false, 0.0f);
 
     glPopMatrix();
 }
 
 void drawSimpleCar(float x, float z) {
-    drawCube(x, 0.5f, z, 2.2f, 0.7f, 1.2f, 0.18f, 0.24f, 0.70f);
-    drawCube(x, 1.0f, z - 0.1f, 1.2f, 0.6f, 0.9f, 0.10f, 0.12f, 0.32f);
-    drawCube(x - 0.75f, 0.20f, z - 0.62f, 0.42f, 0.42f, 0.18f, 0.03f, 0.03f, 0.04f);
-    drawCube(x + 0.75f, 0.20f, z - 0.62f, 0.42f, 0.42f, 0.18f, 0.03f, 0.03f, 0.04f);
-    drawCube(x - 0.75f, 0.20f, z + 0.62f, 0.42f, 0.42f, 0.18f, 0.03f, 0.03f, 0.04f);
-    drawCube(x + 0.75f, 0.20f, z + 0.62f, 0.42f, 0.42f, 0.18f, 0.03f, 0.03f, 0.04f);
+    drawCube(x, 0.70f, z, 4.80f, 0.90f, 1.85f, 0.18f, 0.24f, 0.70f);
+    drawCube(x - 0.15f, 1.35f, z - 0.05f, 2.45f, 0.85f, 1.35f, 0.12f, 0.16f, 0.38f);
+
+    drawCube(x - 0.15f, 1.55f, z - 0.78f, 2.00f, 0.42f, 0.06f, 0.05f, 0.10f, 0.16f);
+    drawCube(x - 0.15f, 1.55f, z + 0.78f, 2.00f, 0.42f, 0.06f, 0.05f, 0.10f, 0.16f);
+    drawCube(x - 1.35f, 1.45f, z, 0.08f, 0.48f, 1.00f, 0.04f, 0.09f, 0.15f);
+    drawCube(x + 1.05f, 1.45f, z, 0.08f, 0.48f, 1.00f, 0.04f, 0.09f, 0.15f);
+
+    drawCube(x - 2.48f, 0.64f, z, 0.18f, 0.45f, 1.70f, 0.10f, 0.12f, 0.18f);
+    drawCube(x + 2.48f, 0.64f, z, 0.18f, 0.45f, 1.70f, 0.10f, 0.12f, 0.18f);
+    drawSphere(x - 2.42f, 0.82f, z - 0.56f, 0.12f, 1.0f, 0.92f, 0.42f);
+    drawSphere(x - 2.42f, 0.82f, z + 0.56f, 0.12f, 1.0f, 0.92f, 0.42f);
+    drawSphere(x + 2.42f, 0.82f, z - 0.56f, 0.10f, 0.85f, 0.08f, 0.06f);
+    drawSphere(x + 2.42f, 0.82f, z + 0.56f, 0.10f, 0.85f, 0.08f, 0.06f);
+
+    const float wheelX[] = {x - 1.65f, x + 1.65f};
+    const float wheelZ[] = {z - 0.98f, z + 0.98f};
+    for (float wx : wheelX) {
+        for (float wz : wheelZ) {
+            drawCylinder(wx, 0.43f, wz, 0.42f, 0.28f, 0.03f, 0.03f, 0.04f);
+            drawCylinder(wx, 0.43f, wz, 0.22f, 0.31f, 0.68f, 0.68f, 0.70f);
+        }
+    }
+
+    drawCube(x - 0.80f, 1.10f, z - 1.02f, 0.12f, 0.12f, 0.12f, 0.05f, 0.05f, 0.06f);
+    drawCube(x - 0.80f, 1.10f, z + 1.02f, 0.12f, 0.12f, 0.12f, 0.05f, 0.05f, 0.06f);
 }
 
 void drawRoomFrame(float halfWidth, float halfDepth, float wallHeight, float r, float g, float b) {
-    drawTexturedBox(0.0f, wallHeight * 0.5f, -halfDepth, halfWidth * 2.0f, wallHeight, 0.3f, wallTextureId, r, g, b, halfWidth * 0.5f, wallHeight * 0.5f);
-    drawTexturedBox(-halfWidth, wallHeight * 0.5f, 0.0f, 0.3f, wallHeight, halfDepth * 2.0f, wallTextureId, r, g, b, halfDepth * 0.5f, wallHeight * 0.5f);
-    drawTexturedBox(halfWidth, wallHeight * 0.5f, 0.0f, 0.3f, wallHeight, halfDepth * 2.0f, wallTextureId, r, g, b, halfDepth * 0.5f, wallHeight * 0.5f);
+    const float wallThickness = 0.30f;
+    const float doorWidth = 2.8f;
+    const float doorHeight = std::min(2.65f, wallHeight - 0.45f);
+    const float ceilingThickness = 0.18f;
+    const float sideFrontWidth = std::max(0.1f, halfWidth - doorWidth * 0.5f);
+
+    drawTexturedBox(0.0f, 0.03f, 0.0f, halfWidth * 2.0f, 0.06f, halfDepth * 2.0f, tileTextureId, 0.46f, 0.46f, 0.48f, halfWidth, halfDepth);
+    drawTexturedBox(0.0f, wallHeight * 0.5f, -halfDepth, halfWidth * 2.0f, wallHeight, wallThickness, wallTextureId, r, g, b, halfWidth * 0.5f, wallHeight * 0.5f);
+    drawTexturedBox(-halfWidth, wallHeight * 0.5f, 0.0f, wallThickness, wallHeight, halfDepth * 2.0f, wallTextureId, r * 0.94f, g * 0.94f, b * 0.94f, halfDepth * 0.5f, wallHeight * 0.5f);
+    drawTexturedBox(halfWidth, wallHeight * 0.5f, 0.0f, wallThickness, wallHeight, halfDepth * 2.0f, wallTextureId, r * 0.94f, g * 0.94f, b * 0.94f, halfDepth * 0.5f, wallHeight * 0.5f);
+
+    drawTexturedBox(-(doorWidth * 0.5f + sideFrontWidth * 0.5f), wallHeight * 0.5f, halfDepth, sideFrontWidth, wallHeight, wallThickness, wallTextureId, r, g, b, sideFrontWidth * 0.3f, wallHeight * 0.5f);
+    drawTexturedBox(doorWidth * 0.5f + sideFrontWidth * 0.5f, wallHeight * 0.5f, halfDepth, sideFrontWidth, wallHeight, wallThickness, wallTextureId, r, g, b, sideFrontWidth * 0.3f, wallHeight * 0.5f);
+    drawTexturedBox(0.0f, doorHeight + ((wallHeight - doorHeight) * 0.5f), halfDepth, doorWidth, wallHeight - doorHeight, wallThickness, wallTextureId, r * 0.92f, g * 0.92f, b * 0.92f, 1.0f, 0.5f);
+
+    drawCube(-doorWidth * 0.5f, doorHeight * 0.5f, halfDepth - 0.03f, 0.12f, doorHeight, 0.18f, 0.20f, 0.18f, 0.14f);
+    drawCube(doorWidth * 0.5f, doorHeight * 0.5f, halfDepth - 0.03f, 0.12f, doorHeight, 0.18f, 0.20f, 0.18f, 0.14f);
+    drawCube(0.0f, doorHeight, halfDepth - 0.03f, doorWidth + 0.18f, 0.14f, 0.18f, 0.20f, 0.18f, 0.14f);
+
+    drawTexturedBox(0.0f, wallHeight + ceilingThickness * 0.5f, 0.0f, halfWidth * 2.05f, ceilingThickness, halfDepth * 2.05f, wallTextureId, r * 0.82f, g * 0.82f, b * 0.82f, halfWidth * 0.4f, halfDepth * 0.4f);
+    drawCylinder(0.0f, wallHeight - 0.08f, 0.0f, 0.42f, 0.08f, 0.95f, 0.90f, 0.62f, -90.0f);
+    drawSphere(0.0f, wallHeight - 0.18f, 0.0f, 0.18f, 1.0f, 0.94f, 0.60f);
 }
 
 void drawQueueMarker(float x, float z) {
@@ -550,6 +758,14 @@ void setupCamera() {
     float targetZ = player.z;
     float baseDistance = camera.distance;
     float baseHeight = camera.height;
+    float effectivePitch = camera.pitch;
+
+    if (isIndoorScene(currentState)) {
+        targetY = 1.45f;
+        baseDistance = clampFloat(camera.distance, 4.6f, 5.8f);
+        baseHeight = 8.0f;
+        effectivePitch = clampFloat(camera.pitch, -10.0f, -5.0f);
+    }
 
     switch (currentState) {
         case SAMSAT_EXTERIOR:
@@ -557,7 +773,6 @@ void setupCamera() {
         case DIALOG_SECURITY_GUARD:
         case QUEUE_MACHINE:
         case MAP_VENDOR:
-        case PHOTOCOPY_SHOP:
             targetY = 1.6f;
             break;
 
@@ -570,8 +785,7 @@ void setupCamera() {
 
         case FINAL_CORRIDOR:
         case FINAL_COUNTER_BOSS:
-            targetY = 1.6f;
-            baseDistance = camera.distance + 3.0f;
+            targetY = 1.45f;
             break;
 
         default:
@@ -579,13 +793,20 @@ void setupCamera() {
     }
 
     const float yawRadians = camera.yaw * kPi / 180.0f;
-    const float pitchRadians = camera.pitch * kPi / 180.0f;
+    const float pitchRadians = effectivePitch * kPi / 180.0f;
     const float horizontalDistance = std::cos(pitchRadians) * baseDistance;
     const float verticalDistance = -std::sin(pitchRadians) * baseDistance;
 
-    const float camX = targetX + std::sin(yawRadians) * horizontalDistance;
-    const float camY = targetY + verticalDistance + (baseHeight - 8.0f);
-    const float camZ = targetZ + std::cos(yawRadians) * horizontalDistance;
+    float camX = targetX + std::sin(yawRadians) * horizontalDistance;
+    float camY = targetY + verticalDistance + (baseHeight - 8.0f);
+    float camZ = targetZ + std::cos(yawRadians) * horizontalDistance;
+
+    if (isIndoorScene(currentState)) {
+        const float frontLimit = getIndoorFrontLimit(currentState);
+        camX = clampFloat(camX, -7.35f, 7.35f);
+        camZ = clampFloat(camZ, -7.35f, frontLimit - 0.55f);
+        camY = clampFloat(camY, 1.75f, 3.05f);
+    }
 
     gluLookAt(camX, camY, camZ, targetX, targetY, targetZ, 0.0f, 1.0f, 0.0f);
 }
@@ -594,10 +815,21 @@ void setupCamera() {
 void drawSamsatExterior3D() {
     drawTexturedGround(30.0f, rockTextureId, 6.0f);
 
-    drawCube(0.0f, 2.5f, -10.0f, 14.0f, 5.0f, 4.0f, 0.58f, 0.58f, 0.62f);
-    drawCube(0.0f, 1.3f, -7.7f, 2.0f, 2.6f, 0.2f, 0.10f, 0.10f, 0.15f);
-    draw3DLabel(0.0f, 5.05f, -7.85f, "KANTOR SAMSAT", 0.02f, 0.08f, 0.16f, 1.0f, 0.92f, 0.24f, 5.0f);
-    draw3DLabel(0.0f, 2.9f, -7.55f, "RUANG INFORMASI", 0.10f, 0.22f, 0.42f, 1.0f, 1.0f, 1.0f, 3.9f);
+    drawCube(0.0f, 2.25f, -10.0f, 16.0f, 4.5f, 5.5f, 0.60f, 0.60f, 0.64f);
+    drawHouseRoof(0.0f, 4.55f, -10.0f, 17.8f, 1.35f, 6.5f, 0.46f, 0.10f, 0.08f);
+    drawCube(0.0f, 4.58f, -6.92f, 17.2f, 0.28f, 0.32f, 0.72f, 0.72f, 0.70f);
+    drawCube(0.0f, 1.25f, -7.05f, 2.15f, 2.50f, 0.18f, 0.10f, 0.10f, 0.15f);
+    drawCube(0.0f, 2.56f, -7.00f, 2.40f, 0.16f, 0.24f, 0.20f, 0.18f, 0.14f);
+    drawCylinder(-1.35f, 1.55f, -6.75f, 0.13f, 3.10f, 0.78f, 0.78f, 0.72f, -90.0f);
+    drawCylinder(1.35f, 1.55f, -6.75f, 0.13f, 3.10f, 0.78f, 0.78f, 0.72f, -90.0f);
+    drawCube(-4.9f, 2.55f, -6.94f, 1.65f, 1.15f, 0.16f, 0.18f, 0.34f, 0.46f);
+    drawCube(-2.8f, 2.55f, -6.94f, 1.65f, 1.15f, 0.16f, 0.18f, 0.34f, 0.46f);
+    drawCube(2.8f, 2.55f, -6.94f, 1.65f, 1.15f, 0.16f, 0.18f, 0.34f, 0.46f);
+    drawCube(4.9f, 2.55f, -6.94f, 1.65f, 1.15f, 0.16f, 0.18f, 0.34f, 0.46f);
+    drawCube(-3.85f, 3.18f, -6.88f, 3.95f, 0.10f, 0.18f, 0.82f, 0.82f, 0.78f);
+    drawCube(3.85f, 3.18f, -6.88f, 3.95f, 0.10f, 0.18f, 0.82f, 0.82f, 0.78f);
+    draw3DLabel(0.0f, 5.25f, -6.86f, "KANTOR SAMSAT", 0.02f, 0.08f, 0.16f, 1.0f, 0.92f, 0.24f, 5.4f);
+    draw3DLabel(0.0f, 3.15f, -6.82f, "RUANG INFORMASI", 0.10f, 0.22f, 0.42f, 1.0f, 1.0f, 1.0f, 3.9f);
     drawCube(0.0f, 0.08f, -4.8f, 2.8f, 0.04f, 1.0f, 0.18f, 0.48f, 0.90f);  // information room portal
     drawCube(10.0f, 0.08f, -8.2f, 2.8f, 0.04f, 1.0f, 0.90f, 0.82f, 0.28f); // photocopy portal
     drawCube(-9.8f, 0.08f, -8.3f, 2.8f, 0.04f, 1.0f, 0.22f, 0.68f, 0.35f); // vehicle check portal

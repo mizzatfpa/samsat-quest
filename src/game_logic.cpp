@@ -119,6 +119,8 @@ void handleMouseLook(int x, int y, bool forceRelative) {
 
 void resetPlayerForState(GameState state) {
     resetCamera();
+    player.isMoving = false;
+    player.walkPhase = 0.0f;
 
     switch (state) {
         case SAMSAT_EXTERIOR:
@@ -251,23 +253,31 @@ void addStandardCounterCollisions(std::vector<CollisionBox>& boxes) {
     addNpcCollision(boxes, 0.0f, -4.0f);
 }
 
+void addRoomFrontWallCollisions(std::vector<CollisionBox>& boxes, float halfWidth, float halfDepth) {
+    constexpr float doorWidth = 2.8f;
+    const float sideWidth = halfWidth - doorWidth * 0.5f;
+    addCollisionBox(boxes, -(doorWidth * 0.5f + sideWidth * 0.5f), halfDepth, sideWidth, 0.3f);
+    addCollisionBox(boxes, doorWidth * 0.5f + sideWidth * 0.5f, halfDepth, sideWidth, 0.3f);
+}
+
 std::vector<CollisionBox> getSceneCollisionBoxes() {
     std::vector<CollisionBox> boxes;
 
     switch (getSceneArea(currentState)) {
         case AREA_EXTERIOR:
-            addCollisionBox(boxes, 0.0f, -10.0f, 14.4f, 4.4f);
+            addCollisionBox(boxes, 0.0f, -10.0f, 16.4f, 5.9f);
             addCollisionBox(boxes, -7.0f, -1.0f, 2.8f, 2.6f);
             addCollisionBox(boxes, 7.0f, -1.0f, 3.4f, 2.6f);
             addCollisionBox(boxes, 10.0f, -2.0f, 3.0f, 2.6f);
             addCollisionBox(boxes, 0.0f, 1.0f, 1.1f, 0.9f);
-            addCollisionBox(boxes, -9.0f, 5.0f, 2.4f, 1.4f);
-            addCollisionBox(boxes, 9.0f, 5.0f, 2.4f, 1.4f);
+            addCollisionBox(boxes, -9.0f, 5.0f, 5.1f, 2.2f);
+            addCollisionBox(boxes, 9.0f, 5.0f, 5.1f, 2.2f);
             addNpcCollision(boxes, -7.0f, 1.0f);
             addNpcCollision(boxes, 7.0f, 1.0f);
             break;
 
         case AREA_INFORMATION:
+            addRoomFrontWallCollisions(boxes, 9.0f, 8.0f);
             addCollisionBox(boxes, 0.0f, -3.0f, 5.2f, 1.5f);
             addCollisionBox(boxes, 5.0f, -3.0f, 1.6f, 1.6f);
             addCollisionBox(boxes, -4.0f, 1.2f, 1.2f, 1.2f);
@@ -279,6 +289,7 @@ std::vector<CollisionBox> getSceneCollisionBoxes() {
             break;
 
         case AREA_PHOTOCOPY:
+            addRoomFrontWallCollisions(boxes, 8.0f, 7.0f);
             addCollisionBox(boxes, -2.5f, -2.0f, 2.4f, 1.8f);
             addCollisionBox(boxes, 2.8f, -2.4f, 3.2f, 1.6f);
             addCollisionBox(boxes, 0.8f, -3.8f, 4.6f, 0.7f);
@@ -286,13 +297,14 @@ std::vector<CollisionBox> getSceneCollisionBoxes() {
             break;
 
         case AREA_FORM:
+            addRoomFrontWallCollisions(boxes, 8.0f, 7.0f);
             addStandardCounterCollisions(boxes);
             addCollisionBox(boxes, 4.8f, -4.5f, 1.2f, 0.9f);
             addCollisionBox(boxes, -4.8f, -4.5f, 1.2f, 0.9f);
             break;
 
         case AREA_VEHICLE_CHECK:
-            addCollisionBox(boxes, 0.0f, 1.5f, 2.5f, 1.5f);
+            addCollisionBox(boxes, 0.0f, 1.5f, 5.1f, 2.2f);
             addCollisionBox(boxes, 4.5f, -2.5f, 2.2f, 1.4f);
             addCollisionBox(boxes, -5.5f, -3.5f, 2.8f, 2.4f);
             addNpcCollision(boxes, 4.5f, -1.5f);
@@ -301,10 +313,12 @@ std::vector<CollisionBox> getSceneCollisionBoxes() {
         case AREA_VERIFICATION:
         case AREA_PAYMENT_COUNTER:
         case AREA_VALIDATION:
+            addRoomFrontWallCollisions(boxes, 8.0f, 7.0f);
             addStandardCounterCollisions(boxes);
             break;
 
         case AREA_PAYMENT_QUEUE:
+            addRoomFrontWallCollisions(boxes, 8.0f, 8.0f);
             addCollisionBox(boxes, 0.0f, -4.0f, 5.8f, 1.4f);
             for (int i = 0; i < 5; ++i) {
                 addNpcCollision(boxes, -3.0f + static_cast<float>(i) * 1.5f, 2.5f);
@@ -312,12 +326,14 @@ std::vector<CollisionBox> getSceneCollisionBoxes() {
             break;
 
         case AREA_STAMP:
+            addRoomFrontWallCollisions(boxes, 8.0f, 7.0f);
             addCollisionBox(boxes, 0.0f, -2.8f, 4.2f, 1.4f);
             addCollisionBox(boxes, 4.5f, -3.8f, 1.7f, 1.2f);
             addNpcCollision(boxes, 3.5f, -2.0f);
             break;
 
         case AREA_VALIDATION_SUCCESS:
+            addRoomFrontWallCollisions(boxes, 8.0f, 7.0f);
             addStandardCounterCollisions(boxes);
             break;
 
@@ -329,6 +345,7 @@ std::vector<CollisionBox> getSceneCollisionBoxes() {
             break;
 
         case AREA_FINAL_BOSS:
+            addRoomFrontWallCollisions(boxes, 9.0f, 8.0f);
             addCollisionBox(boxes, 0.0f, -4.5f, 8.2f, 1.8f);
             addCollisionBox(boxes, -6.2f, -4.2f, 1.7f, 2.2f);
             addCollisionBox(boxes, 6.2f, -4.2f, 1.7f, 2.2f);
@@ -1101,6 +1118,8 @@ void updateContinuousMovement(float deltaSeconds) {
     }
     interactionPulse += deltaSeconds * 4.0f;
 
+    player.isMoving = false;
+
     float forward = 0.0f;
     float strafe = 0.0f;
 
@@ -1120,7 +1139,18 @@ void updateContinuousMovement(float deltaSeconds) {
     }
 
     const float unitsPerSecond = 5.0f;
+    const float oldX = player.x;
+    const float oldZ = player.z;
     movePlayerRelative(forward * unitsPerSecond * deltaSeconds, strafe * unitsPerSecond * deltaSeconds);
+
+    const bool moved = distanceSquared(oldX, oldZ, player.x, player.z) > 0.0001f;
+    player.isMoving = moved;
+    if (moved) {
+        player.walkPhase += deltaSeconds * 10.0f;
+        if (player.walkPhase > kPi * 2.0f) {
+            player.walkPhase = std::fmod(player.walkPhase, kPi * 2.0f);
+        }
+    }
 }
 
 std::string getInteractionPrompt() {
