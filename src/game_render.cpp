@@ -151,6 +151,8 @@ void drawTexturedGround(float size, GLuint textureId, float repeatFactor = 8.0f)
     if (textureId != 0) {
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, textureId);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glColor3f(1.0f, 1.0f, 1.0f);
     } else {
         glDisable(GL_TEXTURE_2D);
@@ -160,13 +162,13 @@ void drawTexturedGround(float size, GLuint textureId, float repeatFactor = 8.0f)
     glBegin(GL_QUADS);
     glNormal3f(0.0f, 1.0f, 0.0f);
     if (textureId) glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(-size, 0.0f, -size);
-    if (textureId) glTexCoord2f(repeatFactor, 0.0f);
-    glVertex3f(size, 0.0f, -size);
-    if (textureId) glTexCoord2f(repeatFactor, repeatFactor);
-    glVertex3f(size, 0.0f, size);
-    if (textureId) glTexCoord2f(0.0f, repeatFactor);
     glVertex3f(-size, 0.0f, size);
+    if (textureId) glTexCoord2f(repeatFactor, 0.0f);
+    glVertex3f(size, 0.0f, size);
+    if (textureId) glTexCoord2f(repeatFactor, repeatFactor);
+    glVertex3f(size, 0.0f, -size);
+    if (textureId) glTexCoord2f(0.0f, repeatFactor);
+    glVertex3f(-size, 0.0f, -size);
     glEnd();
 
     if (textureId) {

@@ -105,7 +105,7 @@ bool loadTextureFromImage(const char* filePath, GLuint& textureId) {
     int width = 0;
     int height = 0;
     int channels = 0;
-    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(false);
     unsigned char* imageData = stbi_load(filePath, &width, &height, &channels, STBI_rgb);
     if (!imageData || width <= 0 || height <= 0) {
         if (imageData) {
@@ -142,45 +142,51 @@ void drawSkyCube(GLuint textureId, float halfSize = 25.0f) {
     glRotatef(-camera.yaw, 0.0f, 1.0f, 0.0f);
     glRotatef(-camera.pitch, 1.0f, 0.0f, 0.0f);
 
+    const auto skyTexCoord = [](float u, float v) {
+        glTexCoord2f(1.0f - v, u);
+    };
+
     glBegin(GL_QUADS);
     // Back face
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(-halfSize, -halfSize, -halfSize);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(halfSize, -halfSize, -halfSize);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(halfSize, halfSize, -halfSize);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(-halfSize, halfSize, -halfSize);
+    skyTexCoord(0.0f, 0.0f); glVertex3f(-halfSize, -halfSize, -halfSize);
+    skyTexCoord(1.0f, 0.0f); glVertex3f(halfSize, -halfSize, -halfSize);
+    skyTexCoord(1.0f, 1.0f); glVertex3f(halfSize, halfSize, -halfSize);
+    skyTexCoord(0.0f, 1.0f); glVertex3f(-halfSize, halfSize, -halfSize);
 
     // Front face
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(halfSize, -halfSize, halfSize);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(-halfSize, -halfSize, halfSize);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(-halfSize, halfSize, halfSize);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(halfSize, halfSize, halfSize);
+    skyTexCoord(0.0f, 0.0f); glVertex3f(halfSize, -halfSize, halfSize);
+    skyTexCoord(1.0f, 0.0f); glVertex3f(-halfSize, -halfSize, halfSize);
+    skyTexCoord(1.0f, 1.0f); glVertex3f(-halfSize, halfSize, halfSize);
+    skyTexCoord(0.0f, 1.0f); glVertex3f(halfSize, halfSize, halfSize);
 
     // Left face
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(-halfSize, -halfSize, halfSize);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(-halfSize, -halfSize, -halfSize);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(-halfSize, halfSize, -halfSize);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(-halfSize, halfSize, halfSize);
+    skyTexCoord(0.0f, 0.0f); glVertex3f(-halfSize, -halfSize, halfSize);
+    skyTexCoord(1.0f, 0.0f); glVertex3f(-halfSize, -halfSize, -halfSize);
+    skyTexCoord(1.0f, 1.0f); glVertex3f(-halfSize, halfSize, -halfSize);
+    skyTexCoord(0.0f, 1.0f); glVertex3f(-halfSize, halfSize, halfSize);
 
     // Right face
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(halfSize, -halfSize, -halfSize);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(halfSize, -halfSize, halfSize);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(halfSize, halfSize, halfSize);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(halfSize, halfSize, -halfSize);
+    skyTexCoord(0.0f, 0.0f); glVertex3f(halfSize, -halfSize, -halfSize);
+    skyTexCoord(1.0f, 0.0f); glVertex3f(halfSize, -halfSize, halfSize);
+    skyTexCoord(1.0f, 1.0f); glVertex3f(halfSize, halfSize, halfSize);
+    skyTexCoord(0.0f, 1.0f); glVertex3f(halfSize, halfSize, -halfSize);
 
     // Bottom face
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(-halfSize, -halfSize, halfSize);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(halfSize, -halfSize, halfSize);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(halfSize, -halfSize, -halfSize);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(-halfSize, -halfSize, -halfSize);
+    skyTexCoord(0.0f, 0.0f); glVertex3f(-halfSize, -halfSize, halfSize);
+    skyTexCoord(1.0f, 0.0f); glVertex3f(halfSize, -halfSize, halfSize);
+    skyTexCoord(1.0f, 1.0f); glVertex3f(halfSize, -halfSize, -halfSize);
+    skyTexCoord(0.0f, 1.0f); glVertex3f(-halfSize, -halfSize, -halfSize);
 
     // Top face
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(-halfSize, halfSize, -halfSize);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(halfSize, halfSize, -halfSize);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(halfSize, halfSize, halfSize);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(-halfSize, halfSize, halfSize);
+    skyTexCoord(0.0f, 0.0f); glVertex3f(-halfSize, halfSize, -halfSize);
+    skyTexCoord(1.0f, 0.0f); glVertex3f(halfSize, halfSize, -halfSize);
+    skyTexCoord(1.0f, 1.0f); glVertex3f(halfSize, halfSize, halfSize);
+    skyTexCoord(0.0f, 1.0f); glVertex3f(-halfSize, halfSize, halfSize);
     glEnd();
 
     glPopMatrix();
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
     glEnable(GL_CULL_FACE);
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
