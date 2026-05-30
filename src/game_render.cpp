@@ -1,9 +1,14 @@
 #include "game_internal.hpp"
 
 namespace samsat {
+bool isDrawingShadow = false;
 
-void setColor(float r, float g, float b) {
-    glColor3f(r, g, b);
+void setColor(float r, float g, float b, float a) {
+    if (isDrawingShadow) {
+        glColor4f(0.0f, 0.0f, 0.0f, 0.6f);
+    } else {
+        glColor4f(r, g, b, a);
+    }
 }
 
 void begin2DOverlay() {
@@ -751,6 +756,42 @@ void updateSceneLights() {
     glLightfv(GL_LIGHT2, GL_POSITION, rimPosition);
 }
 
+void drawPlayerShadow3D(float x, float z) {
+    float lx = -7.0f;
+    float ly = 12.0f;
+    float lz = 7.0f;
+    float dot = ly; 
+    GLfloat shadowMat[16] = {
+         dot,  0.0f,  0.0f, 0.0f,
+         -lx,  0.0f,   -lz, 0.0f,
+        0.0f,  0.0f,   dot, 0.0f,
+        0.0f,  0.0f,  0.0f,  dot
+    };
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    isDrawingShadow = true;
+
+    glPushMatrix();
+    glMultMatrixf(shadowMat);
+
+    glTranslatef(x, 0.0f, z);
+    glRotatef(player.facingYaw, 0.0f, 1.0f, 0.0f);
+ 
+    drawCharacterModel(0,0,0, 0,0,0, 0,0,0, false, false, true, player.isMoving, player.walkPhase);
+    
+    glPopMatrix();
+
+    isDrawingShadow = false;
+
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING);
+}
+
 void setupCamera() {
     float targetX = player.x;
     float targetY = camera.targetHeight;
@@ -777,7 +818,6 @@ void setupCamera() {
 
         case VEHICLE_CHECK_AREA:
             targetY = 1.3f;
-            // targetZ = 0.0f;
             baseDistance = camera.distance + 2.0f;
             baseHeight = camera.height + 1.0f;
             break;
@@ -796,9 +836,14 @@ void setupCamera() {
     const float horizontalDistance = std::cos(pitchRadians) * baseDistance;
     const float verticalDistance = -std::sin(pitchRadians) * baseDistance;
 
+
     float camX = targetX + std::sin(yawRadians) * horizontalDistance;
     float camY = targetY + verticalDistance + (baseHeight - 8.0f);
     float camZ = targetZ + std::cos(yawRadians) * horizontalDistance;
+
+    if (camY < 0.8f) {
+        camY = 0.8f;
+    }
 
     if (isIndoorScene(currentState)) {
         const float frontLimit = getIndoorFrontLimit(currentState);
@@ -809,7 +854,6 @@ void setupCamera() {
 
     gluLookAt(camX, camY, camZ, targetX, targetY, targetZ, 0.0f, 1.0f, 0.0f);
 }
-
 
 void drawSamsatExterior3D() {
     drawTexturedGround(30.0f, rockTextureId, 6.0f);
@@ -908,6 +952,7 @@ void drawSamsatExterior3D() {
     drawNPC3D(-7.0f, 1.0f, 0.10f, 0.60f, 0.20f);
     drawNPC3D(7.0f, 1.0f, 0.90f, 0.45f, 0.10f);
     drawNPC3D(0.0f, 1.0f, 0.40f, 0.40f, 0.40f);
+    drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
 
@@ -941,6 +986,7 @@ void drawInformationRoom3D() {
     drawNPC3D(0.0f, -4.0f, 0.25f, 0.45f, 0.92f);
     drawNPC3D(-4.0f, 2.5f, 0.70f, 0.70f, 0.20f);
     drawNPC3D(4.0f, 2.5f, 0.60f, 0.40f, 0.75f);
+    drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
 
@@ -956,6 +1002,7 @@ void drawGenericCounterScene3D(float accentR, float accentG, float accentB, bool
     drawObjectiveMarker(0.0f, -6.0f, "TUJUAN: FINAL");
     drawNPC3D(0.0f, -4.0f, 0.18f, 0.36f, 0.80f);
     if (showPlayerCharacter) {
+        drawPlayerShadow3D(player.x, player.z);
         drawPlayer3D(player.x, player.z);
     }
 }
@@ -983,6 +1030,7 @@ void drawFormCounter3D() {
     drawCube(4.8f, 1.6f, -4.5f, 1.1f, 3.2f, 0.8f, 0.55f, 0.55f, 0.60f);
     drawCube(-4.8f, 1.6f, -4.5f, 1.1f, 3.2f, 0.8f, 0.55f, 0.55f, 0.60f);
     drawNPC3D(0.0f, -4.0f, 0.18f, 0.36f, 0.82f);
+    drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
 
@@ -1008,6 +1056,7 @@ void drawVerificationCounter3D() {
     drawCube(-5.2f, 2.0f, -4.4f, 1.3f, 4.0f, 1.0f, 0.44f, 0.40f, 0.34f);
     drawCube(5.2f, 2.0f, -4.4f, 1.3f, 4.0f, 1.0f, 0.44f, 0.40f, 0.34f);
     drawNPC3D(0.0f, -4.0f, 0.16f, 0.34f, 0.74f);
+    drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
 
@@ -1035,6 +1084,7 @@ void drawPaymentCounter3D() {
     drawDocumentPile(2.0f, 1.12f, -2.7f, 0.92f, 0.92f, 0.88f);
     drawCube(4.7f, 1.10f, -2.8f, 1.2f, 1.8f, 1.0f, 0.54f, 0.52f, 0.48f);
     drawNPC3D(0.0f, -4.0f, 0.16f, 0.28f, 0.68f);
+    drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
 
@@ -1058,6 +1108,7 @@ void drawValidationCounter3D() {
     drawDocumentPile(2.8f, 1.10f, -2.7f, 0.90f, 0.88f, 0.82f);
     drawCube(-4.8f, 1.7f, -4.4f, 1.2f, 3.4f, 0.9f, 0.48f, 0.42f, 0.34f);
     drawNPC3D(0.0f, -4.0f, 0.14f, 0.26f, 0.62f);
+    drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
 
@@ -1081,6 +1132,7 @@ void drawPhotocopyShop3D() {
         drawObjectiveMarker(4.8f, -2.0f, "TUJUAN: FOTOKOPI");
     }
     drawNPC3D(4.8f, -2.0f, 0.55f, 0.55f, 0.55f);
+    drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
 
@@ -1109,6 +1161,7 @@ void drawVehicleCheck3D() {
         drawObjectiveMarker(0.0f, 1.5f, "TUJUAN: CEK FISIK");
     }
     drawNPC3D(4.5f, -1.5f, 0.15f, 0.55f, 0.25f);
+    drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
 
@@ -1138,6 +1191,7 @@ void drawPaymentQueue3D() {
     for (int i = 0; i < 5; ++i) {
         drawNPC3D(-3.0f + (static_cast<float>(i) * 1.5f), 2.5f, 0.65f, 0.62f, 0.22f);
     }
+    drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
 
@@ -1158,6 +1212,7 @@ void drawStampQuest3D() {
         drawObjectiveMarker(3.5f, -2.0f, "TUJUAN: METERAI");
     }
     drawNPC3D(3.5f, -2.0f, 0.90f, 0.45f, 0.10f);
+    drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
 
@@ -1189,6 +1244,7 @@ void drawFinalCorridor3D() {
     drawObjectiveMarker(0.0f, -6.5f, "TUJUAN: FINAL", true);
     drawNPC3D(-2.5f, -2.0f, 0.55f, 0.42f, 0.70f);
     drawNPC3D(2.8f, -3.8f, 0.35f, 0.05f, 0.05f);
+    drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
 
@@ -1218,6 +1274,7 @@ void drawFinalBoss3D() {
     }
     drawCounterStamp(3.1f, -3.7f, 0.60f, 0.00f, 0.00f);
     drawNPC3D(0.0f, -5.5f, 0.10f, 0.20f, 0.60f);
+    drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
 

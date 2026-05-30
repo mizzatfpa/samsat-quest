@@ -20,7 +20,7 @@
 #include <vector>
 
 namespace samsat {
-
+extern bool isDrawingShadow;
 constexpr float kPi = 3.1415926535f;
 
 enum GameState {
@@ -193,7 +193,7 @@ void movePlayer(float dx, float dz);
 std::string getInteractionPrompt();
 void interactCurrentScene();
 void progressWithSpace();
-void setColor(float r, float g, float b);
+void setColor(float r, float g, float b, float a = 1.0f);
 void begin2DOverlay();
 void end2DOverlay();
 void drawRect(float x, float y, float w, float h);
