@@ -66,7 +66,7 @@ void rotateCamera(float degrees) {
 }
 
 void pitchCamera(float degrees) {
-    camera.pitch = clampFloat(camera.pitch + degrees, -75.0f, 20.0f);
+    camera.pitch = clampFloat(camera.pitch + degrees, -45.0f, 0.0f);
 }
 
 void zoomCamera(float amount) {

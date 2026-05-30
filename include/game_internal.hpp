@@ -20,7 +20,7 @@
 #include <vector>
 
 namespace samsat {
-
+extern bool isDrawingShadow;
 constexpr float kPi = 3.1415926535f;
 
 enum GameState {
@@ -134,6 +134,11 @@ extern GLuint skyTextureId;
 extern GLuint rockTextureId;
 extern GLuint tileTextureId;
 extern GLuint wallTextureId;
+// extern GLuint texCityFront;
+extern GLuint texCityBack;
+extern GLuint texCityRight;
+// extern GLuint texCityLeft;
+extern GLuint texCityTop;
 
 int clampInt(int value, int minValue, int maxValue);
 float clampFloat(float value, float minValue, float maxValue);
@@ -193,7 +198,7 @@ void movePlayer(float dx, float dz);
 std::string getInteractionPrompt();
 void interactCurrentScene();
 void progressWithSpace();
-void setColor(float r, float g, float b);
+void setColor(float r, float g, float b, float a = 1.0f);
 void begin2DOverlay();
 void end2DOverlay();
 void drawRect(float x, float y, float w, float h);
@@ -216,6 +221,7 @@ void setupLighting();
 void updateSceneLights();
 void setupCamera();
 void drawSamsatExterior3D();
+void drawCityBoundary(float size, float height);
 void drawInformationRoom3D();
 void drawGenericCounterScene3D(float accentR, float accentG, float accentB, bool showPlayerCharacter);
 void drawFormCounter3D();

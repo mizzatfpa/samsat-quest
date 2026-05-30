@@ -193,7 +193,42 @@ void drawSkyCube(GLuint textureId, float halfSize = 25.0f) {
     glDepthMask(GL_TRUE);
 }
 
-void drawSkyBackground(GLuint textureId) {
+// void drawSkyBackground(GLuint textureId) {
+//     glMatrixMode(GL_PROJECTION);
+//     glPushMatrix();
+//     glLoadIdentity();
+//     gluPerspective(60.0f, static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 100.0f);
+
+//     glMatrixMode(GL_MODELVIEW);
+//     glPushMatrix();
+//     glLoadIdentity();
+
+//     if (textureId == 0) {
+//         glDisable(GL_DEPTH_TEST);
+//         glDisable(GL_LIGHTING);
+
+//         glBegin(GL_QUADS);
+//         glColor3f(0.42f, 0.72f, 0.94f);
+//         glVertex3f(-1.0f, -1.0f, -1.0f);
+//         glVertex3f(1.0f, -1.0f, -1.0f);
+//         glVertex3f(1.0f, 1.0f, -1.0f);
+//         glVertex3f(-1.0f, 1.0f, -1.0f);
+//         glEnd();
+
+//         glEnable(GL_LIGHTING);
+//         glEnable(GL_DEPTH_TEST);
+//     } else {
+//         drawSkyCube(textureId, 30.0f);
+//     }
+
+//     glMatrixMode(GL_MODELVIEW);
+//     glPopMatrix();
+//     glMatrixMode(GL_PROJECTION);
+//     glPopMatrix();
+//     glMatrixMode(GL_MODELVIEW);
+// }
+
+void drawSkyBackground(GLuint) {
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -203,23 +238,19 @@ void drawSkyBackground(GLuint textureId) {
     glPushMatrix();
     glLoadIdentity();
 
-    if (textureId == 0) {
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
 
-        glBegin(GL_QUADS);
-        glColor3f(0.42f, 0.72f, 0.94f);
-        glVertex3f(-1.0f, -1.0f, -1.0f);
-        glVertex3f(1.0f, -1.0f, -1.0f);
-        glVertex3f(1.0f, 1.0f, -1.0f);
-        glVertex3f(-1.0f, 1.0f, -1.0f);
-        glEnd();
+    glBegin(GL_QUADS);
+    glColor3f(0.42f, 0.72f, 0.94f); 
+    glVertex3f(-1.0f, -1.0f, -1.0f);
+    glVertex3f(1.0f, -1.0f, -1.0f);
+    glVertex3f(1.0f, 1.0f, -1.0f);
+    glVertex3f(-1.0f, 1.0f, -1.0f);
+    glEnd();
 
-        glEnable(GL_LIGHTING);
-        glEnable(GL_DEPTH_TEST);
-    } else {
-        drawSkyCube(textureId, 30.0f);
-    }
+    glEnable(GL_LIGHTING);
+    glEnable(GL_DEPTH_TEST);
 
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
@@ -235,7 +266,80 @@ GLuint skyTextureId = 0;
 GLuint rockTextureId = 0;
 GLuint tileTextureId = 0;
 GLuint wallTextureId = 0;
+GLuint texCityFront = 0;
+GLuint texCityBack = 0;
+GLuint texCityRight = 0;
+GLuint texCityLeft = 0;
+GLuint texCityTop = 0;
 } // namespace samsat
+
+void samsat::drawCityBoundary(float size, float height) {
+    glEnable(GL_TEXTURE_2D);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glDisable(GL_LIGHTING);
+    
+    glPushMatrix();
+
+    // SISI DEPAN (Z = -size)
+    if (texCityBack != 0) { 
+        glBindTexture(GL_TEXTURE_2D, texCityBack);
+        glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-size, 0.0f, -size);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f( size, 0.0f, -size);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( size, height, -size);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-size, height, -size);
+        glEnd();
+    }
+
+    // SISI BELAKANG (Z = size)
+    if (texCityBack != 0) {
+        glBindTexture(GL_TEXTURE_2D, texCityBack);
+        glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f( size, 0.0f,  size);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(-size, 0.0f,  size);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(-size, height, size);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( size, height, size);
+        glEnd();
+    }
+
+    // SISI KANAN (X = size)
+    if (texCityRight != 0) {
+        glBindTexture(GL_TEXTURE_2D, texCityRight);
+        glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f( size, 0.0f, -size);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f( size, 0.0f,  size);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( size, height, size);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( size, height,-size);
+        glEnd();
+    }
+
+    // SISI KIRI (X = -size)
+    if (texCityRight != 0) {
+        glBindTexture(GL_TEXTURE_2D, texCityRight);
+        glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-size, 0.0f,  size);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(-size, 0.0f, -size);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(-size, height,-size);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-size, height, size);
+        glEnd();
+    }
+
+    // SISI ATAS / LANGIT (Y = height)
+    if (texCityTop != 0) {
+        glBindTexture(GL_TEXTURE_2D, texCityTop);
+        glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-size, height, -size);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f( size, height, -size);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( size, height,  size);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-size, height,  size);
+        glEnd();
+    }
+
+    glPopMatrix();
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_LIGHTING);
+}
 
 void initGame() {
     glClearColor(0.05f, 0.05f, 0.08f, 1.0f);
@@ -261,6 +365,22 @@ void initGame() {
     const std::string wallPath = resolveAssetPath("assets/wall.jpg");
     if (!loadTextureFromImage(wallPath.c_str(), wallTextureId)) {
         std::cerr << "Warning: failed to load wall texture from " << wallPath << std::endl;
+    }
+
+    if (!loadTextureFromImage(resolveAssetPath("assets/city_front.png").c_str(), texCityFront)) {
+        std::cerr << "Warning: failed to load city_front.png" << std::endl;
+    }
+    if (!loadTextureFromImage(resolveAssetPath("assets/city_back.png").c_str(), texCityBack)) {
+        std::cerr << "Warning: failed to load city_back.png" << std::endl;
+    }
+    if (!loadTextureFromImage(resolveAssetPath("assets/city_right.png").c_str(), texCityRight)) {
+        std::cerr << "Warning: failed to load city_right.png" << std::endl;
+    }
+    if (!loadTextureFromImage(resolveAssetPath("assets/city_left.png").c_str(), texCityLeft)) {
+        std::cerr << "Warning: failed to load city_left.png" << std::endl;
+    }
+    if (!loadTextureFromImage(resolveAssetPath("assets/city_top.png").c_str(), texCityTop)) {
+        std::cerr << "Warning: failed to load city_top.png" << std::endl;
     }
 
     currentState = TITLE_SCREEN;
