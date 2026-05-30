@@ -362,7 +362,7 @@ void initGame() {
         std::cerr << "Warning: failed to load tile texture from " << tilePath << std::endl;
     }
 
-    const std::string wallPath = resolveAssetPath("assets/wall.jpg");
+    const std::string wallPath = resolveAssetPath("assets/office_wall_generated.png");
     if (!loadTextureFromImage(wallPath.c_str(), wallTextureId)) {
         std::cerr << "Warning: failed to load wall texture from " << wallPath << std::endl;
     }
@@ -389,15 +389,11 @@ void initGame() {
     patience = 100;
     stamina = 100;
     money = 50000;
-    reputation = 0;
-    moralScore = 100;
     timeHour = 8;
     timeMinute = 0;
 
     hasQueueNumber = false;
     hasCorrectMap = false;
-    hasWrongMap = false;
-    hasForm = false;
     hasFilledForm = false;
     hasValidPhotocopy = false;
     hasPhysicalCheckProof = false;
@@ -407,14 +403,11 @@ void initGame() {
     hasFinalSTNK = false;
     hasQueuedPaymentLine = false;
 
-    usedInsider = false;
-    helpedNPCs = false;
-    systemFixed = false;
-
     showInventory = false;
     showQuestLog = false;
     showDebug = false;
     showDialogue = false;
+    pendingGiveUpConfirm = false;
     keyForward = keyBackward = keyLeft = keyRight = false;
     specialForward = specialBackward = specialLeft = specialRight = false;
     lastUpdateTimeMs = glutGet(GLUT_ELAPSED_TIME);
@@ -426,7 +419,6 @@ void initGame() {
     openingLine = 0;
     hasSeenTutorial = false;
     hasCheckedInventoryScene = false;
-    receivedCorridorAdvice = false;
     metSecurityGuard = false;
     metInformationOfficer = false;
     receivedStampRequirement = false;
@@ -475,7 +467,10 @@ void reshape(int width, int height) {
 void keyboard(unsigned char key, int, int) {
     switch (key) {
         case 27:
-            if (showInventory) {
+            if (pendingGiveUpConfirm) {
+                pendingGiveUpConfirm = false;
+                showDialogue = false;
+            } else if (showInventory) {
                 showInventory = false;
             } else if (showQuestLog) {
                 showQuestLog = false;
@@ -515,6 +510,23 @@ void keyboard(unsigned char key, int, int) {
         case 'Q':
             showQuestLog = !showQuestLog;
             showInventory = false;
+            break;
+
+        case 'g':
+        case 'G':
+            if (currentState != TITLE_SCREEN &&
+                currentState != OPENING_NARRATION &&
+                currentState != CREDIT_SCENE &&
+                !isEndingState(currentState)) {
+                if (pendingGiveUpConfirm) {
+                    pendingGiveUpConfirm = false;
+                    patience = 0;
+                    changeState(ENDING_GIVE_UP);
+                } else {
+                    pendingGiveUpConfirm = true;
+                    setDialogue("Sistem", "Yakin pulang tanpa STNK? Tekan G sekali lagi untuk menyerah, atau SPACE untuk batal.");
+                }
+            }
             break;
 
         case 'w': case 'W':
@@ -604,14 +616,11 @@ void specialInput(int key, int, int) {
             patience = 100;
             stamina = 100;
             money = std::max(money, 50000);
-            reputation = 55;
-            moralScore = 100;
             timeHour = 9;
             timeMinute = 0;
             hasQueueNumber = true;
             hasCorrectMap = true;
             hasValidPhotocopy = true;
-            hasForm = true;
             hasFilledForm = true;
             hasPhysicalCheckProof = true;
             hasVerificationStamp = true;
@@ -619,10 +628,6 @@ void specialInput(int key, int, int) {
             hasPaymentProof = true;
             hasStampedDocument = true;
             hasFinalSTNK = false;
-            usedInsider = false;
-            helpedNPCs = false;
-            systemFixed = false;
-            receivedCorridorAdvice = false;
             changeState(FINAL_COUNTER_BOSS);
             break;
 

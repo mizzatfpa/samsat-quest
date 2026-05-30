@@ -1,14 +1,9 @@
 #include "game_internal.hpp"
 
 namespace samsat {
-bool isDrawingShadow = false;
 
 void setColor(float r, float g, float b, float a) {
-    if (isDrawingShadow) {
-        glColor4f(0.0f, 0.0f, 0.0f, 0.6f);
-    } else {
-        glColor4f(r, g, b, a);
-    }
+    glColor4f(r, g, b, a);
 }
 
 void begin2DOverlay() {
@@ -390,44 +385,57 @@ void drawCharacterModel(float bodyR,
     const float legSwing = animateLegs ? std::sin(walkPhase) * 25.0f : 0.0f;
     const float armSwing = animateLegs ? -std::sin(walkPhase) * 16.0f : 0.0f;
 
-    drawCube(0.0f, 1.15f, 0.0f, 0.54f, 0.92f, 0.34f, bodyR, bodyG, bodyB);
+    drawCube(0.0f, 1.15f, 0.0f, 0.56f, 0.88f, 0.32f, bodyR, bodyG, bodyB);
+    drawSphere(-0.36f, 1.48f, 0.0f, 0.13f, bodyR * 0.92f, bodyG * 0.92f, bodyB * 0.92f);
+    drawSphere(0.36f, 1.48f, 0.0f, 0.13f, bodyR * 0.92f, bodyG * 0.92f, bodyB * 0.92f);
     drawCube(0.0f, 1.62f, 0.0f, 0.28f, 0.18f, 0.24f, skinR * 0.92f, skinG * 0.92f, skinB * 0.92f);
     if (roundHead) {
         drawSphere(0.0f, 1.84f, 0.0f, 0.28f, skinR, skinG, skinB);
     } else {
         drawCube(0.0f, 1.84f, 0.0f, 0.52f, 0.52f, 0.48f, skinR, skinG, skinB);
     }
+    if (!hasCap) {
+        drawCube(0.0f, 2.05f, 0.02f, 0.48f, 0.10f, 0.34f, 0.10f, 0.06f, 0.03f);
+        drawCube(0.0f, 1.98f, -0.20f, 0.38f, 0.12f, 0.10f, 0.10f, 0.06f, 0.03f);
+        drawCube(-0.24f, 1.91f, -0.04f, 0.08f, 0.18f, 0.24f, 0.10f, 0.06f, 0.03f);
+        drawCube(0.24f, 1.91f, -0.04f, 0.08f, 0.18f, 0.24f, 0.10f, 0.06f, 0.03f);
+    }
+    drawSphere(-0.30f, 1.84f, 0.0f, 0.055f, skinR * 0.92f, skinG * 0.92f, skinB * 0.92f);
+    drawSphere(0.30f, 1.84f, 0.0f, 0.055f, skinR * 0.92f, skinG * 0.92f, skinB * 0.92f);
+    drawSphere(-0.10f, 1.86f, -0.27f, 0.025f, 0.08f, 0.05f, 0.03f);
+    drawSphere(0.10f, 1.86f, -0.27f, 0.025f, 0.08f, 0.05f, 0.03f);
+    drawSphere(0.0f, 1.80f, -0.29f, 0.026f, skinR * 0.90f, skinG * 0.68f, skinB * 0.48f);
 
     glPushMatrix();
     glTranslatef(-0.43f, 1.48f, 0.0f);
     glRotatef(armSwing, 1.0f, 0.0f, 0.0f);
-    drawCube(0.0f, -0.34f, 0.0f, 0.18f, 0.70f, 0.20f, bodyR * 0.9f, bodyG * 0.9f, bodyB * 0.9f);
-    drawCube(0.0f, -0.75f, 0.0f, 0.18f, 0.18f, 0.18f, skinR, skinG, skinB);
+    drawCylinder(0.0f, -0.34f, 0.0f, 0.09f, 0.68f, bodyR * 0.9f, bodyG * 0.9f, bodyB * 0.9f, -90.0f);
+    drawSphere(0.0f, -0.75f, 0.0f, 0.095f, skinR, skinG, skinB);
     glPopMatrix();
 
     glPushMatrix();
     glTranslatef(0.43f, 1.48f, 0.0f);
     glRotatef(-armSwing, 1.0f, 0.0f, 0.0f);
-    drawCube(0.0f, -0.34f, 0.0f, 0.18f, 0.70f, 0.20f, bodyR * 0.9f, bodyG * 0.9f, bodyB * 0.9f);
-    drawCube(0.0f, -0.75f, 0.0f, 0.18f, 0.18f, 0.18f, skinR, skinG, skinB);
+    drawCylinder(0.0f, -0.34f, 0.0f, 0.09f, 0.68f, bodyR * 0.9f, bodyG * 0.9f, bodyB * 0.9f, -90.0f);
+    drawSphere(0.0f, -0.75f, 0.0f, 0.095f, skinR, skinG, skinB);
     glPopMatrix();
 
     glPushMatrix();
     glTranslatef(-0.16f, 0.72f, 0.0f);
     glRotatef(legSwing, 1.0f, 0.0f, 0.0f);
-    drawCube(0.0f, -0.34f, 0.0f, 0.22f, 0.72f, 0.24f, pantsR, pantsG, pantsB);
-    drawCube(0.0f, -0.72f, -0.05f, 0.30f, 0.16f, 0.42f, 0.05f, 0.05f, 0.06f);
+    drawCylinder(0.0f, -0.34f, 0.0f, 0.10f, 0.70f, pantsR, pantsG, pantsB, -90.0f);
+    drawCube(0.0f, -0.72f, -0.06f, 0.30f, 0.14f, 0.42f, 0.05f, 0.05f, 0.06f);
     glPopMatrix();
 
     glPushMatrix();
     glTranslatef(0.16f, 0.72f, 0.0f);
     glRotatef(-legSwing, 1.0f, 0.0f, 0.0f);
-    drawCube(0.0f, -0.34f, 0.0f, 0.22f, 0.72f, 0.24f, pantsR, pantsG, pantsB);
-    drawCube(0.0f, -0.72f, -0.05f, 0.30f, 0.16f, 0.42f, 0.05f, 0.05f, 0.06f);
+    drawCylinder(0.0f, -0.34f, 0.0f, 0.10f, 0.70f, pantsR, pantsG, pantsB, -90.0f);
+    drawCube(0.0f, -0.72f, -0.06f, 0.30f, 0.14f, 0.42f, 0.05f, 0.05f, 0.06f);
     glPopMatrix();
 
     drawCube(0.0f, 1.35f, -0.21f, 0.40f, 0.08f, 0.06f, accentR, accentG, accentB);
-    drawCube(0.0f, 0.76f, -0.20f, 0.62f, 0.08f, 0.06f, accentR * 0.75f, accentG * 0.75f, accentB * 0.75f);
+    drawCube(0.0f, 0.80f, -0.19f, 0.62f, 0.08f, 0.06f, 0.05f, 0.05f, 0.06f);
 
     if (hasCap) {
         drawCube(0.0f, 2.08f, -0.02f, 0.50f, 0.12f, 0.42f, accentR, accentG, accentB);
@@ -470,7 +478,6 @@ bool isIndoorScene(GameState scene) {
         case VALIDATION_SUCCESS:
         case PHOTOCOPY_SHOP:
         case STAMP_QUEST:
-        case FINAL_CORRIDOR:
         case FINAL_COUNTER_BOSS:
             return true;
         default:
@@ -486,7 +493,6 @@ float getIndoorFrontLimit(GameState scene) {
             return 8.0f;
         case PAYMENT_QUEUE:
         case FINAL_COUNTER_BOSS:
-        case FINAL_CORRIDOR:
             return 8.0f;
         default:
             return 7.0f;
@@ -536,17 +542,56 @@ void drawFlagPole(float x, float z) {
     drawCube(x + 0.45f, 2.72f, z, 0.90f, 0.28f, 0.04f, 0.95f, 0.95f, 0.90f);
 }
 
-void drawGroundDisk(float x, float z, float radius, float r, float g, float b) {
+void drawGroundEllipse(float x, float z, float radiusX, float radiusZ, float y, float r, float g, float b, float a) {
+    const bool wasTextureEnabled = glIsEnabled(GL_TEXTURE_2D);
+    const bool wasLightingEnabled = glIsEnabled(GL_LIGHTING);
+    const bool wasBlendEnabled = glIsEnabled(GL_BLEND);
+    const bool wasCullEnabled = glIsEnabled(GL_CULL_FACE);
+    GLboolean wasDepthMaskEnabled = GL_TRUE;
+    glGetBooleanv(GL_DEPTH_WRITEMASK, &wasDepthMaskEnabled);
+
+    glDisable(GL_TEXTURE_2D);
     glDisable(GL_LIGHTING);
-    setColor(r, g, b);
+    glDisable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
+    glColor4f(r, g, b, a);
+
     glBegin(GL_TRIANGLE_FAN);
-    glVertex3f(x, 0.07f, z);
-    for (int i = 0; i <= 32; ++i) {
-        const float angle = static_cast<float>(i) * 2.0f * kPi / 32.0f;
-        glVertex3f(x + std::cos(angle) * radius, 0.07f, z + std::sin(angle) * radius);
+    glVertex3f(x, y, z);
+    for (int i = 0; i <= 40; ++i) {
+        const float angle = static_cast<float>(i) * 2.0f * kPi / 40.0f;
+        glVertex3f(x + std::cos(angle) * radiusX, y, z + std::sin(angle) * radiusZ);
     }
     glEnd();
-    glEnable(GL_LIGHTING);
+
+    glDepthMask(wasDepthMaskEnabled);
+    if (!wasBlendEnabled) {
+        glDisable(GL_BLEND);
+    }
+    if (wasCullEnabled) {
+        glEnable(GL_CULL_FACE);
+    }
+    if (wasLightingEnabled) {
+        glEnable(GL_LIGHTING);
+    }
+    if (wasTextureEnabled) {
+        glEnable(GL_TEXTURE_2D);
+    }
+}
+
+void drawGroundDisk(float x, float z, float radius, float r, float g, float b) {
+    drawGroundEllipse(x, z, radius, radius, 0.085f, r, g, b, 0.34f);
+    drawGroundEllipse(x, z, radius * 0.86f, radius * 0.86f, 0.095f,
+                      std::min(1.0f, r + 0.10f),
+                      std::min(1.0f, g + 0.10f),
+                      std::min(1.0f, b + 0.10f),
+                      0.26f);
+}
+
+void drawCharacterShadowBlob(float x, float z, float radiusX, float radiusZ, float alpha = 0.44f) {
+    drawGroundEllipse(x, z, radiusX, radiusZ, 0.075f, 0.0f, 0.0f, 0.0f, alpha);
 }
 
 void drawFloatingArrow(float x, float z, float r, float g, float b) {
@@ -559,9 +604,9 @@ void drawFloatingArrow(float x, float z, float r, float g, float b) {
 void drawPortalMarker(float x, float z, const std::string& label, float r, float g, float b, bool finalPortal = false) {
     (void)label;
     (void)finalPortal;
-    const float pulse = 0.18f + (std::sin(interactionPulse) + 1.0f) * 0.10f;
-    drawGroundDisk(x, z, 1.15f + pulse, r * 0.55f, g * 0.55f, b * 0.55f);
-    drawGroundDisk(x, z, 0.65f + pulse * 0.35f, r, g, b);
+    const float pulse = 0.08f + (std::sin(interactionPulse) + 1.0f) * 0.04f;
+    drawGroundDisk(x, z, 0.78f + pulse, r * 0.55f, g * 0.55f, b * 0.55f);
+    drawGroundDisk(x, z, 0.42f + pulse * 0.30f, r, g, b);
     drawFloatingArrow(x, z, r, g, b);
 }
 
@@ -573,10 +618,9 @@ void drawInteractionMarker(float x, float z, const std::string& label, bool comp
     const float g = completed ? 0.78f : (nearby ? 0.86f : 0.70f);
     const float b = completed ? 0.25f : (nearby ? 0.18f : 0.22f);
 
-    drawGroundDisk(x, z, nearby ? 1.05f : 0.72f, r, g, b);
-    drawFloatingArrow(x, z, r, g, b);
+    drawGroundDisk(x, z, nearby ? 0.70f : 0.48f, r, g, b);
     if (nearby) {
-        drawSphere(x, 2.10f + std::sin(interactionPulse) * pulse, z, 0.10f, 1.0f, 0.95f, 0.45f);
+        drawSphere(x, 1.32f + std::sin(interactionPulse) * pulse, z, 0.08f, 1.0f, 0.95f, 0.45f);
     }
 }
 
@@ -585,15 +629,13 @@ void drawObjectiveMarker(float x, float z, const std::string& label, bool finalM
     const float r = finalMarker ? 0.95f : 0.20f;
     const float g = finalMarker ? 0.12f : 0.55f;
     const float b = finalMarker ? 0.12f : 1.00f;
-    drawGroundDisk(x, z, 1.35f, r * 0.55f, g * 0.55f, b * 0.55f);
+    drawGroundDisk(x, z, finalMarker ? 0.92f : 0.76f, r * 0.55f, g * 0.55f, b * 0.55f);
     drawFloatingArrow(x, z, r, g, b);
 }
 
 void drawCompletionBadge(float x, float z, const std::string& label = "SELESAI") {
     (void)label;
-    drawGroundDisk(x, z, 0.55f, 0.10f, 0.72f, 0.22f);
-    drawSphere(x, 2.52f, z, 0.22f, 0.10f, 0.72f, 0.22f);
-    drawCone(x, 2.34f, z, 0.22f, 0.42f, 0.08f, 0.55f, 0.16f, 90.0f);
+    drawGroundDisk(x, z, 0.42f, 0.10f, 0.72f, 0.22f);
 }
 
 }  // namespace
@@ -619,6 +661,8 @@ void drawPlayer3D(float x, float z) {
 }
 
 void drawNPC3D(float x, float z, float r, float g, float b) {
+    drawCharacterShadowBlob(x, z, 0.48f, 0.28f);
+
     glPushMatrix();
     glTranslatef(x, 0.0f, z);
 
@@ -651,6 +695,7 @@ void drawNPC3D(float x, float z, float r, float g, float b) {
 }
 
 void drawSimpleCar(float x, float z) {
+    drawGroundEllipse(x, z, 2.75f, 1.18f, 0.075f, 0.0f, 0.0f, 0.0f, 0.36f);
     drawCube(x, 0.70f, z, 4.80f, 0.90f, 1.85f, 0.18f, 0.24f, 0.70f);
     drawCube(x - 0.15f, 1.35f, z - 0.05f, 2.45f, 0.85f, 1.35f, 0.12f, 0.16f, 0.38f);
 
@@ -679,6 +724,12 @@ void drawSimpleCar(float x, float z) {
     drawCube(x - 0.80f, 1.10f, z + 1.02f, 0.12f, 0.12f, 0.12f, 0.05f, 0.05f, 0.06f);
 }
 
+void drawCeilingLamp(float x, float y, float z, float width) {
+    drawCube(x, y, z, width, 0.08f, 0.22f, 0.86f, 0.84f, 0.76f);
+    drawCube(x, y - 0.07f, z, width * 0.86f, 0.04f, 0.16f, 1.0f, 0.92f, 0.58f);
+    drawGroundEllipse(x, z, width * 0.34f, 0.48f, 0.085f, 1.0f, 0.82f, 0.34f, 0.12f);
+}
+
 void drawRoomFrame(float halfWidth, float halfDepth, float wallHeight, float r, float g, float b) {
     const float wallThickness = 0.30f;
     const float doorWidth = 2.8f;
@@ -687,35 +738,49 @@ void drawRoomFrame(float halfWidth, float halfDepth, float wallHeight, float r, 
     const float sideFrontWidth = std::max(0.1f, halfWidth - doorWidth * 0.5f);
 
     drawTexturedBox(0.0f, 0.03f, 0.0f, halfWidth * 2.0f, 0.06f, halfDepth * 2.0f, tileTextureId, 0.46f, 0.46f, 0.48f, halfWidth, halfDepth);
-    drawTexturedBox(0.0f, wallHeight * 0.5f, -halfDepth, halfWidth * 2.0f, wallHeight, wallThickness, wallTextureId, r, g, b, halfWidth * 0.5f, wallHeight * 0.5f);
-    drawTexturedBox(-halfWidth, wallHeight * 0.5f, 0.0f, wallThickness, wallHeight, halfDepth * 2.0f, wallTextureId, r * 0.94f, g * 0.94f, b * 0.94f, halfDepth * 0.5f, wallHeight * 0.5f);
-    drawTexturedBox(halfWidth, wallHeight * 0.5f, 0.0f, wallThickness, wallHeight, halfDepth * 2.0f, wallTextureId, r * 0.94f, g * 0.94f, b * 0.94f, halfDepth * 0.5f, wallHeight * 0.5f);
+    const float backWallRepeat = std::max(1.0f, halfWidth * 0.30f);
+    const float sideWallRepeat = std::max(1.0f, halfDepth * 0.30f);
+    drawTexturedBox(0.0f, wallHeight * 0.5f, -halfDepth, halfWidth * 2.0f, wallHeight, wallThickness, wallTextureId, r, g, b, backWallRepeat, 1.0f);
+    drawTexturedBox(-halfWidth, wallHeight * 0.5f, 0.0f, wallThickness, wallHeight, halfDepth * 2.0f, wallTextureId, r * 0.94f, g * 0.94f, b * 0.94f, sideWallRepeat, 1.0f);
+    drawTexturedBox(halfWidth, wallHeight * 0.5f, 0.0f, wallThickness, wallHeight, halfDepth * 2.0f, wallTextureId, r * 0.94f, g * 0.94f, b * 0.94f, sideWallRepeat, 1.0f);
 
-    drawTexturedBox(-(doorWidth * 0.5f + sideFrontWidth * 0.5f), wallHeight * 0.5f, halfDepth, sideFrontWidth, wallHeight, wallThickness, wallTextureId, r, g, b, sideFrontWidth * 0.3f, wallHeight * 0.5f);
-    drawTexturedBox(doorWidth * 0.5f + sideFrontWidth * 0.5f, wallHeight * 0.5f, halfDepth, sideFrontWidth, wallHeight, wallThickness, wallTextureId, r, g, b, sideFrontWidth * 0.3f, wallHeight * 0.5f);
+    drawTexturedBox(-(doorWidth * 0.5f + sideFrontWidth * 0.5f), wallHeight * 0.5f, halfDepth, sideFrontWidth, wallHeight, wallThickness, wallTextureId, r, g, b, std::max(1.0f, sideFrontWidth * 0.30f), 1.0f);
+    drawTexturedBox(doorWidth * 0.5f + sideFrontWidth * 0.5f, wallHeight * 0.5f, halfDepth, sideFrontWidth, wallHeight, wallThickness, wallTextureId, r, g, b, std::max(1.0f, sideFrontWidth * 0.30f), 1.0f);
     drawTexturedBox(0.0f, doorHeight + ((wallHeight - doorHeight) * 0.5f), halfDepth, doorWidth, wallHeight - doorHeight, wallThickness, wallTextureId, r * 0.92f, g * 0.92f, b * 0.92f, 1.0f, 0.5f);
 
     drawCube(-doorWidth * 0.5f, doorHeight * 0.5f, halfDepth - 0.03f, 0.12f, doorHeight, 0.18f, 0.20f, 0.18f, 0.14f);
     drawCube(doorWidth * 0.5f, doorHeight * 0.5f, halfDepth - 0.03f, 0.12f, doorHeight, 0.18f, 0.20f, 0.18f, 0.14f);
     drawCube(0.0f, doorHeight, halfDepth - 0.03f, doorWidth + 0.18f, 0.14f, 0.18f, 0.20f, 0.18f, 0.14f);
 
-    drawTexturedBox(0.0f, wallHeight + ceilingThickness * 0.5f, 0.0f, halfWidth * 2.05f, ceilingThickness, halfDepth * 2.05f, wallTextureId, r * 0.82f, g * 0.82f, b * 0.82f, halfWidth * 0.4f, halfDepth * 0.4f);
+    drawTexturedBox(0.0f, wallHeight + ceilingThickness * 0.5f, 0.0f, halfWidth * 2.05f, ceilingThickness, halfDepth * 2.05f, wallTextureId, r * 0.82f, g * 0.82f, b * 0.82f, halfWidth * 0.25f, halfDepth * 0.25f);
     drawCylinder(0.0f, wallHeight - 0.08f, 0.0f, 0.42f, 0.08f, 0.95f, 0.90f, 0.62f, -90.0f);
     drawSphere(0.0f, wallHeight - 0.18f, 0.0f, 0.18f, 1.0f, 0.94f, 0.60f);
+    drawCeilingLamp(-halfWidth * 0.42f, wallHeight - 0.08f, -halfDepth * 0.35f, 2.0f);
+    drawCeilingLamp(halfWidth * 0.42f, wallHeight - 0.08f, -halfDepth * 0.35f, 2.0f);
+    drawCeilingLamp(0.0f, wallHeight - 0.08f, halfDepth * 0.32f, 2.4f);
 }
 
 void drawQueueMarker(float x, float z) {
-    drawCube(x, 0.05f, z, 0.9f, 0.02f, 2.2f, 0.95f, 0.90f, 0.25f);
+    drawCube(x, 0.085f, z - 0.44f, 0.80f, 0.018f, 0.08f, 0.95f, 0.90f, 0.25f);
+    drawCube(x, 0.085f, z + 0.44f, 0.80f, 0.018f, 0.08f, 0.95f, 0.90f, 0.25f);
 }
 
-void drawDocumentPile(float x, float y, float z, float r, float g, float b) {
-    drawCube(x, y, z, 0.9f, 0.10f, 0.7f, r, g, b);
-    drawCube(x + 0.10f, y + 0.10f, z - 0.05f, 0.9f, 0.08f, 0.7f, r + 0.05f, g + 0.05f, b + 0.05f);
+void drawPhotocopyMachine(float x, float z) {
+    drawCube(x, 0.72f, z, 2.10f, 1.44f, 1.48f, 0.88f, 0.88f, 0.90f);
+    drawCube(x - 0.12f, 1.52f, z - 0.10f, 1.72f, 0.16f, 1.04f, 0.12f, 0.13f, 0.15f);
+    drawCube(x + 0.74f, 1.36f, z + 0.46f, 0.36f, 0.12f, 0.30f, 0.05f, 0.30f, 0.12f);
+    drawCube(x + 0.60f, 0.96f, z - 0.82f, 0.96f, 0.08f, 0.22f, 0.82f, 0.82f, 0.84f);
+    drawCube(x - 0.50f, 0.36f, z - 0.80f, 0.78f, 0.08f, 0.24f, 0.78f, 0.78f, 0.80f);
 }
 
-void drawCounterStamp(float x, float z, float r, float g, float b) {
-    drawCube(x, 1.10f, z, 0.45f, 0.75f, 0.45f, r, g, b);
-    drawCube(x, 0.72f, z, 0.85f, 0.18f, 0.85f, r * 0.8f, g * 0.8f, b * 0.8f);
+void drawCounterClerk(float x, float z, float r, float g, float b) {
+    drawCube(x, 1.46f, z, 0.54f, 0.46f, 0.30f, r, g, b);
+    drawCube(x, 1.68f, z, 0.24f, 0.14f, 0.20f, 0.92f, 0.72f, 0.54f);
+    drawSphere(x, 1.88f, z, 0.25f, 1.0f, 0.80f, 0.60f);
+    drawCube(x, 2.07f, z + 0.03f, 0.44f, 0.10f, 0.30f, 0.10f, 0.06f, 0.03f);
+    drawCube(x, 1.96f, z + 0.21f, 0.36f, 0.16f, 0.08f, 0.10f, 0.06f, 0.03f);
+    drawSphere(x - 0.27f, 1.88f, z, 0.05f, 0.92f, 0.72f, 0.54f);
+    drawSphere(x + 0.27f, 1.88f, z, 0.05f, 0.92f, 0.72f, 0.54f);
 }
 
 void setupLighting() {
@@ -723,6 +788,7 @@ void setupLighting() {
     glEnable(GL_LIGHT0);
     glEnable(GL_LIGHT1);
     glEnable(GL_LIGHT2);
+    glEnable(GL_LIGHT3);
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_NORMALIZE);
 
@@ -742,6 +808,13 @@ void setupLighting() {
     const GLfloat rimDiffuse[] = {0.65f, 0.78f, 1.00f, 1.0f};
     glLightfv(GL_LIGHT2, GL_DIFFUSE, rimDiffuse);
 
+    const GLfloat roomDiffuse[] = {0.92f, 0.84f, 0.62f, 1.0f};
+    const GLfloat roomSpecular[] = {0.20f, 0.18f, 0.12f, 1.0f};
+    glLightfv(GL_LIGHT3, GL_DIFFUSE, roomDiffuse);
+    glLightfv(GL_LIGHT3, GL_SPECULAR, roomSpecular);
+    glLightf(GL_LIGHT3, GL_CONSTANT_ATTENUATION, 1.0f);
+    glLightf(GL_LIGHT3, GL_LINEAR_ATTENUATION, 0.035f);
+
     const GLfloat materialSpecular[] = {0.28f, 0.28f, 0.30f, 1.0f};
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, materialSpecular);
     glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 28.0f);
@@ -751,45 +824,25 @@ void updateSceneLights() {
     const GLfloat keyPosition[] = {-7.0f, 12.0f, 7.0f, 1.0f};
     const GLfloat fillPosition[] = {8.0f, 5.0f, -6.0f, 1.0f};
     const GLfloat rimPosition[] = {player.x - 3.0f, 4.5f, player.z + 4.0f, 1.0f};
+    const GLfloat roomPosition[] = {0.0f, isIndoorScene(currentState) ? 3.8f : 8.0f, isIndoorScene(currentState) ? -1.0f : 1.5f, 1.0f};
     glLightfv(GL_LIGHT0, GL_POSITION, keyPosition);
     glLightfv(GL_LIGHT1, GL_POSITION, fillPosition);
     glLightfv(GL_LIGHT2, GL_POSITION, rimPosition);
+    glLightfv(GL_LIGHT3, GL_POSITION, roomPosition);
 }
 
 void drawPlayerShadow3D(float x, float z) {
-    float lx = -7.0f;
-    float ly = 12.0f;
-    float lz = 7.0f;
-    float dot = ly; 
-    GLfloat shadowMat[16] = {
-         dot,  0.0f,  0.0f, 0.0f,
-         -lx,  0.0f,   -lz, 0.0f,
-        0.0f,  0.0f,   dot, 0.0f,
-        0.0f,  0.0f,  0.0f,  dot
-    };
+    const float squash = player.isMoving ? 0.08f * std::sin(player.walkPhase) : 0.0f;
+    drawCharacterShadowBlob(x, z, 0.58f + squash, 0.36f, 0.48f);
 
-    glDisable(GL_LIGHTING);
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    isDrawingShadow = true;
-
-    glPushMatrix();
-    glMultMatrixf(shadowMat);
-
-    glTranslatef(x, 0.0f, z);
-    glRotatef(player.facingYaw, 0.0f, 1.0f, 0.0f);
- 
-    drawCharacterModel(0,0,0, 0,0,0, 0,0,0, false, false, true, player.isMoving, player.walkPhase);
-    
-    glPopMatrix();
-
-    isDrawingShadow = false;
-
-    glDisable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LIGHTING);
+    const float yaw = player.facingYaw * kPi / 180.0f;
+    const float rightX = std::cos(yaw) * 0.16f;
+    const float rightZ = -std::sin(yaw) * 0.16f;
+    const float forwardX = std::sin(yaw) * 0.10f;
+    const float forwardZ = std::cos(yaw) * 0.10f;
+    const float step = player.isMoving ? std::sin(player.walkPhase) * 0.07f : 0.0f;
+    drawGroundEllipse(x - rightX + forwardX + step, z - rightZ + forwardZ, 0.18f, 0.10f, 0.078f, 0.0f, 0.0f, 0.0f, 0.36f);
+    drawGroundEllipse(x + rightX + forwardX - step, z + rightZ + forwardZ, 0.18f, 0.10f, 0.078f, 0.0f, 0.0f, 0.0f, 0.36f);
 }
 
 void setupCamera() {
@@ -822,7 +875,6 @@ void setupCamera() {
             baseHeight = camera.height + 1.0f;
             break;
 
-        case FINAL_CORRIDOR:
         case FINAL_COUNTER_BOSS:
             targetY = 1.45f;
             break;
@@ -855,39 +907,68 @@ void setupCamera() {
     gluLookAt(camX, camY, camZ, targetX, targetY, targetZ, 0.0f, 1.0f, 0.0f);
 }
 
+void drawSamsatOfficeFacade() {
+    drawCube(0.0f, 0.18f, -7.08f, 23.2f, 0.36f, 0.72f, 0.48f, 0.48f, 0.50f);
+    drawCube(0.0f, 2.70f, -10.4f, 22.0f, 5.40f, 6.0f, 0.62f, 0.63f, 0.66f);
+    drawCube(0.0f, 5.46f, -10.4f, 23.0f, 0.36f, 6.35f, 0.42f, 0.10f, 0.08f);
+    drawHouseRoof(0.0f, 5.60f, -10.4f, 24.4f, 1.15f, 7.2f, 0.46f, 0.10f, 0.08f);
+
+    drawCube(0.0f, 2.45f, -6.85f, 6.4f, 4.4f, 0.42f, 0.74f, 0.74f, 0.70f);
+    drawCube(0.0f, 4.75f, -6.72f, 7.3f, 0.48f, 0.58f, 0.25f, 0.27f, 0.30f);
+    drawCube(0.0f, 1.35f, -6.60f, 2.30f, 2.70f, 0.20f, 0.08f, 0.09f, 0.12f);
+    drawCube(-0.62f, 1.35f, -6.47f, 1.00f, 2.32f, 0.08f, 0.12f, 0.24f, 0.36f);
+    drawCube(0.62f, 1.35f, -6.47f, 1.00f, 2.32f, 0.08f, 0.12f, 0.24f, 0.36f);
+    drawCube(0.0f, 2.78f, -6.47f, 2.55f, 0.18f, 0.10f, 0.18f, 0.18f, 0.18f);
+    drawCube(0.0f, 0.22f, -5.25f, 5.4f, 0.32f, 1.55f, 0.72f, 0.72f, 0.68f);
+    drawCube(0.0f, 0.42f, -5.85f, 4.4f, 0.18f, 0.48f, 0.58f, 0.58f, 0.56f);
+
+    for (float x : {-9.0f, -6.0f, -3.2f, 3.2f, 6.0f, 9.0f}) {
+        drawCube(x, 3.10f, -6.90f, 1.55f, 1.10f, 0.16f, 0.15f, 0.32f, 0.45f);
+        drawCube(x, 3.72f, -6.82f, 1.80f, 0.13f, 0.20f, 0.86f, 0.86f, 0.82f);
+        drawCube(x, 2.48f, -6.82f, 1.80f, 0.13f, 0.20f, 0.86f, 0.86f, 0.82f);
+        drawCube(x - 0.84f, 3.10f, -6.82f, 0.12f, 1.24f, 0.20f, 0.86f, 0.86f, 0.82f);
+        drawCube(x + 0.84f, 3.10f, -6.82f, 0.12f, 1.24f, 0.20f, 0.86f, 0.86f, 0.82f);
+    }
+
+    for (float x : {-2.55f, 2.55f}) {
+        drawCylinder(x, 2.05f, -6.42f, 0.16f, 3.75f, 0.82f, 0.82f, 0.76f, -90.0f);
+        drawCylinder(x, 0.18f, -6.42f, 0.28f, 0.22f, 0.60f, 0.58f, 0.54f, -90.0f);
+    }
+
+    drawCube(0.0f, 5.20f, -6.45f, 6.0f, 0.72f, 0.18f, 0.02f, 0.08f, 0.16f);
+    draw3DLabel(0.0f, 5.25f, -6.36f, "KANTOR SAMSAT", 0.02f, 0.08f, 0.16f, 1.0f, 0.92f, 0.24f, 5.4f);
+    draw3DLabel(0.0f, 3.20f, -6.36f, "RUANG INFORMASI", 0.10f, 0.22f, 0.42f, 1.0f, 1.0f, 1.0f, 3.9f);
+}
+
+void drawExteriorServiceBooth(float x, float z, float width, float depth, float r, float g, float b) {
+    drawGroundEllipse(x, z, width * 0.58f, depth * 0.54f, 0.075f, 0.0f, 0.0f, 0.0f, 0.22f);
+    drawCube(x, 0.13f, z, width + 0.28f, 0.26f, depth + 0.28f, 0.38f, 0.38f, 0.38f);
+    drawCube(x, 1.32f, z, width, 2.35f, depth, r, g, b);
+    drawHouseRoof(x, 2.52f, z, width + 0.72f, 0.56f, depth + 0.70f, 0.35f, 0.16f, 0.08f);
+    drawCube(x, 1.25f, z + depth * 0.50f + 0.04f, width * 0.76f, 0.58f, 0.12f, 0.16f, 0.11f, 0.08f);
+    drawCube(x - width * 0.22f, 1.70f, z + depth * 0.51f + 0.08f, width * 0.24f, 0.38f, 0.09f, 0.06f, 0.12f, 0.18f);
+    drawCube(x + width * 0.22f, 1.70f, z + depth * 0.51f + 0.08f, width * 0.24f, 0.38f, 0.09f, 0.06f, 0.12f, 0.18f);
+    drawCylinder(x - width * 0.44f, 1.34f, z + depth * 0.51f, 0.07f, 2.25f, 0.78f, 0.76f, 0.70f, -90.0f);
+    drawCylinder(x + width * 0.44f, 1.34f, z + depth * 0.51f, 0.07f, 2.25f, 0.78f, 0.76f, 0.70f, -90.0f);
+}
+
+void drawQueueMachine3D(float x, float z) {
+    drawCube(x, 0.18f, z, 1.15f, 0.28f, 0.82f, 0.08f, 0.08f, 0.10f);
+    drawCube(x, 1.05f, z, 0.88f, 1.70f, 0.62f, 0.18f, 0.20f, 0.24f);
+    drawCube(x, 1.42f, z - 0.34f, 0.58f, 0.38f, 0.08f, 0.02f, 0.08f, 0.12f);
+    drawCube(x, 0.98f, z - 0.35f, 0.56f, 0.10f, 0.08f, 0.88f, 0.88f, 0.78f);
+    drawSphere(x + 0.28f, 0.62f, z - 0.35f, 0.08f, 0.90f, 0.20f, 0.12f);
+}
+
 void drawSamsatExterior3D() {
     drawCityBoundary(28.0f, 16.0f);
     drawTexturedGround(30.0f, rockTextureId, 6.0f);
 
-    drawCube(0.0f, 2.25f, -10.0f, 16.0f, 4.5f, 5.5f, 0.60f, 0.60f, 0.64f);
-    drawHouseRoof(0.0f, 4.55f, -10.0f, 17.8f, 1.35f, 6.5f, 0.46f, 0.10f, 0.08f);
-    drawCube(0.0f, 4.58f, -6.92f, 17.2f, 0.28f, 0.32f, 0.72f, 0.72f, 0.70f);
-    drawCube(0.0f, 1.25f, -7.05f, 2.15f, 2.50f, 0.18f, 0.10f, 0.10f, 0.15f);
-    drawCube(0.0f, 2.56f, -7.00f, 2.40f, 0.16f, 0.24f, 0.20f, 0.18f, 0.14f);
-    drawCylinder(-1.35f, 1.55f, -6.75f, 0.13f, 3.10f, 0.78f, 0.78f, 0.72f, -90.0f);
-    drawCylinder(1.35f, 1.55f, -6.75f, 0.13f, 3.10f, 0.78f, 0.78f, 0.72f, -90.0f);
-    drawCube(-4.9f, 2.55f, -6.94f, 1.65f, 1.15f, 0.16f, 0.18f, 0.34f, 0.46f);
-    drawCube(-2.8f, 2.55f, -6.94f, 1.65f, 1.15f, 0.16f, 0.18f, 0.34f, 0.46f);
-    drawCube(2.8f, 2.55f, -6.94f, 1.65f, 1.15f, 0.16f, 0.18f, 0.34f, 0.46f);
-    drawCube(4.9f, 2.55f, -6.94f, 1.65f, 1.15f, 0.16f, 0.18f, 0.34f, 0.46f);
-    drawCube(-3.85f, 3.18f, -6.88f, 3.95f, 0.10f, 0.18f, 0.82f, 0.82f, 0.78f);
-    drawCube(3.85f, 3.18f, -6.88f, 3.95f, 0.10f, 0.18f, 0.82f, 0.82f, 0.78f);
-    draw3DLabel(0.0f, 5.25f, -6.86f, "KANTOR SAMSAT", 0.02f, 0.08f, 0.16f, 1.0f, 0.92f, 0.24f, 5.4f);
-    draw3DLabel(0.0f, 3.15f, -6.82f, "RUANG INFORMASI", 0.10f, 0.22f, 0.42f, 1.0f, 1.0f, 1.0f, 3.9f);
-    drawCube(0.0f, 0.08f, -4.8f, 2.8f, 0.04f, 1.0f, 0.18f, 0.48f, 0.90f);  // information room portal
-    drawCube(10.0f, 0.08f, -8.2f, 2.8f, 0.04f, 1.0f, 0.90f, 0.82f, 0.28f); // photocopy portal
-    drawCube(-9.8f, 0.08f, -8.3f, 2.8f, 0.04f, 1.0f, 0.22f, 0.68f, 0.35f); // vehicle check portal
-    drawCube(7.0f, 0.08f, -8.3f, 2.8f, 0.04f, 1.0f, 0.58f, 0.58f, 0.86f);  // verification portal
-    drawCube(-9.8f, 0.08f, 8.4f, 2.8f, 0.04f, 1.0f, 0.86f, 0.58f, 0.28f);  // payment portal
-    drawCube(-7.0f, 1.2f, -1.0f, 2.6f, 2.4f, 2.5f, 0.35f, 0.25f, 0.16f);
-    drawCube(7.0f, 1.2f, -1.0f, 3.2f, 2.4f, 2.5f, 0.65f, 0.35f, 0.15f);
-    drawCube(10.0f, 1.2f, -2.0f, 2.8f, 2.4f, 2.4f, 0.72f, 0.72f, 0.76f);
-    drawHouseRoof(-7.0f, 2.45f, -1.0f, 3.2f, 0.55f, 3.0f, 0.28f, 0.13f, 0.08f);
-    drawHouseRoof(7.0f, 2.45f, -1.0f, 3.8f, 0.55f, 3.0f, 0.42f, 0.16f, 0.08f);
-    drawHouseRoof(10.0f, 2.45f, -2.0f, 3.4f, 0.50f, 2.9f, 0.42f, 0.42f, 0.46f);
-    drawCube(0.0f, 0.85f, 1.0f, 0.9f, 1.7f, 0.65f, 0.15f, 0.15f, 0.18f);
-    drawCube(0.0f, 1.25f, 0.64f, 0.66f, 0.52f, 0.06f, 0.02f, 0.08f, 0.12f);
-    drawSphere(0.0f, 0.55f, 0.62f, 0.10f, 0.95f, 0.20f, 0.12f);
+    drawSamsatOfficeFacade();
+    drawExteriorServiceBooth(-7.0f, -1.0f, 3.2f, 2.8f, 0.36f, 0.28f, 0.20f);
+    drawExteriorServiceBooth(7.0f, -1.0f, 3.5f, 2.8f, 0.68f, 0.38f, 0.16f);
+    drawExteriorServiceBooth(10.0f, -2.0f, 3.2f, 2.8f, 0.74f, 0.74f, 0.76f);
+    drawQueueMachine3D(0.0f, 1.0f);
     draw3DLabel(0.0f, 2.75f, 0.42f, "MESIN ANTREAN", 0.05f, 0.08f, 0.12f, 1.0f, 0.9f, 0.2f, 3.1f);
     draw3DLabel(10.0f, 2.7f, -0.75f, "FOTOKOPI", 0.12f, 0.12f, 0.12f, 1.0f, 0.9f, 0.2f, 2.8f);
     draw3DLabel(-9.8f, 2.2f, -7.4f, "CEK FISIK", 0.07f, 0.18f, 0.10f, 1.0f, 1.0f, 1.0f, 2.7f);
@@ -918,7 +999,6 @@ void drawSamsatExterior3D() {
         drawCompletionBadge(0.0f, 1.0f, "TIKET OK");
     }
     if (hasCorrectMap) {
-        drawDocumentPile(7.0f, 1.75f, 0.10f, 0.16f, 0.34f, 0.86f);
         drawCompletionBadge(7.0f, 1.0f, "MAP OK");
     }
     if (hasValidPhotocopy) {
@@ -952,7 +1032,6 @@ void drawSamsatExterior3D() {
 
     drawNPC3D(-7.0f, 1.0f, 0.10f, 0.60f, 0.20f);
     drawNPC3D(7.0f, 1.0f, 0.90f, 0.45f, 0.10f);
-    drawNPC3D(0.0f, 1.0f, 0.40f, 0.40f, 0.40f);
     drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
@@ -997,11 +1076,9 @@ void drawGenericCounterScene3D(float accentR, float accentG, float accentB, bool
     drawCube(0.0f, 0.85f, -3.0f, 6.0f, 1.1f, 1.4f, 0.46f, 0.34f, 0.24f);
     drawCube(0.0f, 1.55f, -4.7f, 5.2f, 1.6f, 0.3f, accentR, accentG, accentB);
     draw3DLabel(0.0f, 2.65f, -4.45f, "VALIDASI SELESAI", 0.06f, 0.18f, 0.08f, 1.0f, 1.0f, 1.0f, 4.0f);
-    drawCube(-4.8f, 1.1f, -2.5f, 1.0f, 1.8f, 1.0f, 0.55f, 0.55f, 0.58f);
-    drawCube(4.8f, 1.1f, -2.5f, 1.0f, 1.8f, 1.0f, 0.55f, 0.55f, 0.58f);
-    drawPortalMarker(0.0f, -6.0f, "LORONG FINAL", 0.15f, 0.85f, 0.32f);
-    drawObjectiveMarker(0.0f, -6.0f, "TUJUAN: FINAL");
-    drawNPC3D(0.0f, -4.0f, 0.18f, 0.36f, 0.80f);
+    drawPortalMarker(0.0f, 6.1f, "LOKET FINAL", 0.15f, 0.85f, 0.32f);
+    drawObjectiveMarker(0.0f, 6.1f, "TUJUAN: FINAL");
+    drawCounterClerk(0.0f, -3.95f, 0.18f, 0.36f, 0.80f);
     if (showPlayerCharacter) {
         drawPlayerShadow3D(player.x, player.z);
         drawPlayer3D(player.x, player.z);
@@ -1015,11 +1092,6 @@ void drawFormCounter3D() {
     drawCube(0.0f, 0.85f, -3.0f, 6.4f, 1.1f, 1.4f, 0.44f, 0.32f, 0.22f);
     drawCube(0.0f, 1.70f, -4.7f, 5.4f, 1.4f, 0.3f, 0.20f, 0.36f, 0.78f);
     draw3DLabel(0.0f, 2.75f, -4.45f, "LOKET FORMULIR", 0.08f, 0.16f, 0.34f, 1.0f, 1.0f, 1.0f, 4.0f);
-    drawDocumentPile(-2.2f, 1.15f, -2.7f, 0.90f, 0.90f, 0.92f);
-    drawDocumentPile(2.0f, 1.15f, -2.8f, 0.86f, 0.86f, 0.88f);
-    drawDocumentPile(-0.7f, 1.22f, -2.4f, 0.75f, 0.78f, 0.95f);
-    drawCube(2.9f, 1.22f, -2.55f, 0.48f, 0.14f, 0.70f, 0.18f, 0.36f, 0.82f);
-    drawCube(3.2f, 1.26f, -2.55f, 0.48f, 0.14f, 0.70f, 0.18f, 0.36f, 0.82f);
     drawPortalMarker(0.0f, 6.1f, hasFilledForm ? "LANJUT" : "KELUAR", 0.15f, 0.85f, 0.32f);
     drawInteractionMarker(0.0f, -4.0f, "E", hasFilledForm);
     if (hasFilledForm) {
@@ -1028,9 +1100,7 @@ void drawFormCounter3D() {
     if (!hasFilledForm) {
         drawObjectiveMarker(0.0f, -4.0f, "TUJUAN: FORM");
     }
-    drawCube(4.8f, 1.6f, -4.5f, 1.1f, 3.2f, 0.8f, 0.55f, 0.55f, 0.60f);
-    drawCube(-4.8f, 1.6f, -4.5f, 1.1f, 3.2f, 0.8f, 0.55f, 0.55f, 0.60f);
-    drawNPC3D(0.0f, -4.0f, 0.18f, 0.36f, 0.82f);
+    drawCounterClerk(0.0f, -3.95f, 0.18f, 0.36f, 0.82f);
     drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
@@ -1042,10 +1112,6 @@ void drawVerificationCounter3D() {
     drawCube(0.0f, 0.90f, -3.0f, 6.2f, 1.2f, 1.4f, 0.42f, 0.34f, 0.24f);
     drawCube(0.0f, 1.70f, -4.7f, 5.4f, 1.5f, 0.3f, 0.32f, 0.42f, 0.52f);
     draw3DLabel(0.0f, 2.8f, -4.45f, "VERIFIKASI BERKAS", 0.10f, 0.12f, 0.22f, 1.0f, 1.0f, 1.0f, 4.5f);
-    drawDocumentPile(-2.4f, 1.12f, -2.7f, 0.88f, 0.84f, 0.65f);
-    drawDocumentPile(2.3f, 1.12f, -2.8f, 0.84f, 0.90f, 0.84f);
-    drawCounterStamp(0.0f, -2.5f, 0.55f, 0.05f, 0.05f);
-    drawCube(1.1f, 1.32f, -2.55f, 0.80f, 0.10f, 0.80f, 0.95f, 0.15f, 0.15f);
     drawPortalMarker(0.0f, 6.1f, hasVerificationStamp ? "LANJUT" : "KELUAR", 0.15f, 0.85f, 0.32f);
     drawInteractionMarker(0.0f, -4.0f, "E", hasVerificationStamp);
     if (hasVerificationStamp) {
@@ -1054,9 +1120,7 @@ void drawVerificationCounter3D() {
     if (!hasVerificationStamp) {
         drawObjectiveMarker(0.0f, -4.0f, "TUJUAN: VERIFIKASI");
     }
-    drawCube(-5.2f, 2.0f, -4.4f, 1.3f, 4.0f, 1.0f, 0.44f, 0.40f, 0.34f);
-    drawCube(5.2f, 2.0f, -4.4f, 1.3f, 4.0f, 1.0f, 0.44f, 0.40f, 0.34f);
-    drawNPC3D(0.0f, -4.0f, 0.16f, 0.34f, 0.74f);
+    drawCounterClerk(0.0f, -3.95f, 0.16f, 0.34f, 0.74f);
     drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
@@ -1066,25 +1130,17 @@ void drawPaymentCounter3D() {
     drawRoomFrame(8.0f, 7.0f, 4.5f, 0.68f, 0.66f, 0.62f);
     drawCube(0.0f, 0.08f, 6.1f, 3.0f, 0.04f, 0.8f, 0.86f, 0.58f, 0.28f);
     drawCube(0.0f, 0.90f, -3.0f, 6.4f, 1.2f, 1.4f, 0.48f, 0.36f, 0.22f);
-    drawCube(0.0f, 2.05f, -3.5f, 5.2f, 0.15f, 0.1f, 0.76f, 0.84f, 0.90f);
     drawCube(0.0f, 1.72f, -4.7f, 5.4f, 1.5f, 0.3f, 0.58f, 0.38f, 0.16f);
     draw3DLabel(0.0f, 2.8f, -4.45f, "LOKET PEMBAYARAN", 0.28f, 0.16f, 0.04f, 1.0f, 0.95f, 0.25f, 4.4f);
-    drawCube(-1.8f, 1.18f, -2.7f, 0.8f, 0.45f, 0.8f, 0.14f, 0.14f, 0.16f);
-    drawCube(-1.8f, 1.48f, -2.98f, 0.90f, 0.10f, 0.12f, 0.10f, 0.60f, 0.18f);
-    drawCube(0.9f, 1.18f, -2.65f, 0.70f, 0.10f, 0.40f, 0.12f, 0.55f, 0.18f);
-    drawWorldText(0.62f, 1.28f, -2.43f, "RP", GLUT_BITMAP_8_BY_13);
     drawPortalMarker(0.0f, 6.1f, hasPaymentProof ? "VALIDASI" : "KEMBALI", 0.15f, 0.85f, 0.32f);
     drawInteractionMarker(0.0f, -4.0f, "E", hasPaymentProof);
     if (hasPaymentProof) {
-        drawDocumentPile(0.8f, 1.28f, -2.65f, 0.12f, 0.62f, 0.22f);
         drawCompletionBadge(0.0f, -4.0f, "BAYAR OK");
     }
     if (!hasPaymentProof) {
         drawObjectiveMarker(0.0f, -4.0f, "TUJUAN: BAYAR");
     }
-    drawDocumentPile(2.0f, 1.12f, -2.7f, 0.92f, 0.92f, 0.88f);
-    drawCube(4.7f, 1.10f, -2.8f, 1.2f, 1.8f, 1.0f, 0.54f, 0.52f, 0.48f);
-    drawNPC3D(0.0f, -4.0f, 0.16f, 0.28f, 0.68f);
+    drawCounterClerk(0.0f, -3.95f, 0.16f, 0.28f, 0.68f);
     drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
@@ -1096,8 +1152,6 @@ void drawValidationCounter3D() {
     drawCube(0.0f, 0.90f, -3.0f, 6.4f, 1.2f, 1.4f, 0.42f, 0.32f, 0.22f);
     drawCube(0.0f, 1.72f, -4.7f, 5.4f, 1.5f, 0.3f, 0.62f, 0.10f, 0.10f);
     draw3DLabel(0.0f, 2.8f, -4.45f, "VALIDASI", 0.32f, 0.05f, 0.05f, 1.0f, 1.0f, 1.0f, 3.2f);
-    drawCounterStamp(-1.2f, -2.5f, 0.65f, 0.00f, 0.00f);
-    drawCounterStamp(1.6f, -2.6f, 0.12f, 0.12f, 0.12f);
     drawPortalMarker(0.0f, 6.1f, receivedStampRequirement ? "METERAI" : "KELUAR", 0.15f, 0.85f, 0.32f);
     drawInteractionMarker(0.0f, -4.0f, "E", receivedStampRequirement);
     if (receivedStampRequirement) {
@@ -1106,9 +1160,7 @@ void drawValidationCounter3D() {
     if (!receivedStampRequirement) {
         drawObjectiveMarker(0.0f, -4.0f, "TUJUAN: VALIDASI");
     }
-    drawDocumentPile(2.8f, 1.10f, -2.7f, 0.90f, 0.88f, 0.82f);
-    drawCube(-4.8f, 1.7f, -4.4f, 1.2f, 3.4f, 0.9f, 0.48f, 0.42f, 0.34f);
-    drawNPC3D(0.0f, -4.0f, 0.14f, 0.26f, 0.62f);
+    drawCounterClerk(0.0f, -3.95f, 0.14f, 0.26f, 0.62f);
     drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
@@ -1117,16 +1169,13 @@ void drawPhotocopyShop3D() {
     drawGround(16.0f, 0.78f, 0.72f, 0.58f);
     drawRoomFrame(8.0f, 7.0f, 4.0f, 0.72f, 0.72f, 0.74f);
     drawCube(0.0f, 0.08f, 6.1f, 3.0f, 0.04f, 0.8f, 0.90f, 0.82f, 0.28f);
-    drawCube(-2.5f, 0.9f, -2.0f, 2.2f, 1.8f, 1.6f, 0.90f, 0.90f, 0.92f);
+    drawPhotocopyMachine(-2.5f, -2.0f);
     drawCube(2.8f, 0.8f, -2.4f, 3.0f, 1.0f, 1.4f, 0.45f, 0.33f, 0.24f);
     drawCube(0.8f, 1.1f, -3.8f, 4.5f, 1.6f, 0.3f, 0.55f, 0.55f, 0.58f);
     draw3DLabel(0.8f, 2.35f, -3.55f, "FOTOKOPI", 0.15f, 0.15f, 0.12f, 1.0f, 0.9f, 0.2f, 3.0f);
-    drawDocumentPile(2.1f, 1.35f, -2.2f, 0.94f, 0.94f, 0.90f);
-    drawDocumentPile(3.1f, 1.35f, -2.5f, 0.12f, 0.32f, 0.82f);
     drawPortalMarker(0.0f, 6.1f, "KELUAR", 0.15f, 0.85f, 0.32f);
     drawInteractionMarker(4.8f, -2.0f, "E", hasValidPhotocopy);
     if (hasValidPhotocopy) {
-        drawDocumentPile(-1.4f, 1.85f, -1.25f, 0.10f, 0.72f, 0.22f);
         drawCompletionBadge(4.8f, -2.0f, "FOTO OK");
     }
     if (!hasValidPhotocopy) {
@@ -1138,30 +1187,45 @@ void drawPhotocopyShop3D() {
 }
 
 void drawVehicleCheck3D() {
-    drawGround(20.0f, 0.40f, 0.48f, 0.40f);
-    drawCube(0.0f, 0.05f, 0.0f, 7.5f, 0.02f, 12.0f, 0.22f, 0.22f, 0.24f);
+    drawCityBoundary(28.0f, 16.0f);
+    drawGround(28.0f, 0.40f, 0.48f, 0.40f);
+    drawCube(0.0f, 0.05f, 0.0f, 12.4f, 0.03f, 15.4f, 0.24f, 0.24f, 0.26f);
+    drawCube(0.0f, 0.085f, 1.5f, 1.35f, 0.025f, 10.8f, 0.12f, 0.12f, 0.13f);
+    drawCube(0.0f, 0.11f, 1.5f, 0.62f, 0.02f, 9.8f, 0.06f, 0.06f, 0.07f);
+    drawCube(0.0f, 0.12f, 1.5f, 0.30f, 0.03f, 10.2f, 0.95f, 0.90f, 0.25f);
+    for (float z : {-4.0f, -1.4f, 1.2f, 3.8f, 6.0f}) {
+        drawCube(-3.55f, 0.12f, z, 1.35f, 0.018f, 0.10f, 0.95f, 0.92f, 0.35f);
+        drawCube(3.55f, 0.12f, z, 1.35f, 0.018f, 0.10f, 0.95f, 0.92f, 0.35f);
+    }
+    drawCylinder(-5.7f, 0.55f, -3.9f, 0.055f, 9.0f, 0.72f, 0.72f, 0.68f);
+    drawCylinder(5.7f, 0.55f, -3.9f, 0.055f, 9.0f, 0.72f, 0.72f, 0.68f);
+    drawCube(-5.7f, 0.72f, 0.5f, 0.12f, 0.12f, 8.8f, 0.70f, 0.70f, 0.66f);
+    drawCube(5.7f, 0.72f, 0.5f, 0.12f, 0.12f, 8.8f, 0.70f, 0.70f, 0.66f);
     draw3DLabel(0.0f, 2.8f, -5.5f, "CEK FISIK KENDARAAN", 0.08f, 0.18f, 0.10f, 1.0f, 1.0f, 1.0f, 5.0f);
     drawSimpleCar(0.0f, 1.5f);
-    drawCube(0.0f, 0.08f, 1.5f, 1.0f, 0.03f, 9.5f, 0.95f, 0.90f, 0.25f);
-    drawCube(4.5f, 0.8f, -2.5f, 2.0f, 1.0f, 1.2f, 0.45f, 0.34f, 0.24f);
-    drawCube(-5.5f, 1.0f, -3.5f, 2.6f, 2.0f, 2.2f, 0.32f, 0.42f, 0.52f);
-    drawTrafficCone(-2.8f, 5.0f);
-    drawTrafficCone(2.8f, 5.0f);
-    drawTrafficCone(-2.8f, -3.0f);
-    drawTrafficCone(2.8f, -3.0f);
+    drawCube(5.7f, 0.12f, -2.5f, 2.8f, 0.16f, 1.7f, 0.32f, 0.32f, 0.30f);
+    drawCube(5.7f, 0.85f, -2.5f, 2.25f, 1.0f, 1.2f, 0.45f, 0.34f, 0.24f);
+    drawCube(5.7f, 1.58f, -2.5f, 2.8f, 0.16f, 1.85f, 0.16f, 0.34f, 0.18f);
+    drawCylinder(4.52f, 0.92f, -1.72f, 0.06f, 1.50f, 0.76f, 0.76f, 0.70f, -90.0f);
+    drawCylinder(6.88f, 0.92f, -1.72f, 0.06f, 1.50f, 0.76f, 0.76f, 0.70f, -90.0f);
+    drawCube(5.7f, 1.16f, -1.86f, 1.72f, 0.34f, 0.08f, 0.05f, 0.10f, 0.08f);
+    drawTrafficCone(-4.5f, 6.0f);
+    drawTrafficCone(4.5f, 6.0f);
+    drawTrafficCone(-4.5f, -4.0f);
+    drawTrafficCone(4.5f, -4.0f);
     drawPortalMarker(0.0f, 6.7f, "KELUAR", 0.15f, 0.85f, 0.32f);
     if (hasPhysicalCheckProof) {
         drawPortalMarker(0.0f, -6.4f, "VERIFIKASI", 0.15f, 0.42f, 1.0f);
     }
     drawInteractionMarker(0.0f, 1.5f, "E", hasPhysicalCheckProof);
-    drawInteractionMarker(4.5f, -1.5f, "E", hasPhysicalCheckProof);
+    drawInteractionMarker(5.7f, -1.5f, "E", hasPhysicalCheckProof);
     if (hasPhysicalCheckProof) {
         drawCompletionBadge(0.0f, 1.5f, "CEK OK");
     }
     if (!hasPhysicalCheckProof) {
         drawObjectiveMarker(0.0f, 1.5f, "TUJUAN: CEK FISIK");
     }
-    drawNPC3D(4.5f, -1.5f, 0.15f, 0.55f, 0.25f);
+    drawNPC3D(5.7f, -1.5f, 0.15f, 0.55f, 0.25f);
     drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
@@ -1201,8 +1265,6 @@ void drawStampQuest3D() {
     drawRoomFrame(8.0f, 7.0f, 4.0f, 0.70f, 0.70f, 0.72f);
     drawCube(0.0f, 0.08f, 6.1f, 3.0f, 0.04f, 0.8f, 0.90f, 0.82f, 0.28f);
     drawCube(0.0f, 0.8f, -2.8f, 4.0f, 1.0f, 1.2f, 0.48f, 0.34f, 0.22f);
-    drawCube(0.0f, 1.05f, -1.0f, 0.4f, 0.02f, 0.3f, 0.9f, 0.1f, 0.1f);
-    drawCube(4.5f, 1.2f, -3.8f, 1.5f, 2.4f, 1.0f, 0.55f, 0.42f, 0.26f);
     draw3DLabel(0.0f, 2.0f, -2.45f, "METERAI", 0.34f, 0.18f, 0.04f, 1.0f, 0.95f, 0.25f, 2.6f);
     drawPortalMarker(0.0f, 6.1f, hasStampedDocument ? "VALIDASI" : "KELUAR", 0.15f, 0.85f, 0.32f);
     drawInteractionMarker(3.5f, -2.0f, "E", hasStampedDocument);
@@ -1217,54 +1279,12 @@ void drawStampQuest3D() {
     drawPlayer3D(player.x, player.z);
 }
 
-void drawFinalCorridor3D() {
-    drawGround(18.0f, 0.20f, 0.20f, 0.24f);
-    drawCube(-4.5f, 2.0f, -1.0f, 0.5f, 4.0f, 16.0f, 0.32f, 0.32f, 0.36f);
-    drawCube(4.5f, 2.0f, -1.0f, 0.5f, 4.0f, 16.0f, 0.32f, 0.32f, 0.36f);
-    drawCube(0.0f, 3.8f, -1.0f, 9.5f, 0.4f, 16.0f, 0.26f, 0.26f, 0.30f);
-    drawCube(0.0f, 1.2f, -8.0f, 4.0f, 2.4f, 0.3f, 0.75f, 0.70f, 0.45f);
-    draw3DLabel(0.0f, 2.8f, -7.75f, "LOKET FINAL", 0.38f, 0.05f, 0.05f, 1.0f, 1.0f, 1.0f, 3.6f);
-    drawCube(-3.7f, 1.8f, -4.6f, 1.0f, 3.6f, 0.9f, 0.40f, 0.34f, 0.28f);
-    drawCube(3.7f, 1.8f, -4.6f, 1.0f, 3.6f, 0.9f, 0.40f, 0.34f, 0.28f);
-    drawCube(-3.5f, 3.3f, -1.5f, 0.5f, 0.3f, 0.5f, 0.85f, 0.82f, 0.60f);
-    drawCube(3.5f, 3.3f, -1.5f, 0.5f, 0.3f, 0.5f, 0.85f, 0.82f, 0.60f);
-    drawCube(-3.5f, 3.3f, -6.0f, 0.5f, 0.3f, 0.5f, 0.85f, 0.82f, 0.60f);
-    drawCube(3.5f, 3.3f, -6.0f, 0.5f, 0.3f, 0.5f, 0.85f, 0.82f, 0.60f);
-    drawCube(0.0f, 0.03f, -6.5f, 3.6f, 0.02f, 1.2f, 0.90f, 0.82f, 0.20f);
-    draw3DLabel(-2.5f, 2.55f, -1.55f, "ANTREAN SENIOR", 0.16f, 0.12f, 0.24f, 1.0f, 1.0f, 1.0f, 3.8f);
-    draw3DLabel(2.8f, 2.55f, -3.35f, "ORANG DALAM", 0.08f, 0.02f, 0.03f, 1.0f, 0.82f, 0.82f, 3.2f);
-    drawPortalMarker(0.0f, -6.5f, "LOKET FINAL", 1.0f, 0.16f, 0.16f, true);
-    drawInteractionMarker(-2.5f, -2.0f, "E", receivedCorridorAdvice);
-    drawInteractionMarker(2.8f, -3.8f, "E", usedInsider);
-    if (receivedCorridorAdvice) {
-        drawCompletionBadge(-2.5f, -2.0f, "SARAN OK");
-    }
-    if (usedInsider) {
-        drawCompletionBadge(2.8f, -3.8f, "JALUR OK");
-    }
-    drawObjectiveMarker(0.0f, -6.5f, "TUJUAN: FINAL", true);
-    drawNPC3D(-2.5f, -2.0f, 0.55f, 0.42f, 0.70f);
-    drawNPC3D(2.8f, -3.8f, 0.35f, 0.05f, 0.05f);
-    drawPlayerShadow3D(player.x, player.z);
-    drawPlayer3D(player.x, player.z);
-}
-
 void drawFinalBoss3D() {
     drawGround(18.0f, 0.18f, 0.18f, 0.22f);
     drawRoomFrame(9.0f, 8.0f, 5.0f, 0.28f, 0.28f, 0.32f);
     drawCube(0.0f, 1.0f, -4.5f, 8.0f, 1.3f, 1.6f, 0.35f, 0.20f, 0.20f);
-    drawCube(-6.2f, 2.0f, -4.2f, 1.5f, 4.0f, 2.0f, 0.38f, 0.32f, 0.26f);
-    drawCube(6.2f, 2.0f, -4.2f, 1.5f, 4.0f, 2.0f, 0.38f, 0.32f, 0.26f);
     drawCube(0.0f, 4.2f, -7.4f, 6.5f, 0.25f, 0.4f, 0.55f, 0.18f, 0.18f);
     draw3DLabel(0.0f, 4.75f, -7.15f, "LOKET FINAL", 0.38f, 0.05f, 0.05f, 1.0f, 1.0f, 1.0f, 4.2f);
-    drawCube(1.6f, 1.6f, -3.9f, 1.2f, 0.7f, 0.8f, 0.12f, 0.12f, 0.15f);
-    drawCube(3.3f, 0.75f, -3.7f, 1.0f, 0.25f, 1.0f, 0.55f, 0.00f, 0.00f);
-    drawCube(-2.5f, 1.15f, -3.8f, 1.0f, 0.4f, 0.8f, 0.72f, 0.72f, 0.76f);
-    drawDocumentPile(-0.8f, 1.12f, -3.6f, 0.90f, 0.88f, 0.82f);
-    drawDocumentPile(-5.9f, 0.8f, -2.8f, 0.84f, 0.84f, 0.82f);
-    drawDocumentPile(5.8f, 0.8f, -2.8f, 0.84f, 0.84f, 0.82f);
-    drawDocumentPile(-4.8f, 1.0f, -3.4f, 0.90f, 0.88f, 0.82f);
-    drawDocumentPile(4.7f, 1.0f, -3.4f, 0.90f, 0.88f, 0.82f);
     drawPortalMarker(0.0f, 6.4f, "KEMBALI", 0.15f, 0.85f, 0.32f);
     drawInteractionMarker(0.0f, -5.5f, "E", hasFinalSTNK);
     if (hasFinalSTNK) {
@@ -1273,8 +1293,7 @@ void drawFinalBoss3D() {
     if (!hasFinalSTNK) {
         drawObjectiveMarker(0.0f, -5.5f, "TUJUAN: SERAHKAN", true);
     }
-    drawCounterStamp(3.1f, -3.7f, 0.60f, 0.00f, 0.00f);
-    drawNPC3D(0.0f, -5.5f, 0.10f, 0.20f, 0.60f);
+    drawCounterClerk(0.0f, -4.05f, 0.10f, 0.20f, 0.60f);
     drawPlayerShadow3D(player.x, player.z);
     drawPlayer3D(player.x, player.z);
 }
@@ -1331,10 +1350,6 @@ void renderCurrent3DState() {
             drawGenericCounterScene3D(0.18f, 0.52f, 0.20f);
             break;
 
-        case FINAL_CORRIDOR:
-            drawFinalCorridor3D();
-            break;
-
         case FINAL_COUNTER_BOSS:
             drawFinalBoss3D();
             break;
@@ -1365,8 +1380,6 @@ void drawResourceUI() {
     blocks.push_back("Sabar " + std::to_string(patience));
     blocks.push_back("Stamina " + std::to_string(stamina));
     blocks.push_back("Uang " + std::to_string(money));
-    blocks.push_back("Rep " + std::to_string(reputation));
-    blocks.push_back("Moral " + std::to_string(moralScore));
     blocks.push_back("Jam " + time.str());
 
     const float blockW = (static_cast<float>(windowWidth) - (margin * 2.0f) - (gap * static_cast<float>(columns - 1))) /
@@ -1422,7 +1435,6 @@ void drawInventoryOverlay() {
     items.push_back("STNK Lama: YES");
     items.push_back("Nomor Antrean: " + boolText(hasQueueNumber));
     items.push_back("Map Benar: " + boolText(hasCorrectMap));
-    items.push_back("Map Salah: " + boolText(hasWrongMap));
     items.push_back("Fotokopi Valid: " + boolText(hasValidPhotocopy));
     items.push_back("Formulir: " + boolText(hasFilledForm));
     items.push_back("Bukti Cek Fisik: " + boolText(hasPhysicalCheckProof));
@@ -1466,7 +1478,7 @@ void drawQuestLogOverlay() {
     quests.push_back(std::string(hasVerificationStamp ? "[X] " : "[ ] ") + "Verifikasi dokumen.");
     quests.push_back(std::string(hasPaymentProof ? "[X] " : "[ ] ") + "Bayar biaya administrasi.");
     quests.push_back(std::string(hasStampedDocument ? "[X] " : "[ ] ") + "Cari dan tempel meterai.");
-    quests.push_back(std::string(hasFinalSTNK ? "[X] " : "[ ] ") + "Hadapi loket final.");
+    quests.push_back(std::string(hasFinalSTNK ? "[X] " : "[ ] ") + "Serahkan berkas di loket final.");
 
     setColor(1.0f, 1.0f, 1.0f);
     float questY = y + panelH - 75.0f;
@@ -1507,7 +1519,7 @@ void drawDebugOverlay() {
 
     {
         std::stringstream ss;
-        ss << "Money: " << money << " | Rep: " << reputation << " | Moral: " << moralScore;
+        ss << "Money: " << money;
         lines.push_back(ss.str());
     }
 
@@ -1523,14 +1535,8 @@ void drawDebugOverlay() {
     lines.push_back("Verify: " + boolText(hasVerificationStamp) + " | Pay: " + boolText(hasPaymentProof));
     lines.push_back("Stamp: " + boolText(hasStampedDocument) + " | STNK: " + boolText(hasFinalSTNK));
     lines.push_back("Tutorial: " + boolText(hasSeenTutorial) + " | InventoryCheck: " + boolText(hasCheckedInventoryScene));
-    lines.push_back("CorridorAdvice: " + boolText(receivedCorridorAdvice));
     lines.push_back("StampReq: " + boolText(receivedStampRequirement));
-    lines.push_back("Insider: " + boolText(usedInsider) + " | HelpedNPC: " + boolText(helpedNPCs));
-    lines.push_back("SystemFixed: " + boolText(systemFixed));
     lines.push_back("AllFinalReq: " + boolText(hasAllFinalRequirements()));
-    lines.push_back("CanFast: " + boolText(canQualifyForFastEnding()) +
-                    " | CanLegend: " + boolText(canQualifyForLegendEnding()));
-    lines.push_back("CanRevolution: " + boolText(canQualifyForRevolutionEnding()));
     lines.push_back("ProjectedEnding: " + getProjectedEndingText());
 
     setColor(1.0f, 1.0f, 1.0f);
@@ -1570,11 +1576,9 @@ std::string getSceneTitle() {
         case VALIDATION_COUNTER:
             return "Loket Validasi";
         case STAMP_QUEST:
-            return "Quest Meterai";
+            return "Warung Meterai";
         case VALIDATION_SUCCESS:
             return "Validasi Berhasil";
-        case FINAL_CORRIDOR:
-            return "Lorong Final";
         case FINAL_COUNTER_BOSS:
             return "Loket Final";
         default:
@@ -1609,7 +1613,7 @@ std::string getSceneObjective() {
             if (!hasStampedDocument) {
                 return "Cari meterai, lalu tempelkan dokumen sebelum final.";
             }
-            return "Semua syarat siap. Lanjut ke lorong final.";
+            return "Semua syarat siap. Lanjut ke loket final.";
 
         case INFORMATION_ROOM:
             return "Bicara dengan petugas informasi atau lanjut ke loket formulir.";
@@ -1644,24 +1648,23 @@ std::string getSceneObjective() {
             return hasPaymentProof ? "Pembayaran selesai. Tekan E di pintu untuk menuju validasi." :
                                      "Dekati loket pembayaran lalu tekan E.";
         case VALIDATION_COUNTER:
-            return (hasPaymentProof && hasVerificationStamp) ?
+            if (!hasPaymentProof || !hasVerificationStamp) {
+                return "Lengkapi bukti bayar dan verifikasi, lalu tekan E di loket.";
+            }
+            return receivedStampRequirement ?
                    "Validasi meminta meterai. Tekan E di pintu untuk mencari meterai." :
-                   "Lengkapi bukti bayar dan verifikasi, lalu tekan E di loket.";
+                   "Bicara dengan petugas validasi dulu agar kebutuhan meterai tercatat.";
         case STAMP_QUEST:
             return hasStampedDocument ? "Dokumen sudah bermeterai. Tekan E di pintu untuk validasi akhir." :
                                         "Dekati penjual meterai lalu tekan E.";
-        case FINAL_CORRIDOR:
-            return usedInsider ? "Jalur cepat terbuka. Anda masih bisa bicara dengan senior atau maju ke loket final." :
-                                 "Cari info terakhir atau jalur cepat sebelum ke loket final.";
         case FINAL_COUNTER_BOSS:
             return hasFinalSTNK ? "STNK sudah terbit. Tekan SPACE untuk menentukan ending." :
-                                  (usedInsider ? "Dekati loket final untuk memproses jalur cepat." :
-                                                 (hasAllFinalRequirements() ?
-                                                  "Berkas final lengkap. Dekati loket final lalu tekan E." :
-                                                  "Lengkapi berkas final dulu, lalu kembali ke loket final."));
+                                  (hasAllFinalRequirements() ?
+                                   "Berkas final lengkap. Dekati petugas loket final lalu tekan E." :
+                                   "Lengkapi berkas final dulu, lalu kembali ke loket final.");
 
         case VALIDATION_SUCCESS:
-            return "Jalan ke pintu lorong final lalu tekan E.";
+            return "Jalan ke pintu loket final lalu tekan E.";
 
         default:
             return "";
@@ -1672,23 +1675,8 @@ std::string getEndingStatsLine() {
     std::ostringstream ss;
     ss << "Kesabaran " << patience
        << " | Stamina " << stamina
-       << " | Uang " << money
-       << " | Reputasi " << reputation
-       << " | Moral " << moralScore;
+       << " | Uang " << money;
     return ss.str();
-}
-
-std::string getEndingRouteLine() {
-    if (usedInsider) {
-        return "Rute: Jalur cepat orang dalam";
-    }
-    if (systemFixed) {
-        return "Rute: Reformasi prosedur dari dalam";
-    }
-    if (helpedNPCs) {
-        return "Rute: Warga teladan yang membantu sekitar";
-    }
-    return "Rute: Jalur bersih standar birokrasi";
 }
 
 void drawStateInstructionPanel() {
@@ -1701,7 +1689,7 @@ void drawStateInstructionPanel() {
         setColor(1.0f, 0.9f, 0.2f);
         drawText(x + 28.0f, y + h - 36.0f, "KONTROL DASAR", GLUT_BITMAP_HELVETICA_18);
         drawWrappedText(x + 28.0f, y + h - 70.0f,
-                        "WASD / Arrow Keys: jalan mengikuti kamera. Mouse kanan drag / M: lihat sekitar. E: interaksi. I: inventory. Q: quest log. R: reset kamera.",
+                        "WASD / Arrow Keys: jalan mengikuti kamera. Mouse kanan drag / M: lihat sekitar. E: interaksi. I: inventory. Q: quest log. G: menyerah. R: reset kamera.",
                         w - 56.0f, 24.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
         setColor(0.8f, 0.8f, 0.8f);
         drawText(x + 28.0f, y + 24.0f, "Tekan SPACE untuk mulai menjelajah area Samsat", GLUT_BITMAP_8_BY_13);
@@ -1806,7 +1794,8 @@ void drawTitleScreen() {
 
     setColor(1.0f, 1.0f, 1.0f);
     drawCenteredText(static_cast<float>(windowHeight) * 0.62f, "STNK of Destiny", GLUT_BITMAP_HELVETICA_18);
-    drawCenteredText(static_cast<float>(windowHeight) * 0.55f, "Prototype 3D OpenGL GLUT", GLUT_BITMAP_HELVETICA_18);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.55f, "Urus STNK sebelum loket tutup", GLUT_BITMAP_HELVETICA_18);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.50f, "Lengkapi nomor antrean, map, fotokopi, formulir, cek fisik, pembayaran, dan validasi.", GLUT_BITMAP_8_BY_13);
     drawCenteredText(static_cast<float>(windowHeight) * 0.34f, "Tekan ENTER untuk mulai", GLUT_BITMAP_HELVETICA_18);
     drawCenteredText(static_cast<float>(windowHeight) * 0.29f, "Tekan ESC untuk keluar", GLUT_BITMAP_8_BY_13);
 }
@@ -1823,13 +1812,13 @@ void drawOpeningNarration() {
     const float textW = static_cast<float>(windowWidth) * 0.64f;
     const float startY = static_cast<float>(windowHeight) * 0.61f;
     if (openingLine == 0) {
-        drawWrappedText(textX, startY, "Di sebuah pagi yang tampak biasa, seorang warga menyadari satu kenyataan besar: STNK harus segera diurus.",
+        drawWrappedText(textX, startY, "STNK lama hampir habis masa berlakunya. Hari ini Anda harus mengurus perpanjangan di kantor Samsat.",
                         textW, 28.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
     } else if (openingLine == 1) {
-        drawWrappedText(textX, startY, "Tujuannya tampak sederhana: datang, menyerahkan berkas, lalu pulang. Namun birokrasi punya questline sendiri.",
+        drawWrappedText(textX, startY, "Kantor tutup pukul 15:00. Uang, stamina, dan kesabaran Anda terbatas.",
                         textW, 28.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
     } else {
-        drawWrappedText(textX, startY, "Hari itu, Samsat bukan sekadar kantor. Ia adalah dungeon administratif. Dan STNK adalah artefak takdir.",
+        drawWrappedText(textX, startY, "Tujuan utama: lengkapi berkas, ikuti alur loket, bayar, validasi, lalu pulang membawa STNK baru.",
                         textW, 28.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
     }
 
@@ -1848,9 +1837,6 @@ void drawEndingScreen(const std::string& title, const std::string& line1, const 
     const float textW = static_cast<float>(windowWidth) * 0.64f;
     drawWrappedText(textX, static_cast<float>(windowHeight) * 0.57f, line1 + " " + line2,
                     textW, 28.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
-    drawWrappedText(textX, static_cast<float>(windowHeight) * 0.46f, getEndingRouteLine(),
-                    textW, 24.0f, GLUT_BITMAP_HELVETICA_18, 1.0f, 1.0f, 1.0f);
-
     setColor(0.82f, 0.82f, 0.86f);
     drawCenteredText(static_cast<float>(windowHeight) * 0.38f, getEndingStatsLine(), GLUT_BITMAP_8_BY_13);
 
@@ -1866,7 +1852,7 @@ void drawCreditScene() {
     drawCenteredText(static_cast<float>(windowHeight) * 0.70f, "SAMSAT QUEST", GLUT_BITMAP_TIMES_ROMAN_24);
 
     setColor(1.0f, 1.0f, 1.0f);
-    drawCenteredText(static_cast<float>(windowHeight) * 0.60f, "Prototype OpenGL GLUT", GLUT_BITMAP_HELVETICA_18);
+    drawCenteredText(static_cast<float>(windowHeight) * 0.60f, "OpenGL GLUT Edition", GLUT_BITMAP_HELVETICA_18);
     drawCenteredText(static_cast<float>(windowHeight) * 0.53f, "Terima kasih sudah mengurus STNK.", GLUT_BITMAP_HELVETICA_18);
     drawCenteredText(static_cast<float>(windowHeight) * 0.46f, "Post-credit: Mohon fotokopi rangkap tiga.", GLUT_BITMAP_HELVETICA_18);
 
@@ -1883,19 +1869,10 @@ void drawOverlayOnlyState() {
             drawOpeningNarration();
             break;
         case ENDING_CLEAN_SUCCESS:
-            drawEndingScreen("ENDING: SUKSES BERSIH", "Semua berkas benar.", "Anda menang tanpa jalan pintas.");
-            break;
-        case ENDING_FAST_SUCCESS:
-            drawEndingScreen("ENDING: SUKSES CEPAT", "Jalur cepat berhasil.", "Moral turun, waktu terselamatkan.");
-            break;
-        case ENDING_SAMSAT_LEGEND:
-            drawEndingScreen("ENDING: LEGENDA SAMSAT", "Semua orang mengenal nama Anda.", "Antrean pun memberi hormat.");
+            drawEndingScreen("STNK BERHASIL SELESAI", "Semua berkas diterima.", "Anda pulang membawa STNK baru.");
             break;
         case ENDING_GIVE_UP:
-            drawEndingScreen("ENDING: MENYERAH", "Kesabaran atau waktu habis.", "Sistem menang hari ini.");
-            break;
-        case ENDING_MAP_REVOLUTION:
-            drawEndingScreen("ENDING: REVOLUSI MAP", "Anda memperbaiki sistem dari dalam.", "Map akhirnya tidak lagi mistis.");
+            drawEndingScreen("PULANG TANPA STNK", "Proses belum selesai.", "Anda meninggalkan kantor tanpa STNK baru.");
             break;
         case CREDIT_SCENE:
             drawCreditScene();

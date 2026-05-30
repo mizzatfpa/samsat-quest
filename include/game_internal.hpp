@@ -20,7 +20,6 @@
 #include <vector>
 
 namespace samsat {
-extern bool isDrawingShadow;
 constexpr float kPi = 3.1415926535f;
 
 enum GameState {
@@ -43,13 +42,9 @@ enum GameState {
     VALIDATION_COUNTER,
     STAMP_QUEST,
     VALIDATION_SUCCESS,
-    FINAL_CORRIDOR,
     FINAL_COUNTER_BOSS,
     ENDING_CLEAN_SUCCESS,
-    ENDING_FAST_SUCCESS,
-    ENDING_SAMSAT_LEGEND,
     ENDING_GIVE_UP,
-    ENDING_MAP_REVOLUTION,
     CREDIT_SCENE
 };
 
@@ -85,14 +80,10 @@ extern Camera camera;
 extern int patience;
 extern int stamina;
 extern int money;
-extern int reputation;
-extern int moralScore;
 extern int timeHour;
 extern int timeMinute;
 extern bool hasQueueNumber;
 extern bool hasCorrectMap;
-extern bool hasWrongMap;
-extern bool hasForm;
 extern bool hasFilledForm;
 extern bool hasValidPhotocopy;
 extern bool hasPhysicalCheckProof;
@@ -100,14 +91,12 @@ extern bool hasVerificationStamp;
 extern bool hasPaymentProof;
 extern bool hasStampedDocument;
 extern bool hasFinalSTNK;
-extern bool usedInsider;
-extern bool helpedNPCs;
-extern bool systemFixed;
 extern bool hasQueuedPaymentLine;
 extern bool showInventory;
 extern bool showQuestLog;
 extern bool showDebug;
 extern bool showDialogue;
+extern bool pendingGiveUpConfirm;
 extern bool keyForward;
 extern bool keyBackward;
 extern bool keyLeft;
@@ -125,7 +114,6 @@ extern std::string dialogueText;
 extern int openingLine;
 extern bool hasSeenTutorial;
 extern bool hasCheckedInventoryScene;
-extern bool receivedCorridorAdvice;
 extern bool metSecurityGuard;
 extern bool metInformationOfficer;
 extern bool receivedStampRequirement;
@@ -162,9 +150,6 @@ void changeStateAt(GameState nextState, float x, float z, float facingYaw = 0.0f
 GameState getVerificationFallbackState();
 void addTime(int minutes);
 int minutesUntilClosing();
-bool canQualifyForFastEnding();
-bool canQualifyForLegendEnding();
-bool canQualifyForRevolutionEnding();
 bool handleBackNavigation();
 std::string boolText(bool value);
 std::string stateToString(GameState state);
@@ -188,8 +173,6 @@ void processPaymentQueue();
 void processPaymentCounter();
 void processValidationCounter();
 void processStampQuest();
-void processCorridorAdvice();
-void processInsiderOffer();
 void processFinalBoss();
 float distanceSquared(float ax, float az, float bx, float bz);
 bool isNear(float px, float pz, float ox, float oz, float radius);
@@ -215,8 +198,6 @@ void drawNPC3D(float x, float z, float r, float g, float b);
 void drawSimpleCar(float x, float z);
 void drawRoomFrame(float halfWidth, float halfDepth, float wallHeight, float r, float g, float b);
 void drawQueueMarker(float x, float z);
-void drawDocumentPile(float x, float y, float z, float r, float g, float b);
-void drawCounterStamp(float x, float z, float r, float g, float b);
 void setupLighting();
 void updateSceneLights();
 void setupCamera();
@@ -232,7 +213,6 @@ void drawPhotocopyShop3D();
 void drawVehicleCheck3D();
 void drawPaymentQueue3D();
 void drawStampQuest3D();
-void drawFinalCorridor3D();
 void drawFinalBoss3D();
 void renderCurrent3DState();
 void drawResourceUI();
@@ -243,7 +223,6 @@ void drawDebugOverlay();
 std::string getSceneTitle();
 std::string getSceneObjective();
 std::string getEndingStatsLine();
-std::string getEndingRouteLine();
 void drawStateInstructionPanel();
 void drawInteractionPrompt();
 void drawSceneHeader();

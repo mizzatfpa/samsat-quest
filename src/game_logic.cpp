@@ -161,7 +161,6 @@ void resetPlayerForState(GameState state) {
             player.z = 5.4f;
             break;
 
-        case FINAL_CORRIDOR:
         case FINAL_COUNTER_BOSS:
             player.x = 0.0f;
             player.y = 0.0f;
@@ -188,7 +187,6 @@ enum SceneArea {
     AREA_VALIDATION,
     AREA_STAMP,
     AREA_VALIDATION_SUCCESS,
-    AREA_FINAL_CORRIDOR,
     AREA_FINAL_BOSS
 };
 
@@ -224,8 +222,6 @@ SceneArea getSceneArea(GameState state) {
             return AREA_STAMP;
         case VALIDATION_SUCCESS:
             return AREA_VALIDATION_SUCCESS;
-        case FINAL_CORRIDOR:
-            return AREA_FINAL_CORRIDOR;
         case FINAL_COUNTER_BOSS:
             return AREA_FINAL_BOSS;
         default:
@@ -250,14 +246,16 @@ void addNpcCollision(std::vector<CollisionBox>& boxes, float x, float z) {
 
 void addStandardCounterCollisions(std::vector<CollisionBox>& boxes) {
     addCollisionBox(boxes, 0.0f, -3.0f, 6.4f, 1.4f);
-    addCollisionBox(boxes, -5.0f, -4.4f, 1.2f, 1.0f);
-    addCollisionBox(boxes, 5.0f, -4.4f, 1.2f, 1.0f);
     addNpcCollision(boxes, 0.0f, -4.0f);
 }
 
-void addRoomFrontWallCollisions(std::vector<CollisionBox>& boxes, float halfWidth, float halfDepth) {
+void addRoomWallCollisions(std::vector<CollisionBox>& boxes, float halfWidth, float halfDepth) {
     constexpr float doorWidth = 2.8f;
+    constexpr float wallThickness = 0.6f;
     const float sideWidth = halfWidth - doorWidth * 0.5f;
+    addCollisionBox(boxes, 0.0f, -halfDepth, halfWidth * 2.0f, wallThickness);
+    addCollisionBox(boxes, -halfWidth, 0.0f, wallThickness, halfDepth * 2.0f);
+    addCollisionBox(boxes, halfWidth, 0.0f, wallThickness, halfDepth * 2.0f);
     addCollisionBox(boxes, -(doorWidth * 0.5f + sideWidth * 0.5f), halfDepth, sideWidth, 0.3f);
     addCollisionBox(boxes, doorWidth * 0.5f + sideWidth * 0.5f, halfDepth, sideWidth, 0.3f);
 }
@@ -267,10 +265,13 @@ std::vector<CollisionBox> getSceneCollisionBoxes() {
 
     switch (getSceneArea(currentState)) {
         case AREA_EXTERIOR:
-            addCollisionBox(boxes, 0.0f, -10.0f, 16.4f, 5.9f);
-            addCollisionBox(boxes, -7.0f, -1.0f, 2.8f, 2.6f);
-            addCollisionBox(boxes, 7.0f, -1.0f, 3.4f, 2.6f);
-            addCollisionBox(boxes, 10.0f, -2.0f, 3.0f, 2.6f);
+            addCollisionBox(boxes, 0.0f, -10.4f, 15.8f, 6.0f);
+            addCollisionBox(boxes, 0.0f, -6.35f, 5.8f, 0.72f);
+            addCollisionBox(boxes, -7.7f, -6.85f, 6.3f, 1.05f);
+            addCollisionBox(boxes, 7.7f, -6.85f, 6.3f, 1.05f);
+            addCollisionBox(boxes, -7.0f, -1.0f, 3.2f, 2.9f);
+            addCollisionBox(boxes, 7.0f, -1.0f, 3.8f, 2.9f);
+            addCollisionBox(boxes, 10.0f, -2.0f, 3.4f, 2.9f);
             addCollisionBox(boxes, 0.0f, 1.0f, 1.1f, 0.9f);
             addCollisionBox(boxes, -9.0f, 5.0f, 5.1f, 2.2f);
             addCollisionBox(boxes, 9.0f, 5.0f, 5.1f, 2.2f);
@@ -279,7 +280,7 @@ std::vector<CollisionBox> getSceneCollisionBoxes() {
             break;
 
         case AREA_INFORMATION:
-            addRoomFrontWallCollisions(boxes, 9.0f, 8.0f);
+            addRoomWallCollisions(boxes, 9.0f, 8.0f);
             addCollisionBox(boxes, 0.0f, -3.0f, 5.2f, 1.5f);
             addCollisionBox(boxes, 5.0f, -3.0f, 1.6f, 1.6f);
             addCollisionBox(boxes, -4.0f, 1.2f, 1.2f, 1.2f);
@@ -291,7 +292,7 @@ std::vector<CollisionBox> getSceneCollisionBoxes() {
             break;
 
         case AREA_PHOTOCOPY:
-            addRoomFrontWallCollisions(boxes, 8.0f, 7.0f);
+            addRoomWallCollisions(boxes, 8.0f, 7.0f);
             addCollisionBox(boxes, -2.5f, -2.0f, 2.4f, 1.8f);
             addCollisionBox(boxes, 2.8f, -2.4f, 3.2f, 1.6f);
             addCollisionBox(boxes, 0.8f, -3.8f, 4.6f, 0.7f);
@@ -299,28 +300,25 @@ std::vector<CollisionBox> getSceneCollisionBoxes() {
             break;
 
         case AREA_FORM:
-            addRoomFrontWallCollisions(boxes, 8.0f, 7.0f);
+            addRoomWallCollisions(boxes, 8.0f, 7.0f);
             addStandardCounterCollisions(boxes);
-            addCollisionBox(boxes, 4.8f, -4.5f, 1.2f, 0.9f);
-            addCollisionBox(boxes, -4.8f, -4.5f, 1.2f, 0.9f);
             break;
 
         case AREA_VEHICLE_CHECK:
             addCollisionBox(boxes, 0.0f, 1.5f, 5.1f, 2.2f);
-            addCollisionBox(boxes, 4.5f, -2.5f, 2.2f, 1.4f);
-            addCollisionBox(boxes, -5.5f, -3.5f, 2.8f, 2.4f);
-            addNpcCollision(boxes, 4.5f, -1.5f);
+            addCollisionBox(boxes, 5.7f, -2.5f, 2.6f, 1.5f);
+            addNpcCollision(boxes, 5.7f, -1.5f);
             break;
 
         case AREA_VERIFICATION:
         case AREA_PAYMENT_COUNTER:
         case AREA_VALIDATION:
-            addRoomFrontWallCollisions(boxes, 8.0f, 7.0f);
+            addRoomWallCollisions(boxes, 8.0f, 7.0f);
             addStandardCounterCollisions(boxes);
             break;
 
         case AREA_PAYMENT_QUEUE:
-            addRoomFrontWallCollisions(boxes, 8.0f, 8.0f);
+            addRoomWallCollisions(boxes, 8.0f, 8.0f);
             addCollisionBox(boxes, 0.0f, -4.0f, 5.8f, 1.4f);
             for (int i = 0; i < 5; ++i) {
                 addNpcCollision(boxes, -3.0f + static_cast<float>(i) * 1.5f, 2.5f);
@@ -328,29 +326,19 @@ std::vector<CollisionBox> getSceneCollisionBoxes() {
             break;
 
         case AREA_STAMP:
-            addRoomFrontWallCollisions(boxes, 8.0f, 7.0f);
+            addRoomWallCollisions(boxes, 8.0f, 7.0f);
             addCollisionBox(boxes, 0.0f, -2.8f, 4.2f, 1.4f);
-            addCollisionBox(boxes, 4.5f, -3.8f, 1.7f, 1.2f);
             addNpcCollision(boxes, 3.5f, -2.0f);
             break;
 
         case AREA_VALIDATION_SUCCESS:
-            addRoomFrontWallCollisions(boxes, 8.0f, 7.0f);
+            addRoomWallCollisions(boxes, 8.0f, 7.0f);
             addStandardCounterCollisions(boxes);
             break;
 
-        case AREA_FINAL_CORRIDOR:
-            addCollisionBox(boxes, -3.7f, -4.6f, 1.2f, 1.1f);
-            addCollisionBox(boxes, 3.7f, -4.6f, 1.2f, 1.1f);
-            addNpcCollision(boxes, -2.5f, -2.0f);
-            addNpcCollision(boxes, 2.8f, -3.8f);
-            break;
-
         case AREA_FINAL_BOSS:
-            addRoomFrontWallCollisions(boxes, 9.0f, 8.0f);
+            addRoomWallCollisions(boxes, 9.0f, 8.0f);
             addCollisionBox(boxes, 0.0f, -4.5f, 8.2f, 1.8f);
-            addCollisionBox(boxes, -6.2f, -4.2f, 1.7f, 2.2f);
-            addCollisionBox(boxes, 6.2f, -4.2f, 1.7f, 2.2f);
             addNpcCollision(boxes, 0.0f, -5.5f);
             break;
 
@@ -387,6 +375,7 @@ void changeState(GameState nextState) {
     showDialogue = false;
     showInventory = false;
     showQuestLog = false;
+    pendingGiveUpConfirm = false;
 
     // Only reposition the player when they actually move to a different map area.
     // Talking to NPCs or finishing a task now keeps the player standing there.
@@ -448,23 +437,6 @@ int minutesUntilClosing() {
     return std::max(0, minutesLeft);
 }
 
-bool canQualifyForFastEnding() {
-    return usedInsider;
-}
-
-bool canQualifyForLegendEnding() {
-    return helpedNPCs && reputation >= 60;
-}
-
-bool canQualifyForRevolutionEnding() {
-    return !usedInsider &&
-           reputation >= 80 &&
-           moralScore >= 90 &&
-           metSecurityGuard &&
-           metInformationOfficer &&
-           receivedCorridorAdvice;
-}
-
 bool handleBackNavigation() {
     switch (currentState) {
         case DIALOG_SECURITY_GUARD:
@@ -516,12 +488,8 @@ bool handleBackNavigation() {
             changeState(STAMP_QUEST);
             return true;
 
-        case FINAL_CORRIDOR:
-            changeState(VALIDATION_SUCCESS);
-            return true;
-
         case FINAL_COUNTER_BOSS:
-            changeState(FINAL_CORRIDOR);
+            changeState(VALIDATION_SUCCESS);
             return true;
 
         default:
@@ -554,13 +522,9 @@ std::string stateToString(GameState state) {
         case VALIDATION_COUNTER: return "VALIDATION_COUNTER";
         case STAMP_QUEST: return "STAMP_QUEST";
         case VALIDATION_SUCCESS: return "VALIDATION_SUCCESS";
-        case FINAL_CORRIDOR: return "FINAL_CORRIDOR";
         case FINAL_COUNTER_BOSS: return "FINAL_COUNTER_BOSS";
         case ENDING_CLEAN_SUCCESS: return "ENDING_CLEAN_SUCCESS";
-        case ENDING_FAST_SUCCESS: return "ENDING_FAST_SUCCESS";
-        case ENDING_SAMSAT_LEGEND: return "ENDING_SAMSAT_LEGEND";
         case ENDING_GIVE_UP: return "ENDING_GIVE_UP";
-        case ENDING_MAP_REVOLUTION: return "ENDING_MAP_REVOLUTION";
         case CREDIT_SCENE: return "CREDIT_SCENE";
         default: return "UNKNOWN";
     }
@@ -570,19 +534,13 @@ bool isOverlayOnlyState(GameState state) {
     return state == TITLE_SCREEN ||
            state == OPENING_NARRATION ||
            state == ENDING_CLEAN_SUCCESS ||
-           state == ENDING_FAST_SUCCESS ||
-           state == ENDING_SAMSAT_LEGEND ||
            state == ENDING_GIVE_UP ||
-           state == ENDING_MAP_REVOLUTION ||
            state == CREDIT_SCENE;
 }
 
 bool isEndingState(GameState state) {
     return state == ENDING_CLEAN_SUCCESS ||
-           state == ENDING_FAST_SUCCESS ||
-           state == ENDING_SAMSAT_LEGEND ||
-           state == ENDING_GIVE_UP ||
-           state == ENDING_MAP_REVOLUTION;
+           state == ENDING_GIVE_UP;
 }
 
 bool isWalkable3DState(GameState state) {
@@ -599,7 +557,6 @@ bool isWalkable3DState(GameState state) {
         case VALIDATION_COUNTER:
         case STAMP_QUEST:
         case VALIDATION_SUCCESS:
-        case FINAL_CORRIDOR:
         case FINAL_COUNTER_BOSS:
             return true;
         default:
@@ -616,24 +573,43 @@ void setDialogue(const std::string& speaker, const std::string& text) {
 void startSecurityDialogue() {
     if (!metSecurityGuard) {
         metSecurityGuard = true;
-        reputation = clampInt(reputation + 5, 0, 100);
     }
 
     setDialogue(
-        "Satpam Filosofis",
-        "Mau urus STNK? Tanyakan dulu ke ruang informasi. Di sini arah selalu datang setelah bingung."
+        "Satpam",
+        "Kalau baru datang, masuk ruang informasi dulu. Di sana urutannya dijelaskan."
     );
 }
 
 void startInformationDialogue() {
     if (!metInformationOfficer) {
         metInformationOfficer = true;
-        reputation = clampInt(reputation + 5, 0, 100);
+    }
+
+    std::string nextStep;
+    if (!hasQueueNumber) {
+        nextStep = "Sekarang ambil nomor antrean dulu di mesin halaman.";
+    } else if (!hasCorrectMap) {
+        nextStep = "Berikutnya beli map yang benar di halaman depan.";
+    } else if (!hasValidPhotocopy) {
+        nextStep = "Setelah itu fotokopi dokumen di kios fotokopi.";
+    } else if (!hasFilledForm) {
+        nextStep = "Lanjut ke loket formulir untuk mengisi berkas.";
+    } else if (!hasPhysicalCheckProof) {
+        nextStep = "Sekarang ke area cek fisik kendaraan.";
+    } else if (!hasVerificationStamp) {
+        nextStep = "Bawa berkas ke loket verifikasi.";
+    } else if (!hasPaymentProof) {
+        nextStep = "Ikut antre pembayaran, lalu bayar di loket.";
+    } else if (!hasStampedDocument) {
+        nextStep = "Validasi butuh meterai. Cari meterai dulu.";
+    } else {
+        nextStep = "Semua siap. Lanjut ke loket final.";
     }
 
     setDialogue(
         "Petugas Informasi",
-        "Urutannya nomor antrean, map, fotokopi, formulir, cek fisik, pembayaran, validasi, lalu meterai."
+        "Checklist singkat: nomor antrean, map, fotokopi, formulir, cek fisik, verifikasi, bayar, validasi. " + nextStep
     );
 }
 
@@ -651,18 +627,6 @@ bool hasAllFinalRequirements() {
 GameState determineEnding() {
     if (patience <= 0 || timeHour >= 15) {
         return ENDING_GIVE_UP;
-    }
-
-    if (usedInsider && hasFinalSTNK) {
-        return ENDING_FAST_SUCCESS;
-    }
-
-    if (hasFinalSTNK && reputation >= 80 && moralScore >= 90 && systemFixed) {
-        return ENDING_MAP_REVOLUTION;
-    }
-
-    if (hasFinalSTNK && reputation >= 60 && helpedNPCs) {
-        return ENDING_SAMSAT_LEGEND;
     }
 
     if (hasFinalSTNK) {
@@ -710,8 +674,7 @@ void processQueueMachine() {
     if (!hasQueueNumber) {
         hasQueueNumber = true;
         playSuccessBeep();
-        showNotification("Objective Complete: Nomor antrean didapat");
-        reputation = clampInt(reputation + 3, 0, 100);
+        showNotification("Selesai: Nomor antrean didapat");
         addTime(10);
         setDialogue("Mesin Antrean", "Nomor B-047 keluar. Kertas kecil, konsekuensi panjang.");
         return;
@@ -730,15 +693,13 @@ void processMapVendor() {
         money -= 3000;
         hasCorrectMap = true;
         playSuccessBeep();
-        showNotification("Objective Complete: Map benar dibeli");
-        hasWrongMap = false;
-        reputation = clampInt(reputation + 5, 0, 100);
-        setDialogue("Penjual Map", "Ini map biru yang benar. Untuk hari ini, warna masih menentukan takdir.");
+        showNotification("Selesai: Map benar dibeli");
+        setDialogue("Penjual Map", "Ini map biru untuk perpanjangan STNK. Simpan bersama fotokopi dan formulir.");
         return;
     }
 
     patience = clampInt(patience - 10, 0, 100);
-    setDialogue("Penjual Map", "Uangnya kurang. Bahkan map pun menuntut kepastian.");
+    setDialogue("Penjual Map", "Uangnya kurang. Map belum bisa dibeli.");
 }
 
 void processPhotocopyShop() {
@@ -751,8 +712,7 @@ void processPhotocopyShop() {
         money -= 5000;
         hasValidPhotocopy = true;
         playSuccessBeep();
-        showNotification("Objective Complete: Fotokopi selesai");
-        reputation = clampInt(reputation + 5, 0, 100);
+        showNotification("Selesai: Fotokopi selesai");
         addTime(15);
         setDialogue("Tukang Fotokopi", "Fotokopi selesai. Tidak buram, jadi jelas terasa langka.");
         return;
@@ -769,11 +729,9 @@ void processFormCounter() {
     }
 
     if (hasQueueNumber && hasCorrectMap && hasValidPhotocopy) {
-        hasForm = true;
         hasFilledForm = true;
         playSuccessBeep();
-        showNotification("Objective Complete: Formulir lengkap");
-        reputation = clampInt(reputation + 10, 0, 100);
+        showNotification("Selesai: Formulir lengkap");
         addTime(20);
         setDialogue("Petugas Formulir", "Formulir selesai. Tulisan Anda cukup rapi untuk dipercaya.");
         return;
@@ -792,9 +750,8 @@ void processVehicleCheck() {
     if (hasFilledForm) {
         hasPhysicalCheckProof = true;
         playSuccessBeep();
-        showNotification("Objective Complete: Cek fisik selesai");
+        showNotification("Selesai: Cek fisik selesai");
         stamina = clampInt(stamina - 10, 0, 100);
-        reputation = clampInt(reputation + 5, 0, 100);
         addTime(20);
         setDialogue("Petugas Cek Fisik", "Nomor mesin ditemukan. Ia bersembunyi, tapi prosedur lebih sabar.");
         return;
@@ -813,8 +770,7 @@ void processVerification() {
     if (hasFilledForm && hasValidPhotocopy && hasPhysicalCheckProof && hasCorrectMap) {
         hasVerificationStamp = true;
         playSuccessBeep();
-        showNotification("Objective Complete: Verifikasi selesai");
-        reputation = clampInt(reputation + 10, 0, 100);
+        showNotification("Selesai: Verifikasi selesai");
         addTime(20);
         setDialogue("Petugas Verifikasi", "Berkas lengkap. Susunannya bahkan tampak sudah menyerah.");
         return;
@@ -825,6 +781,12 @@ void processVerification() {
 }
 
 void processPaymentQueue() {
+    if (!hasQueueNumber) {
+        patience = clampInt(patience - 10, 0, 100);
+        setDialogue("Antrean", "Nomor antrean dulu. Tanpa nomor, antrean tidak tahu harus mengingat Anda sebagai siapa.");
+        return;
+    }
+
     if (!hasVerificationStamp) {
         patience = clampInt(patience - 10, 0, 100);
         setDialogue("Antrean", "Anda belum diverifikasi. Bahkan antrean punya standar.");
@@ -832,17 +794,17 @@ void processPaymentQueue() {
     }
 
     if (hasQueuedPaymentLine) {
-        setDialogue("Antrean", "Anda sudah antre dengan benar. Tekan SPACE untuk lanjut ke loket pembayaran.");
+        setDialogue("Antrean", "Nomor antrean sudah dipanggil. Jalan ke ujung antrean lalu tekan E untuk masuk loket pembayaran.");
         return;
     }
 
     hasQueuedPaymentLine = true;
-        playSuccessBeep();
-        showNotification("Objective Complete: Antrean pembayaran aman");
+    playSuccessBeep();
+    showNotification("Selesai: Antrean pembayaran diproses");
     patience = clampInt(patience - 5, 0, 100);
     stamina = clampInt(stamina - 10, 0, 100);
     addTime(30);
-    setDialogue("Antrean", "Antrean maju sedikit. Secara emosional, itu sudah pencapaian.");
+    setDialogue("Antrean", "Anda menunggu giliran. Nomor dipanggil, silakan maju ke loket pembayaran.");
 }
 
 void processPaymentCounter() {
@@ -861,10 +823,9 @@ void processPaymentCounter() {
         money -= 25000;
         hasPaymentProof = true;
         playSuccessBeep();
-        showNotification("Objective Complete: Pembayaran selesai");
-        reputation = clampInt(reputation + 5, 0, 100);
+        showNotification("Selesai: Pembayaran selesai");
         addTime(10);
-        setDialogue("Petugas Pembayaran", "Pembayaran diterima. Dompet dan sistem sama-sama kehilangan energi.");
+        setDialogue("Petugas Pembayaran", "Pembayaran diterima. Simpan bukti bayar untuk loket validasi.");
         return;
     }
 
@@ -877,10 +838,9 @@ void processValidationCounter() {
         if (!receivedStampRequirement && !hasStampedDocument) {
             receivedStampRequirement = true;
             playSuccessBeep();
-            showNotification("Objective Complete: Validasi awal selesai");
-            reputation = clampInt(reputation + 10, 0, 100);
+            showNotification("Selesai: Validasi awal selesai");
         }
-        setDialogue("Petugas Validasi", "Semua bagus. Tinggal satu hal kecil yang besar: meterai.");
+        setDialogue("Petugas Validasi", "Berkas dan pembayaran cocok. Dokumen masih perlu meterai sebelum final.");
         return;
     }
 
@@ -890,7 +850,7 @@ void processValidationCounter() {
 
 void processStampQuest() {
     if (hasStampedDocument) {
-        setDialogue("Penjual Warung", "Meterai sudah tertempel. Jangan digeser, nanti jadi debat nasional.");
+        setDialogue("Penjual Warung", "Meterai sudah tertempel. Bawa kembali ke loket validasi.");
         return;
     }
 
@@ -898,70 +858,27 @@ void processStampQuest() {
         money -= 10000;
         hasStampedDocument = true;
         playSuccessBeep();
-        showNotification("Objective Complete: Meterai terpasang");
-        reputation = clampInt(reputation + 10, 0, 100);
+        showNotification("Selesai: Meterai terpasang");
         addTime(15);
-        setDialogue("Penjual Warung", "Meterai terpasang rapi. Cukup lurus untuk menenangkan prosedur.");
+        setDialogue("Penjual Warung", "Meterai terpasang rapi. Silakan kembali ke validasi akhir.");
         return;
     }
 
     patience = clampInt(patience - 15, 0, 100);
-    setDialogue("Penjual Warung", "Uang tidak cukup. Takdir tertahan di warung meterai.");
-}
-
-void processCorridorAdvice() {
-    if (!receivedCorridorAdvice) {
-        receivedCorridorAdvice = true;
-        helpedNPCs = true;
-        playSuccessBeep();
-        showNotification("Objective Complete: Info final didapat");
-        reputation = clampInt(reputation + 5, 0, 100);
-        setDialogue("Antrean Senior", "Pastikan berkasmu rapi. Loket final menyukai urutan lebih dari manusia.");
-        return;
-    }
-
-    setDialogue("Antrean Senior", "Kalau panik, cek lagi map, stempel, dan bukti bayar. Boss final hidup dari detail.");
-}
-
-void processInsiderOffer() {
-    if (usedInsider) {
-        setDialogue("Orang Dalam", "Jalur cepat sudah dibuka. Tinggal lihat apakah hati nuranimu ikut antre.");
-        return;
-    }
-
-    usedInsider = true;
-    playSuccessBeep();
-    showNotification("Objective Complete: Jalur cepat terbuka");
-    moralScore = clampInt(moralScore - 40, 0, 100);
-    reputation = clampInt(reputation - 5, 0, 100);
-    setDialogue("Orang Dalam", "Saya bisa bantu percepat. Berkas nanti dianggap 'sudah dipahami sistem'.");
+    setDialogue("Penjual Warung", "Uang tidak cukup. Meterai belum bisa dibeli.");
 }
 
 void processFinalBoss() {
     if (hasFinalSTNK) {
-        setDialogue("Petugas Loket Final", "STNK Anda sudah jadi. Yang tersisa sekarang hanya makna dari perjalanan ini.");
+        setDialogue("Petugas Loket Final", "STNK Anda sudah jadi. Silakan lanjut ke hasil akhir.");
         return;
     }
 
     if (hasAllFinalRequirements()) {
         hasFinalSTNK = true;
         playSuccessBeep();
-        showNotification("Objective Complete: STNK selesai!");
-        reputation = clampInt(reputation + 5, 0, 100);
-        if (reputation >= 80 &&
-            moralScore >= 90 &&
-            metSecurityGuard &&
-            metInformationOfficer &&
-            receivedCorridorAdvice) {
-            systemFixed = true;
-        }
-        setDialogue("Petugas Loket Final", "Selamat. STNK selesai. Untuk hari ini, Anda lebih kuat dari sistem.");
-        return;
-    }
-
-    if (usedInsider) {
-        hasFinalSTNK = true;
-        setDialogue("Petugas Loket Final", "Berkas Anda... diproses khusus. Cepat sekali. Mencurigakan, tapi cepat.");
+        showNotification("Selesai: STNK baru terbit");
+        setDialogue("Petugas Loket Final", "Berkas lengkap. STNK baru selesai diproses.");
         return;
     }
 
@@ -1013,7 +930,6 @@ void clampPositionToScene(float& x, float& z) {
             z = clampFloat(z, -7.0f, 7.0f);
             break;
 
-        case FINAL_CORRIDOR:
         case FINAL_COUNTER_BOSS:
             x = clampFloat(x, -6.0f, 6.0f);
             z = clampFloat(z, -9.0f, 8.0f);
@@ -1175,9 +1091,6 @@ std::string getInteractionPrompt() {
         if (player.x > -1.8f && player.x < 1.8f && player.z > -6.0f && player.z < -3.5f) {
             return "Tekan E untuk masuk ke ruang informasi";
         }
-        if (player.x > 8.0f && player.z < -7.0f) {
-            return "Tekan E untuk masuk kios fotokopi";
-        }
         if (hasFilledForm && player.x < -8.0f && player.z < -7.0f) {
             return "Tekan E untuk masuk area cek fisik";
         }
@@ -1234,7 +1147,7 @@ std::string getInteractionPrompt() {
         if (player.z < -6.2f && hasPhysicalCheckProof) {
             return "Tekan E untuk lanjut ke loket verifikasi";
         }
-        if (isNear(player.x, player.z, 4.5f, -1.5f, 2.5f) || isNear(player.x, player.z, 0.0f, 1.5f, 2.5f)) {
+        if (isNear(player.x, player.z, 5.7f, -1.5f, 2.5f) || isNear(player.x, player.z, 0.0f, 1.5f, 2.5f)) {
             return "Tekan E untuk proses cek fisik kendaraan";
         }
         return "Dekati kendaraan atau petugas cek fisik";
@@ -1275,7 +1188,7 @@ std::string getInteractionPrompt() {
 
     if (currentState == VALIDATION_COUNTER) {
         if (player.z > 5.2f) {
-            return receivedStampRequirement ? "Tekan E untuk mencari meterai" : "Tekan E untuk keluar ke halaman Samsat";
+            return receivedStampRequirement ? "Tekan E untuk mencari meterai" : "Bicara dengan loket validasi dulu";
         }
         if (isNear(player.x, player.z, 0.0f, -4.0f, 2.2f)) {
             return "Tekan E di loket validasi";
@@ -1294,32 +1207,20 @@ std::string getInteractionPrompt() {
     }
 
     if (currentState == VALIDATION_SUCCESS) {
-        if (player.z < -5.5f) {
-            return "Tekan E untuk masuk lorong final";
+        if (player.z > 5.2f) {
+            return "Tekan E untuk menuju loket final";
         }
-        return "Berkas siap. Jalan ke pintu lorong final lalu tekan E";
-    }
-    if (currentState == FINAL_CORRIDOR) {
-        if (isNear(player.x, player.z, -2.5f, -2.0f, 2.3f)) {
-            return "Tekan E untuk bicara dengan Antrean Senior";
-        }
-        if (isNear(player.x, player.z, 2.8f, -3.8f, 2.3f)) {
-            return usedInsider ? "Tekan E untuk cek jalur cepat" : "Tekan E untuk bicara dengan Orang Dalam";
-        }
-        if (player.z < -6.0f) {
-            return "Tekan E untuk menghadapi loket final";
-        }
-        return "Berjalan ke ujung lorong lalu tekan E";
+        return "Berkas siap. Jalan ke pintu loket final lalu tekan E";
     }
 
     if (currentState == FINAL_COUNTER_BOSS) {
         if (player.z > 6.0f) {
-            return "Tekan E untuk kembali ke lorong final";
+            return "Tekan E untuk kembali ke validasi akhir";
         }
         if (isNear(player.x, player.z, 0.0f, -5.5f, 2.3f)) {
             return "Tekan E di loket final";
         }
-        return "Dekati boss loket final";
+        return "Dekati petugas loket final";
     }
 
     return "";
@@ -1352,11 +1253,6 @@ void interactCurrentScene() {
 
         if (player.x > -1.8f && player.x < 1.8f && player.z > -6.0f && player.z < -3.5f) {
             changeStateAt(INFORMATION_ROOM, 0.0f, 5.6f, 180.0f);
-            return;
-        }
-
-        if (player.x > 8.0f && player.z < -7.0f) {
-            changeStateAt(PHOTOCOPY_SHOP, -5.5f, 5.4f, 180.0f);
             return;
         }
 
@@ -1403,7 +1299,7 @@ void interactCurrentScene() {
 
     if (currentState == PHOTOCOPY_SHOP) {
         if (player.z > 5.2f) {
-            changeStateAt(SAMSAT_EXTERIOR, 10.0f, -7.5f, 0.0f);
+            changeStateAt(SAMSAT_EXTERIOR, 10.0f, -5.0f, 0.0f);
             return;
         }
         if (isNear(player.x, player.z, 4.8f, -2.0f, 2.3f)) {
@@ -1435,14 +1331,14 @@ void interactCurrentScene() {
 
     if (currentState == VEHICLE_CHECK_AREA) {
         if (player.z > 6.2f) {
-            changeStateAt(SAMSAT_EXTERIOR, -9.5f, -7.5f, 0.0f);
+            changeStateAt(SAMSAT_EXTERIOR, -9.5f, -5.0f, 0.0f);
             return;
         }
         if (player.z < -6.2f && hasPhysicalCheckProof) {
             changeStateAt(VERIFICATION_COUNTER, 0.0f, 5.6f, 180.0f);
             return;
         }
-        if (isNear(player.x, player.z, 4.5f, -1.5f, 2.5f) || isNear(player.x, player.z, 0.0f, 1.5f, 2.5f)) {
+        if (isNear(player.x, player.z, 5.7f, -1.5f, 2.5f) || isNear(player.x, player.z, 0.0f, 1.5f, 2.5f)) {
             processVehicleCheck();
             return;
         }
@@ -1456,7 +1352,7 @@ void interactCurrentScene() {
             if (hasVerificationStamp) {
                 changeStateAt(PAYMENT_QUEUE, 0.0f, 6.2f, 180.0f);
             } else {
-                changeStateAt(SAMSAT_EXTERIOR, 7.0f, -7.5f, 0.0f);
+                changeStateAt(SAMSAT_EXTERIOR, 8.6f, -5.0f, 0.0f);
             }
             return;
         }
@@ -1542,38 +1438,18 @@ void interactCurrentScene() {
     }
 
     if (currentState == VALIDATION_SUCCESS) {
-        if (player.z < -5.5f) {
-            changeStateAt(FINAL_CORRIDOR, 0.0f, 7.0f, 180.0f);
+        if (player.z > 5.2f) {
+            changeStateAt(FINAL_COUNTER_BOSS, 0.0f, 6.4f, 180.0f);
             return;
         }
 
-        setDialogue("Sistem", "Jalan ke pintu lorong final lalu tekan E.");
-        return;
-    }
-
-    if (currentState == FINAL_CORRIDOR) {
-        if (isNear(player.x, player.z, -2.5f, -2.0f, 2.3f)) {
-            processCorridorAdvice();
-            return;
-        }
-
-        if (isNear(player.x, player.z, 2.8f, -3.8f, 2.3f)) {
-            processInsiderOffer();
-            return;
-        }
-
-        if (player.z < -6.0f) {
-            changeState(FINAL_COUNTER_BOSS);
-            return;
-        }
-
-        setDialogue("Sistem", "Ujung lorong final masih di depan.");
+        setDialogue("Sistem", "Jalan ke pintu loket final lalu tekan E.");
         return;
     }
 
     if (currentState == FINAL_COUNTER_BOSS) {
         if (player.z > 6.0f) {
-            changeState(FINAL_CORRIDOR);
+            changeState(VALIDATION_SUCCESS);
             return;
         }
 
@@ -1594,6 +1470,11 @@ void progressWithSpace() {
 
     if (showDialogue) {
         showDialogue = false;
+
+        if (pendingGiveUpConfirm) {
+            pendingGiveUpConfirm = false;
+            return;
+        }
 
         if (currentState == DIALOG_SECURITY_GUARD) {
             changeState(SAMSAT_EXTERIOR);
@@ -1694,17 +1575,11 @@ void progressWithSpace() {
         case VALIDATION_SUCCESS:
             break;
 
-        case FINAL_CORRIDOR:
-            break;
-
         case FINAL_COUNTER_BOSS:
             break;
 
         case ENDING_CLEAN_SUCCESS:
-        case ENDING_FAST_SUCCESS:
-        case ENDING_SAMSAT_LEGEND:
         case ENDING_GIVE_UP:
-        case ENDING_MAP_REVOLUTION:
             changeState(CREDIT_SCENE);
             break;
 
