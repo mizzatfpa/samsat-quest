@@ -856,6 +856,7 @@ void setupCamera() {
 }
 
 void drawSamsatExterior3D() {
+    drawCityBoundary(28.0f, 16.0f);
     drawTexturedGround(30.0f, rockTextureId, 6.0f);
 
     drawCube(0.0f, 2.25f, -10.0f, 16.0f, 4.5f, 5.5f, 0.60f, 0.60f, 0.64f);
